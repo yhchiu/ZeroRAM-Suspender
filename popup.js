@@ -1,0 +1,163 @@
+// popup.js - build popup UI
+(async () => {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const suspendedPrefix = chrome.runtime.getURL('suspended.html');
+  const STORAGE_KEY = 'utsSettings';
+
+  // Set version dynamically
+  const manifest = chrome.runtime.getManifest();
+  const versionEl = document.getElementById('version');
+  if (versionEl) {
+    versionEl.textContent = `v${manifest.version}`;
+  }
+
+  function isInternalUrl(url) {
+    return (
+      url.startsWith('chrome://') ||
+      url.startsWith('edge://') ||
+      url.startsWith('about://') ||
+      url.startsWith('view-source:') ||
+      url.startsWith('devtools://') ||
+      url.startsWith('chrome-extension://') ||
+      url.startsWith('extension://')
+    );
+  }
+
+  function isWhitelisted(url, settings) {
+    if (!url) return false;
+    if (isInternalUrl(url)) return true;
+    const u = new URL(url);
+    return (settings.whitelist || []).some(entry => {
+      if (!entry) return false;
+      if (entry.startsWith('http')) {
+        return url.startsWith(entry);
+      }
+      return u.hostname === entry || u.hostname.endsWith('.' + entry);
+    });
+  }
+
+  const { [STORAGE_KEY]: settings = {} } = await chrome.storage.sync.get(STORAGE_KEY);
+
+  const isPlaceholder = tab.url.startsWith(suspendedPrefix);
+  const cannotSuspend = isWhitelisted(tab.url, settings);
+  const bannerEl = document.getElementById('banner');
+  const menuEl = document.getElementById('menu');
+
+  // Fetch temporary whitelist status
+  const { whitelisted: tempWhite } = await chrome.runtime.sendMessage({ command: 'checkTempWhitelist', url: tab.url });
+
+  let bannerTextEl = document.createElement('span');
+  bannerEl.appendChild(bannerTextEl);
+  let actionLink = document.createElement('a');
+  actionLink.href = '#';
+  actionLink.style.color = '#fff';
+  actionLink.style.marginLeft = '4px';
+  bannerEl.appendChild(actionLink);
+
+  if (cannotSuspend) {
+    bannerTextEl.textContent = getMessage('cannotSuspend');
+    bannerEl.classList.remove('blue');
+    bannerEl.classList.add('gray');
+    actionLink.style.display = 'none';
+  } else if (isPlaceholder) {
+    bannerTextEl.textContent = getMessage('tabSuspended');
+    bannerEl.classList.remove('blue');
+    bannerEl.classList.add('gray');
+    actionLink.style.display = 'none';
+  } else {
+    if (settings.autoSuspendMinutes === 0) {
+      bannerTextEl.textContent = getMessage('autoSuspendDisabled');
+      bannerEl.classList.remove('blue');
+      bannerEl.classList.add('gray');
+      actionLink.style.display = 'none';
+    } else if (tempWhite) {
+      // Temporarily excluded from suspension
+      bannerTextEl.textContent = getMessage('autoSuspendPaused');
+      bannerEl.classList.remove('blue');
+      bannerEl.classList.add('gray');
+      actionLink.textContent = getMessage('allowSuspend');
+      actionLink.style.display = 'inline';
+    } else {
+      bannerTextEl.textContent = getMessage('tabWillSuspend');
+      bannerEl.classList.remove('gray');
+      bannerEl.classList.add('blue');
+      actionLink.textContent = getMessage('notNow');
+      actionLink.style.display = 'inline';
+    }
+
+    // Add click listener if applicable
+    if (settings.autoSuspendMinutes !== 0) {
+      actionLink.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const { whitelisted } = await chrome.runtime.sendMessage({ command: 'toggleTempWhitelist', url: tab.url });
+        // Update UI based on new state
+        if (whitelisted) {
+          bannerTextEl.textContent = getMessage('autoSuspendPaused');
+          bannerEl.classList.remove('blue');
+          bannerEl.classList.add('gray');
+          actionLink.textContent = getMessage('allowSuspend');
+        } else {
+          bannerTextEl.textContent = getMessage('tabWillSuspend');
+          bannerEl.classList.remove('gray');
+          bannerEl.classList.add('blue');
+          actionLink.textContent = getMessage('notNow');
+        }
+      });
+    }
+  }
+
+  function addItem(text, onClick, iconType = '') {
+    const li = document.createElement('li');
+    li.textContent = text;
+    if (iconType) {
+      li.setAttribute('data-icon', iconType);
+    }
+    li.addEventListener('click', async () => {
+      await onClick();
+      window.close();
+    });
+    menuEl.appendChild(li);
+  }
+
+  // Menu items depending on state
+  if (!isPlaceholder && !cannotSuspend) {
+    addItem(getMessage('suspendThisTab'), async () => {
+      await chrome.runtime.sendMessage({ command: 'suspendTab', tabId: tab.id });
+    }, 'suspend');
+  }
+
+  if (!cannotSuspend) {
+    addItem(getMessage('neverSuspendURL'), async () => {
+      await modifyWhitelist(tab.url);
+    }, 'never');
+    addItem(getMessage('neverSuspendDomain'), async () => {
+      const domain = new URL(tab.url).hostname;
+      await modifyWhitelist(domain);
+    }, 'never');
+  }
+
+  menuEl.appendChild(document.createElement('hr'));
+
+  addItem(getMessage('suspendOthers'), async () => {
+    await chrome.runtime.sendMessage({ command: 'suspendOthers', tabId: tab.id });
+  }, 'others');
+  addItem(getMessage('unsuspendAll'), async () => {
+    await chrome.runtime.sendMessage({ command: 'unsuspendAll' });
+  }, 'wake');
+
+  menuEl.appendChild(document.createElement('hr'));
+  addItem(getMessage('settingsMenu'), async () => {
+    await chrome.runtime.openOptionsPage();
+  }, 'settings');
+
+  // --- helper to add to whitelist ---
+  async function modifyWhitelist(entry) {
+    const { [STORAGE_KEY]: cfg = {} } = await chrome.storage.sync.get(STORAGE_KEY);
+    cfg.whitelist = cfg.whitelist || [];
+    if (!cfg.whitelist.includes(entry)) {
+      cfg.whitelist.push(entry);
+      await chrome.storage.sync.set({ [STORAGE_KEY]: cfg });
+      await chrome.runtime.sendMessage({ command: 'updateSettings', settings: cfg });
+    }
+  }
+})(); 

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator - ZeroRAM Suspender</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .icon-preview {
+            display: inline-block;
+            margin: 10px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .icon-preview img {
+            display: block;
+            margin: 0 auto 10px;
+        }
+        .download-btn {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .download-btn:hover {
+            background: #5a6fd8;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .instructions {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>💤 ZeroRAM Suspender - Icon Generator</h1>
+    
+    <div class="instructions">
+        <h3>Instructions:</h3>
+        <ol>
+            <li>Click the "Download PNG" button below to download icons in various sizes</li>
+            <li>Put the downloaded PNG files into the <code>icons/</code> folder</li>
+            <li>Update the icon paths in manifest.json</li>
+        </ol>
+    </div>
+
+    <div id="iconContainer"></div>
+
+    <script>
+        const sizes = [16, 32, 48, 128];
+        const container = document.getElementById('iconContainer');
+
+        sizes.forEach(size => {
+            const preview = document.createElement('div');
+            preview.className = 'icon-preview';
+            
+            // Create SVG element
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', size);
+            svg.setAttribute('height', size);
+            svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
+            
+            // Add gradient definition
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+            gradient.setAttribute('id', `grad${size}`);
+            gradient.setAttribute('x1', '0%');
+            gradient.setAttribute('y1', '0%');
+            gradient.setAttribute('x2', '100%');
+            gradient.setAttribute('y2', '100%');
+            
+            const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            stop1.setAttribute('offset', '0%');
+            stop1.setAttribute('style', 'stop-color:#667eea;stop-opacity:1');
+            
+            const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            stop2.setAttribute('offset', '100%');
+            stop2.setAttribute('style', 'stop-color:#764ba2;stop-opacity:1');
+            
+            gradient.appendChild(stop1);
+            gradient.appendChild(stop2);
+            defs.appendChild(gradient);
+            svg.appendChild(defs);
+            
+            // Add circle background
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', size/2);
+            circle.setAttribute('cy', size/2);
+            circle.setAttribute('r', size/2);
+            circle.setAttribute('fill', `url(#grad${size})`);
+            svg.appendChild(circle);
+            
+            // Add Z symbols
+            const mainZ = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            mainZ.setAttribute('x', size/2);
+            mainZ.setAttribute('y', size * 0.7);
+            mainZ.setAttribute('font-family', 'system-ui, -apple-system, sans-serif');
+            mainZ.setAttribute('font-size', size * 0.5);
+            mainZ.setAttribute('font-weight', 'bold');
+            mainZ.setAttribute('text-anchor', 'middle');
+            mainZ.setAttribute('fill', 'white');
+            mainZ.setAttribute('opacity', '0.9');
+            mainZ.textContent = 'Z';
+            svg.appendChild(mainZ);
+            
+            const smallZ1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            smallZ1.setAttribute('x', size * 0.3);
+            smallZ1.setAttribute('y', size * 0.45);
+            smallZ1.setAttribute('font-family', 'system-ui, -apple-system, sans-serif');
+            smallZ1.setAttribute('font-size', size * 0.37);
+            smallZ1.setAttribute('font-weight', 'bold');
+            smallZ1.setAttribute('text-anchor', 'middle');
+            smallZ1.setAttribute('fill', 'white');
+            smallZ1.setAttribute('opacity', '0.7');
+            smallZ1.textContent = 'z';
+            svg.appendChild(smallZ1);
+            
+            const smallZ2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            smallZ2.setAttribute('x', size * 0.7);
+            smallZ2.setAttribute('y', size * 0.37);
+            smallZ2.setAttribute('font-family', 'system-ui, -apple-system, sans-serif');
+            smallZ2.setAttribute('font-size', size * 0.25);
+            smallZ2.setAttribute('font-weight', 'bold');
+            smallZ2.setAttribute('text-anchor', 'middle');
+            smallZ2.setAttribute('fill', 'white');
+            smallZ2.setAttribute('opacity', '0.5');
+            smallZ2.textContent = 'z';
+            svg.appendChild(smallZ2);
+            
+            preview.appendChild(svg);
+            
+            const label = document.createElement('div');
+            label.textContent = `${size}x${size}`;
+            label.style.fontWeight = 'bold';
+            label.style.marginBottom = '10px';
+            preview.appendChild(label);
+            
+            const downloadBtn = document.createElement('button');
+            downloadBtn.className = 'download-btn';
+            downloadBtn.textContent = '下載 PNG';
+            downloadBtn.onclick = () => downloadPNG(svg, size);
+            preview.appendChild(downloadBtn);
+            
+            container.appendChild(preview);
+        });
+
+        function downloadPNG(svg, size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+            const url = URL.createObjectURL(svgBlob);
+            
+            const img = new Image();
+            img.onload = function() {
+                ctx.drawImage(img, 0, 0);
+                
+                canvas.toBlob(function(blob) {
+                    const link = document.createElement('a');
+                    link.download = `icon${size}.png`;
+                    link.href = URL.createObjectURL(blob);
+                    link.click();
+                    URL.revokeObjectURL(link.href);
+                });
+                
+                URL.revokeObjectURL(url);
+            };
+            img.src = url;
+        }
+    </script>
+</body>
+</html> 

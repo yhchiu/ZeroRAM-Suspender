@@ -1,0 +1,26 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+  text-align: center;
+}
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+  flex-direction: column;
+}
+.banner {
+  padding: 8px 12px;
+  color: #fff;
+}
+.banner.blue {
+  background: #2196f3;
+}
+.banner.gray {
+  background: #757575;
+}
+button {
+  padding: 6px 12px;
+  cursor: pointer;
+} 
