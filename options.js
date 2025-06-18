@@ -3,7 +3,58 @@ const STORAGE_KEY = 'utsSettings';
 const autoSuspendEl = document.getElementById('autoSuspend');
 const discardEl = document.getElementById('nativeDiscard');
 const whitelistEl = document.getElementById('whitelist');
-const statusEl = document.getElementById('status');
+
+/* ---------- Overlay Notice mechanism ---------- */
+/**
+ * Create or retrieve the global notice container.
+ */
+function getNoticeContainer() {
+  let container = document.getElementById('notice-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'notice-container';
+    container.className = 'notice-container';
+    document.body.appendChild(container);
+  }
+  return container;
+}
+
+/**
+ * Show a notice overlay with optional type and duration.
+ * type: 'success' | 'error' | 'warning' | 'info'
+ */
+function showNotice(message, type = 'info', duration = 3000) {
+  const container = getNoticeContainer();
+  const notice = document.createElement('div');
+  notice.className = `notice notice-${type}`;
+
+  // Message span
+  const msg = document.createElement('span');
+  msg.className = 'notice-message';
+  msg.textContent = message;
+  notice.appendChild(msg);
+
+  // Progress bar
+  const progress = document.createElement('div');
+  progress.className = 'notice-progress';
+  progress.style.transition = `width ${duration}ms linear`;
+  notice.appendChild(progress);
+
+  // Trigger progress bar animation
+  requestAnimationFrame(() => {
+    progress.style.width = '0%';
+  });
+
+  container.appendChild(notice);
+
+  // Auto close notice
+  const close = () => {
+    notice.classList.add('hide');
+    setTimeout(() => notice.remove(), 250); // match fadeOut duration
+  };
+  setTimeout(close, duration);
+}
+/* ---------- End Overlay Notice mechanism ---------- */
 
 // Navigation functionality
 function initNavigation() {
@@ -110,15 +161,7 @@ function save() {
           saveMessage = getMessage('savedNotice');
       }
       
-      statusEl.textContent = saveMessage;
-      statusEl.classList.add('show');
-      
-      setTimeout(() => {
-        statusEl.classList.remove('show');
-        setTimeout(() => {
-          statusEl.textContent = '';
-        }, 300);
-      }, 2000);
+      showNotice(saveMessage, 'success');
     });
   });
 }

@@ -349,6 +349,60 @@
       margin-bottom: 16px;
       opacity: 0.5;
     }
+
+    /* Overlay Notices */
+    .notice-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 9999;
+    }
+
+    .notice {
+      min-width: 240px;
+      max-width: 320px;
+      padding: 14px 16px;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      position: relative;
+      overflow: hidden;
+      transform: translateX(100%);
+      opacity: 0;
+      animation: slideIn 0.25s ease forwards;
+    }
+
+    .notice.hide {
+      animation: fadeOut 0.25s ease forwards;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(100%); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes fadeOut {
+      from { opacity: 1; transform: translateX(0); }
+      to   { opacity: 0; transform: translateX(100%); }
+    }
+
+    .notice-success { background: linear-gradient(45deg, #28a745, #218838); }
+    .notice-error   { background: linear-gradient(45deg, #dc3545, #c82333); }
+    .notice-warning { background: linear-gradient(45deg, #ffc107, #e0a800); color: #333; }
+    .notice-info    { background: linear-gradient(45deg, #17a2b8, #138496); }
+
+    .notice-progress {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.85);
+    }
   </style>
 </head>
 <body>
