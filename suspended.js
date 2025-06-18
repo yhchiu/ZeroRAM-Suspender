@@ -71,6 +71,11 @@
 
   function unsuspend() {
     if (originalUrl) {
+      // Notify background script that this tab is being unsuspended
+      chrome.runtime.sendMessage({
+        command: 'startUnsuspending',
+        tabId: chrome.tabs ? undefined : 'current' // Will be resolved by background script
+      });
       location.href = originalUrl;
     }
   }

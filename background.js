@@ -18,6 +18,9 @@ let tempWhitelist = [];
 // Map<tabId, lastSeenTimestamp> persisted across restarts
 let seenTimestamps = {};
 
+// Track tabs that are currently being unsuspended to prevent re-suspension
+let unsuspendingTabs = new Set();
+
 // Alarm period (minutes)
 const ALARM_PERIOD_MINUTES = 1; // must be >=1 for chrome.alarms
 
@@ -150,11 +153,32 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete') {
     seenTimestamps[tabId] = Date.now();
     saveSeenTimestamps();
+    
+    // If tab was being unsuspended and is now complete, remove from tracking
+    if (unsuspendingTabs.has(tabId)) {
+      unsuspendingTabs.delete(tabId);
+    }
   }
+  
+  // Track tabs that are being unsuspended (URL changed from suspended.html to original URL)
+  if (changeInfo.url && unsuspendingTabs.has(tabId)) {
+    const suspendedPrefix = chrome.runtime.getURL('suspended.html');
+    if (!changeInfo.url.startsWith(suspendedPrefix)) {
+      // URL has changed from suspended.html to original URL, keep tracking until complete
+    }
+  }
+  
   if (changeInfo.active === false) {
     // Tab became inactive
     reDiscardInactiveSuspendedTabs();
   }
+});
+
+// Clean up tracking when tabs are closed
+chrome.tabs.onRemoved.addListener((tabId) => {
+  unsuspendingTabs.delete(tabId);
+  delete seenTimestamps[tabId];
+  saveSeenTimestamps();
 });
 
 // Receive commands from popup/options
@@ -166,6 +190,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       await suspendTab(tab, settings);
       sendResponse({ done: true });
     } else if (msg.command === 'unsuspendTab') {
+      // Start tracking this tab as being unsuspended
+      unsuspendingTabs.add(msg.tabId);
       await chrome.tabs.update(msg.tabId, { url: msg.originalUrl });
       sendResponse({ done: true });
     } else if (msg.command === 'suspendOthers') {
@@ -185,6 +211,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           const urlParams = new URLSearchParams(tab.url.split('?')[1]);
           const original = urlParams.get('uri');
           if (original) {
+            // Start tracking this tab as being unsuspended
+            unsuspendingTabs.add(tab.id);
             await chrome.tabs.update(tab.id, { url: original });
           }
         }
@@ -206,6 +234,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     } else if (msg.command === 'checkTempWhitelist') {
       const whitelisted = tempWhitelist.includes(msg.url);
       sendResponse({ whitelisted });
+    } else if (msg.command === 'startUnsuspending') {
+      // Get the current tab ID from sender
+      const tabId = sender.tab ? sender.tab.id : msg.tabId;
+      if (tabId) {
+        unsuspendingTabs.add(tabId);
+      }
+      sendResponse({ done: true });
     }
   })();
   // indicate async
@@ -238,6 +273,9 @@ async function reDiscardInactiveSuspendedTabs() {
   const suspendedPrefix = chrome.runtime.getURL('suspended.html');
   const candidates = await chrome.tabs.query({ active: false, discarded: false });
   for (const t of candidates) {
+    // Skip tabs that are currently being unsuspended
+    if (unsuspendingTabs.has(t.id)) continue;
+    
     if (t.url && t.url.startsWith(suspendedPrefix)) {
       try {
         await chrome.tabs.discard(t.id);
