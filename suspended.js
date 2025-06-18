@@ -80,8 +80,23 @@
     }
   }
 
-  const suspendedSection = document.getElementById('suspendedSection');
-  suspendedSection.addEventListener('click', unsuspend);
+  // Add click listener to the entire document, but exclude origSection
+  document.addEventListener('mousedown', function(event) {
+    var e = event || window.event;
+    if (e.buttons !== 1) {
+      return;
+    }
+
+    const origSection = document.getElementById('origSection');
+    
+    // Check if the click target is within origSection
+    if (origSection && origSection.contains(event.target)) {
+      return; // Don't unsuspend if clicking within origSection
+    }
+    
+    // Unsuspend for clicks anywhere else
+    unsuspend();
+  });
 
   // Keyboard shortcut handler for Ctrl+Shift+Z
   function handleKeydown(event) {
@@ -91,6 +106,6 @@
     }
   }
 
-  // Click or Ctrl+Shift+Z to unsuspend
+  // Click anywhere (except origSection) or Ctrl+Shift+Z to unsuspend
   document.addEventListener('keydown', handleKeydown);
 })(); 
