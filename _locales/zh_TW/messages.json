@@ -9,6 +9,8 @@
   "whitelistPlaceholder": { "message": "每行一個項目" },
   "saveButton": { "message": "儲存" },
   "savedNotice": { "message": "已儲存！" },
+  "savedBasicSettings": { "message": "基本設定已儲存！" },
+  "savedWhitelistSettings": { "message": "白名單設定已儲存！" },
   "cannotSuspend": { "message": "此分頁不可休眠" },
   "tabSuspended": { "message": "分頁已休眠" },
   "autoSuspendDisabled": { "message": "已停用自動休眠" },

@@ -9,6 +9,8 @@
   "whitelistPlaceholder": { "message": "One entry per line" },
   "saveButton": { "message": "Save" },
   "savedNotice": { "message": "Saved!" },
+  "savedBasicSettings": { "message": "Basic settings saved!" },
+  "savedWhitelistSettings": { "message": "Whitelist settings saved!" },
   "cannotSuspend": { "message": "This tab cannot be suspended" },
   "tabSuspended": { "message": "Tab suspended" },
   "autoSuspendDisabled": { "message": "Auto suspend disabled" },
