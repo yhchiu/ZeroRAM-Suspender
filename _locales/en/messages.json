@@ -24,7 +24,7 @@
   "suspendOthers": { "message": "Suspend all other tabs" },
   "unsuspendAll": { "message": "Unsuspend all tabs" },
   "settingsMenu": { "message": "Settings" },
-  "suspendedInstruction": { "message": "Click anywhere or press any key to reload this tab." },
+  "suspendedInstruction": { "message": "Click here or press Ctrl+Shift+Z to reload this tab." },
   "basicSettings": { "message": "Basic Settings" },
   "basicSettingsDesc": { "message": "Configure basic tab suspension behavior and options" },
   "autoSuspendTitle": { "message": "Auto Suspend" },

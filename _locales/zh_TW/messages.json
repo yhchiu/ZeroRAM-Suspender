@@ -24,7 +24,7 @@
   "suspendOthers": { "message": "休眠其他所有分頁" },
   "unsuspendAll": { "message": "喚醒所有分頁" },
   "settingsMenu": { "message": "設定" },
-  "suspendedInstruction": { "message": "點擊任意處或按任意鍵即可重新載入此分頁。" },
+  "suspendedInstruction": { "message": "點擊此處或按 Ctrl+Shift+Z 即可重新載入此分頁。" },
   "basicSettings": { "message": "基本設定" },
   "basicSettingsDesc": { "message": "配置分頁暫停的基本行為和選項" },
   "autoSuspendTitle": { "message": "自動暫停" },

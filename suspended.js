@@ -69,13 +69,23 @@
     urlEl.href = originalUrl;
   }
 
-  // Click or key press to unsuspend
   function unsuspend() {
     if (originalUrl) {
       location.href = originalUrl;
     }
   }
 
-  document.addEventListener('click', unsuspend);
-  document.addEventListener('keydown', unsuspend);
+  const suspendedSection = document.getElementById('suspendedSection');
+  suspendedSection.addEventListener('click', unsuspend);
+
+  // Keyboard shortcut handler for Ctrl+Shift+Z
+  function handleKeydown(event) {
+    if (event.ctrlKey && event.shiftKey && event.key === 'Z') {
+      event.preventDefault(); // Prevent browser's default action
+      unsuspend();
+    }
+  }
+
+  // Click or Ctrl+Shift+Z to unsuspend
+  document.addEventListener('keydown', handleKeydown);
 })(); 
