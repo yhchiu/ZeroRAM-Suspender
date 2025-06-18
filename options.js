@@ -80,8 +80,13 @@ function initNavigation() {
         targetSection.classList.add('active');
       }
       
+      // Reset migration state when switching to migration section
+      if (sectionId === 'migration') {
+        resetMigrationState();
+      }
+      
       // Show/hide save button based on section
-      if (sectionId === 'about') {
+      if (sectionId === 'about' || sectionId === 'migration') {
         actionBar.style.display = 'none';
       } else {
         actionBar.style.display = 'flex';
@@ -133,6 +138,9 @@ function save() {
       case 'whitelist':
         updatedCfg.whitelist = whitelistEl.value.split(/\n/).map(s => s.trim()).filter(Boolean);
         break;
+      case 'migration':
+        // No settings to save in migration section
+        break;
       case 'about':
         // No settings to save in about section
         break;
@@ -157,6 +165,9 @@ function save() {
         case 'whitelist':
           saveMessage = getMessage('savedWhitelistSettings');
           break;
+        case 'migration':
+          saveMessage = getMessage('savedTabMigrationSettings');
+          break;
         default:
           saveMessage = getMessage('savedNotice');
       }
@@ -175,9 +186,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Check initial active section and hide save button if needed
   const initialActiveSection = getCurrentActiveSection();
   const actionBar = document.querySelector('.action-bar');
-  if (initialActiveSection === 'about') {
+  if (initialActiveSection === 'about' || initialActiveSection === 'migration') {
     actionBar.style.display = 'none';
   }
+  
+  // Initialize tab migration functionality
+  initTabMigration();
 });
 
 // Attach save button event listener
@@ -189,4 +203,376 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault();
     save();
   }
-}); 
+});
+
+/* ---------- Tab Migration Functions ---------- */
+
+// Initialize tab migration functionality
+function initTabMigration() {
+  const scanBtn = document.getElementById('scanMarvellousBtn');
+  const selectAllBtn = document.getElementById('selectAllBtn');
+  const deselectAllBtn = document.getElementById('deselectAllBtn');
+  const migrateBtn = document.getElementById('migrateSelectedBtn');
+  
+  if (scanBtn) {
+    scanBtn.addEventListener('click', scanForMarvellousTab);
+  }
+  if (selectAllBtn) {
+    selectAllBtn.addEventListener('click', selectAllTabs);
+  }
+  if (deselectAllBtn) {
+    deselectAllBtn.addEventListener('click', deselectAllTabs);
+  }
+  if (migrateBtn) {
+    migrateBtn.addEventListener('click', migrateSelectedTabs);
+  }
+}
+
+// Known The Marvellous Suspender extension IDs
+const KNOWN_MARVELLOUS_SUSPENDER_IDS = [
+  'klbibkeccnjlkjkiokjodocebajanakg', // Original The Marvellous Suspender
+  'noogafoofpebimajpfpamcfhoaifemoa', // Alternative version  
+  'gcknhkkoolaabfmlnjonogaaifnjlfnp', // Another known ID
+  'ahfhijdlegdabablpippeagghigmibma', // Newer version
+  'jlgkpaicikihijadgifklkbpdajbkhjo', // Community fork
+  'ahkbmjhfoplmfkpncgoedjgkajkehcgo', // The Great Suspender (notrack)
+  // Add more known IDs as needed
+];
+
+// Cache for dynamically discovered extension IDs
+let discoveredMarvellousIds = new Set();
+
+// Check if URL is from The Marvellous Suspender
+function isMarvellousTabUrl(url) {
+  if (!url || !url.startsWith('chrome-extension://') || !url.includes('/suspended.html#')) {
+    return false;
+  }
+  
+  // Extract extension ID from URL
+  const matches = url.match(/chrome-extension:\/\/([a-z]+)\/suspended\.html#/);
+  if (!matches || matches.length < 2) {
+    return false;
+  }
+  
+  const extensionId = matches[1];
+  return KNOWN_MARVELLOUS_SUSPENDER_IDS.includes(extensionId) || discoveredMarvellousIds.has(extensionId);
+}
+
+// Check if URL might be from an unknown Marvellous Suspender variant
+function checkPotentialMarvellousTab(url) {
+  try {
+    if (!url || !url.startsWith('chrome-extension://') || !url.includes('/suspended.html#')) {
+      return null;
+    }
+    
+    const hashPart = url.split('#')[1];
+    if (!hashPart) {
+      return null;
+    }
+    
+    // Check if it has the characteristic Marvellous Suspender parameters
+    const params = new URLSearchParams(hashPart);
+    const title = params.get('ttl');
+    const originalUrl = params.get('uri');
+    const position = params.get('pos');
+    
+    // Must have 'ttl' and 'uri' parameters to be considered a potential match
+    if (!originalUrl || !params.has('ttl')) {
+      return null;
+    }
+    
+    // Extract extension ID
+    const matches = url.match(/chrome-extension:\/\/([a-z]+)\/suspended\.html#/);
+    const extensionId = matches ? matches[1] : 'unknown';
+    
+    return {
+      title: title ? decodeURIComponent(title) : originalUrl,
+      originalUrl: originalUrl,
+      position: position ? parseInt(position) : 0,
+      extensionId: extensionId
+    };
+  } catch (error) {
+    console.error('[ZeroRAM Suspender] Error checking potential Marvellous Suspender variant:', error);
+    return null;
+  }
+}
+
+// Scan for The Marvellous Suspender tabs
+async function scanForMarvellousTab() {
+  const scanBtn = document.getElementById('scanMarvellousBtn');
+  const resultsDiv = document.getElementById('migrationResults');
+  const statusDiv = document.getElementById('migrationStatus');
+  const tabsListDiv = document.getElementById('tabsList');
+  const tabsContainer = document.getElementById('tabsContainer');
+  
+  // Disable scan button and show loading
+  scanBtn.disabled = true;
+  scanBtn.style.opacity = '0.6';
+  statusDiv.textContent = getMessage('scanningTabs');
+  statusDiv.style.color = '#666';
+  resultsDiv.style.display = 'block';
+  tabsListDiv.style.display = 'none';
+  
+  try {
+    // Query all tabs
+    const tabs = await chrome.tabs.query({});
+    const marvellousTab = [];
+    const detectedExtensionIds = new Set();
+    
+    for (const tab of tabs) {
+      if (tab.url && tab.url.includes('/suspended.html#')) {
+        // Parse as potential Marvellous Suspender tab
+        const potentialMatch = checkPotentialMarvellousTab(tab.url);
+        if (potentialMatch) {
+          // Check if this extension ID is in our known list
+          const isKnownVariant = KNOWN_MARVELLOUS_SUSPENDER_IDS.includes(potentialMatch.extensionId);
+          
+          console.log(`[ZeroRAM Suspender] Found tab with extension ID: ${potentialMatch.extensionId}, isKnownVariant: ${isKnownVariant}`);
+          
+          marvellousTab.push({
+            ...potentialMatch,
+            tabId: tab.id,
+            tabIndex: tab.index,
+            favIconUrl: tab.favIconUrl,
+            isUnknownVariant: !isKnownVariant
+          });
+          
+          detectedExtensionIds.add(potentialMatch.extensionId);
+          
+          // Add to discovered IDs if it's unknown
+          if (!isKnownVariant) {
+            discoveredMarvellousIds.add(potentialMatch.extensionId);
+          }
+        }
+      }
+    }
+    
+    // Log detected extension IDs for debugging
+    if (detectedExtensionIds.size > 0) {
+      console.log('[ZeroRAM Suspender] Detected The Marvellous Suspender extension IDs:', Array.from(detectedExtensionIds));
+    }
+    
+    // Update status and display results
+    if (marvellousTab.length === 0) {
+      statusDiv.textContent = getMessage('noMarvellousTabFound');
+      statusDiv.style.color = '#666';
+    } else {
+      const knownVariants = marvellousTab.filter(tab => !tab.isUnknownVariant).length;
+      const unknownVariants = marvellousTab.filter(tab => tab.isUnknownVariant).length;
+      
+      let statusText = getMessage('foundMarvellousTab').replace('%d', marvellousTab.length);
+      if (unknownVariants > 0) {
+        statusText += ` (${unknownVariants} ${getMessage('unknownVariant').toLowerCase()})`;
+      }
+      
+      statusDiv.textContent = statusText;
+      statusDiv.style.color = '#27ae60';
+      
+      // Display tabs list
+      displayMarvellousTab(marvellousTab, tabsContainer);
+      tabsListDiv.style.display = 'block';
+    }
+  } catch (error) {
+    console.error('[ZeroRAM Suspender] Error scanning tabs:', error);
+    statusDiv.textContent = getMessage('errorScanningTabs') + error.message;
+    statusDiv.style.color = '#dc3545';
+  } finally {
+    // Re-enable scan button
+    scanBtn.disabled = false;
+    scanBtn.style.opacity = '1';
+  }
+}
+
+// Display found Marvellous Suspender tabs
+function displayMarvellousTab(tabs, container) {
+  container.innerHTML = '';
+  
+  tabs.forEach((tabData, index) => {
+    const tabItem = document.createElement('div');
+    tabItem.style.cssText = `
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      margin-bottom: 8px;
+      background: white;
+      border-radius: 6px;
+      border: 1px solid #e1e5e9;
+      transition: all 0.2s ease;
+    `;
+    
+    const variantBadge = tabData.isUnknownVariant 
+      ? `<span style="background: #ffc107; color: #333; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 8px;">${getMessage('unknownVariant')}</span>`
+      : '';
+    
+    tabItem.innerHTML = `
+      <input type="checkbox" 
+             id="tab-${index}" 
+             data-tab-id="${tabData.tabId}"
+             data-original-url="${tabData.originalUrl}"
+             data-title="${tabData.title}"
+             data-favicon-url="${tabData.favIconUrl || ''}"
+             checked
+             style="margin-right: 12px; width: 16px; height: 16px;">
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-weight: 500; color: #333; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center;">
+          ${tabData.favIconUrl ? `<img src="${escapeHtml(tabData.favIconUrl)}" style="width: 16px; height: 16px; margin-right: 8px; flex-shrink: 0;" onerror="this.style.display='none'">` : ''}${escapeHtml(tabData.title)}${variantBadge}
+        </div>
+        <div style="font-size: 12px; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          ${escapeHtml(tabData.originalUrl)}
+        </div>
+        <div style="font-size: 10px; color: #999; margin-top: 2px;">
+          ${getMessage('extensionId')}: ${tabData.extensionId}
+        </div>
+      </div>
+    `;
+    
+    container.appendChild(tabItem);
+  });
+}
+
+// Select all tabs
+function selectAllTabs() {
+  const checkboxes = document.querySelectorAll('#tabsContainer input[type="checkbox"]');
+  checkboxes.forEach(checkbox => {
+    checkbox.checked = true;
+  });
+}
+
+// Deselect all tabs
+function deselectAllTabs() {
+  const checkboxes = document.querySelectorAll('#tabsContainer input[type="checkbox"]');
+  checkboxes.forEach(checkbox => {
+    checkbox.checked = false;
+  });
+}
+
+// Migrate selected tabs
+async function migrateSelectedTabs() {
+  const checkboxes = document.querySelectorAll('#tabsContainer input[type="checkbox"]:checked');
+  const migrateBtn = document.getElementById('migrateSelectedBtn');
+  
+  if (checkboxes.length === 0) {
+    showNotice(getMessage('noTabsSelected'), 'warning');
+    return;
+  }
+  
+  // Disable migrate button
+  migrateBtn.disabled = true;
+  migrateBtn.style.opacity = '0.6';
+  
+  let successCount = 0;
+  let failureCount = 0;
+  
+  try {
+    for (const checkbox of checkboxes) {
+      try {
+        const tabId = parseInt(checkbox.dataset.tabId);
+        const originalUrl = checkbox.dataset.originalUrl;
+        const title = checkbox.dataset.title;
+        const favIconUrl = checkbox.dataset.faviconUrl;
+        
+        // Create the new suspended URL for ZeroRAM Suspender
+        let suspendedUrl = chrome.runtime.getURL('suspended.html') + 
+          '?uri=' + encodeURIComponent(originalUrl) +
+          '&ttl=' + encodeURIComponent(title);
+        
+        // Add favicon if available
+        if (favIconUrl && favIconUrl !== 'chrome://favicon/') {
+          suspendedUrl += '&favicon=' + encodeURIComponent(favIconUrl);
+        }
+        
+        // Update the tab to use ZeroRAM Suspender format
+        await chrome.tabs.update(tabId, { url: suspendedUrl });
+        successCount++;
+      } catch (error) {
+        console.error('[ZeroRAM Suspender] Error migrating tab:', error);
+        failureCount++;
+      }
+    }
+    
+    // Show completion message
+    if (successCount > 0) {
+      showNotice(getMessage('migrationComplete') + ` (${successCount}${getMessage('tabsMigrated')})`, 'success');
+      
+      // Refresh the tab list
+      setTimeout(() => {
+        scanForMarvellousTab();
+      }, 1000);
+    }
+    
+    if (failureCount > 0) {
+      showNotice(getMessage('migrationFailed') + ` (${failureCount}${getMessage('tabsFailed')})`, 'error');
+    }
+  } catch (error) {
+    console.error('[ZeroRAM Suspender] Migration error:', error);
+    showNotice(getMessage('migrationFailed') + ': ' + error.message, 'error');
+  } finally {
+    // Re-enable migrate button
+    migrateBtn.disabled = false;
+    migrateBtn.style.opacity = '1';
+  }
+}
+
+// Utility function to escape HTML
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Utility function to get message (fallback for i18n)
+function getMessage(key) {
+  return chrome.i18n ? chrome.i18n.getMessage(key) : key;
+}
+
+// Reset migration state when switching to migration section
+function resetMigrationState() {
+  const resultsDiv = document.getElementById('migrationResults');
+  const statusDiv = document.getElementById('migrationStatus');
+  const tabsListDiv = document.getElementById('tabsList');
+  const tabsContainer = document.getElementById('tabsContainer');
+  const scanBtn = document.getElementById('scanMarvellousBtn');
+  
+  // Hide results and reset content
+  if (resultsDiv) {
+    resultsDiv.style.display = 'none';
+  }
+  
+  if (statusDiv) {
+    statusDiv.textContent = '';
+  }
+  
+  if (tabsListDiv) {
+    tabsListDiv.style.display = 'none';
+  }
+  
+  if (tabsContainer) {
+    tabsContainer.innerHTML = '';
+  }
+  
+  // Reset scan button state
+  if (scanBtn) {
+    scanBtn.disabled = false;
+    scanBtn.style.opacity = '1';
+  }
+  
+  console.log('[ZeroRAM Suspender] Migration state reset');
+}
+
+// Clear discovered extension IDs cache (for testing purposes)
+function clearDiscoveredIds() {
+  discoveredMarvellousIds.clear();
+  console.log('[ZeroRAM Suspender] Cleared discovered extension IDs cache');
+}
+
+// Export for potential use in console debugging
+if (typeof window !== 'undefined') {
+  window.ZeroRAMSuspenderDebug = {
+    clearDiscoveredIds,
+    resetMigrationState,
+    getKnownIds: () => KNOWN_MARVELLOUS_SUSPENDER_IDS,
+    getDiscoveredIds: () => Array.from(discoveredMarvellousIds)
+  };
+}
+
+/* ---------- End Tab Migration Functions ---------- */ 

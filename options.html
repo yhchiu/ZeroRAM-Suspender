@@ -430,6 +430,12 @@
             <span data-i18n="whitelistTitle">Whitelist</span>
           </a>
         </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="migration">
+            <div class="nav-icon">🔄</div>
+            <span data-i18n="tabMigration">Tab Migration</span>
+          </a>
+        </li>
         <!-- <li class="nav-item">
           <a href="#" class="nav-link" data-section="advanced">
             <div class="nav-icon">⚡</div>
@@ -512,6 +518,56 @@
               • <code>google.com</code> - entire domain<br>
               • <code>https://example.com/page</code> - specific URL<br>
               • <code>localhost</code> - local development
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab Migration Section -->
+      <section id="migration" class="content-section">
+        <div class="section-header">
+          <h2 data-i18n="tabMigration">Tab Migration</h2>
+          <p data-i18n="tabMigrationDesc">Migrate suspended tabs from other tab suspension extensions</p>
+        </div>
+
+        <div class="help-text" style="margin: 0 0 24px 0; padding: 12px; background: #f0f9ff; border-left: 3px solid #3b82f6; font-size: 13px; border-radius: 0 8px 8px 0;">
+          <div class="help-text" data-i18n="tabMigrationHelp">This feature allows you to convert suspended tabs from other tab suspension extensions (like The Marvellous Suspender) to ZeroRAM Suspender format, so you can continue using those tabs.</div>
+          <div class="help-text" style="margin-top: 8px;">
+            <strong data-i18n="migrationTip">💡 Tip:</strong> <span data-i18n="migrationTipDesc">This tool can automatically detect both known and unknown versions of The Marvellous Suspender. If you find tabs from other similar extensions, they may also be detected.</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>🔍</span>
+            <span data-i18n="marvellousTabDetection">The Marvellous Suspender Tab Detection</span>
+          </div>
+          <div class="card-description" data-i18n="marvellousTabDetectionDesc">
+            Automatically detect and provide migration for The Marvellous Suspender suspended tabs
+          </div>
+          <div class="form-group">
+            <button id="scanMarvellousBtn" class="btn btn-primary" style="margin-bottom: 16px;">
+              <span>🔍</span>
+              <span data-i18n="scanForMarvellousTab">Scan for The Marvellous Suspender tabs</span>
+            </button>
+            <div id="migrationResults" style="display: none;">
+              <div id="migrationStatus" style="margin-bottom: 16px; font-weight: 500;"></div>
+              <div id="tabsList" style="display: none;">
+                <div style="margin-bottom: 12px; display: flex; gap: 8px;">
+                  <button id="selectAllBtn" class="btn" style="background: #e1e5e9; color: #333;">
+                    <span data-i18n="selectAllTabs">Select All</span>
+                  </button>
+                  <button id="deselectAllBtn" class="btn" style="background: #e1e5e9; color: #333;">
+                    <span data-i18n="deselectAllTabs">Deselect All</span>
+                  </button>
+                </div>
+                <div id="tabsContainer" style="max-height: 300px; overflow-y: auto; border: 1px solid #e1e5e9; border-radius: 8px; padding: 12px; background: #f9f9f9;">
+                </div>
+                <button id="migrateSelectedBtn" class="btn btn-primary" style="margin-top: 16px;">
+                  <span>🔄</span>
+                  <span data-i18n="migrateSelected">Migrate selected tabs</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
