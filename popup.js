@@ -25,9 +25,20 @@
 
   function isWhitelisted(url, settings) {
     if (!url) return false;
-    if (isInternalUrl(url)) return true;
     const u = new URL(url);
     return (settings.whitelist || []).some(entry => {
+      if (!entry) return false;
+      if (entry.startsWith('http')) {
+        return url.startsWith(entry);
+      }
+      return u.hostname === entry || u.hostname.endsWith('.' + entry);
+    });
+  }
+
+  function getMatchedWhitelistEntry(url, settings) {
+    if (!url) return null;
+    const u = new URL(url);
+    return (settings.whitelist || []).find(entry => {
       if (!entry) return false;
       if (entry.startsWith('http')) {
         return url.startsWith(entry);
@@ -39,7 +50,10 @@
   const { [STORAGE_KEY]: settings = {} } = await chrome.storage.sync.get(STORAGE_KEY);
 
   const isPlaceholder = tab.url.startsWith(suspendedPrefix);
-  const cannotSuspend = isWhitelisted(tab.url, settings);
+  const isInternal = isInternalUrl(tab.url);
+  const isWhitelistedUrl = isWhitelisted(tab.url, settings);
+  const matchedWhitelistEntry = getMatchedWhitelistEntry(tab.url, settings);
+  const cannotSuspend = isInternal || isWhitelistedUrl;
   const bannerEl = document.getElementById('banner');
   const menuEl = document.getElementById('menu');
 
@@ -54,11 +68,25 @@
   actionLink.style.marginLeft = '4px';
   bannerEl.appendChild(actionLink);
 
-  if (cannotSuspend) {
+  if (isInternal) {
     bannerTextEl.textContent = getMessage('cannotSuspend');
     bannerEl.classList.remove('blue');
     bannerEl.classList.add('gray');
     actionLink.style.display = 'none';
+  } else if (isWhitelistedUrl) {
+    bannerTextEl.textContent = getMessage('siteWhitelisted');
+    bannerEl.classList.remove('blue');
+    bannerEl.classList.add('gray');
+    actionLink.textContent = getMessage('removeFromWhitelist');
+    actionLink.style.display = 'inline';
+    
+    actionLink.addEventListener('click', async (e) => {
+      e.preventDefault();
+      if (matchedWhitelistEntry && confirm(getMessage('confirmRemoveFromWhitelist').replace('%s', matchedWhitelistEntry))) {
+        await removeFromWhitelist(matchedWhitelistEntry);
+        window.close();
+      }
+    });
   } else if (isPlaceholder) {
     bannerTextEl.textContent = getMessage('tabSuspended');
     bannerEl.classList.remove('blue');
@@ -126,7 +154,7 @@
     }, 'suspend');
   }
 
-  if (!cannotSuspend) {
+  if (!isInternal && !isWhitelistedUrl) {
     addItem(getMessage('neverSuspendURL'), async () => {
       await modifyWhitelist(tab.url);
     }, 'never');
@@ -156,6 +184,18 @@
     cfg.whitelist = cfg.whitelist || [];
     if (!cfg.whitelist.includes(entry)) {
       cfg.whitelist.push(entry);
+      await chrome.storage.sync.set({ [STORAGE_KEY]: cfg });
+      await chrome.runtime.sendMessage({ command: 'updateSettings', settings: cfg });
+    }
+  }
+
+  // --- helper to remove from whitelist ---
+  async function removeFromWhitelist(entry) {
+    const { [STORAGE_KEY]: cfg = {} } = await chrome.storage.sync.get(STORAGE_KEY);
+    cfg.whitelist = cfg.whitelist || [];
+    const index = cfg.whitelist.indexOf(entry);
+    if (index > -1) {
+      cfg.whitelist.splice(index, 1);
       await chrome.storage.sync.set({ [STORAGE_KEY]: cfg });
       await chrome.runtime.sendMessage({ command: 'updateSettings', settings: cfg });
     }
