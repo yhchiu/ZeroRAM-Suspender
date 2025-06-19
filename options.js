@@ -106,6 +106,11 @@ function initNavigation() {
         resetMigrationState();
       }
       
+      // Auto-reload whitelist when switching to whitelist section
+      if (sectionId === 'whitelist') {
+        loadWhitelist(false);
+      }
+      
       // Show/hide save button based on section
       if (sectionId === 'about' || sectionId === 'migration') {
         actionBar.style.display = 'none';
@@ -140,11 +145,13 @@ function load() {
 }
 
 // Load only whitelist from storage
-function loadWhitelist() {
+function loadWhitelist(showNotification = true) {
   chrome.storage.sync.get(STORAGE_KEY, data => {
     const cfg = data[STORAGE_KEY] || {};
     whitelistEl.value = (cfg.whitelist || []).join('\n');
-    showNotice(getMessage('whitelistRefreshed') || 'Whitelist refreshed', 'success', 2000);
+    if (showNotification) {
+      showNotice(getMessage('whitelistRefreshed') || 'Whitelist refreshed', 'success', 2000);
+    }
   });
 }
 
