@@ -46,16 +46,28 @@ function showNotice(message, type = 'info', duration = 3000) {
   // Progress bar
   const progress = document.createElement('div');
   progress.className = 'notice-progress';
+  // Explicitly set initial width to ensure starting state
+  progress.style.width = '100%';
   progress.style.transition = `width ${duration}ms linear`;
   notice.appendChild(progress);
 
-  // Trigger progress bar animation
-  requestAnimationFrame(() => {
-    progress.style.width = '0%';
-  });
-
+  // Append to DOM BEFORE triggering animation to guarantee visibility
   container.appendChild(notice);
 
+  // Double rAF to ensure layout. Guarantees width change happens after element is rendered.
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      progress.style.width = '0%';
+    });
+  });
+
+  // Fallback safety in case rAF is skipped (e.g., background tab)
+  setTimeout(() => {
+    if (progress.style.width !== '0%') {
+      progress.style.width = '0%';
+    }
+  }, 50);
+  
   // Auto close notice
   const close = () => {
     notice.classList.add('hide');
