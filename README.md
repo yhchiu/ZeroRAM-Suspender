@@ -1,10 +1,10 @@
 # ZeroRAM Suspender
 
-A browser extension that saves memory by automatically suspending inactive tabs.
+A browser tab suspender that saves memory by using native discarding to achieve almost zero memory usage.
 
 ## What It Does
 
-ZeroRAM Suspender helps reduce your browser's memory usage by putting unused tabs to sleep. When a tab hasn't been used for a while, the extension automatically suspends it, freeing up memory while keeping the tab available for when you need it.
+ZeroRAM Suspender dramatically reduces your browser's memory usage by intelligently suspending unused tabs. Unlike traditional tab suspenders that use placeholder pages, ZeroRAM Suspender utilizes the browser's native tab discarding mechanism to achieve almost zero memory consumption for suspended tabs. When a tab hasn't been used for a while, the extension automatically suspends it using this native approach, freeing up memory while keeping the tab available for instant restoration when you need it.
 
 ## Features
 
@@ -13,6 +13,7 @@ ZeroRAM Suspender helps reduce your browser's memory usage by putting unused tab
 - **Memory Optimization**: Choose between native browser discarding or lightweight placeholder pages
 - **Whitelist Support**: Protect important websites from being suspended
 - **Manual Controls**: Suspend or unsuspend tabs manually when needed
+- **Tab Migration**: Seamlessly migrate suspended tabs from other tab suspension extensions (like The Marvellous Suspender)
 - **Simple Interface**: Easy-to-use popup and settings page
 - **Privacy Focused**: All processing happens locally - no data is sent to external servers
 
@@ -44,6 +45,7 @@ Right-click the extension icon and select "Options" to configure:
 - **Auto suspend timer**: Set how long tabs should be idle before suspension (0 = never)
 - **Memory optimization**: Choose between native discard or placeholder pages
 - **Whitelist**: Add URLs or domains that should never be suspended
+- **Tab Migration**: Convert suspended tabs from other extensions to ZeroRAM Suspender format
 
 ## Settings Explained
 
@@ -61,6 +63,12 @@ Add websites that should never be suspended:
 - **Full URLs**: `https://example.com/important-page`
 - **Domains**: `example.com` (covers all pages on that domain)
 - **Subdomains**: `mail.google.com`
+
+### Tab Migration
+Migrate suspended tabs from other tab suspension extensions:
+- **Supported Extensions**: The Marvellous Suspender (and its variants)
+- **Auto Detection**: Automatically detects and lists suspended tabs from other extensions
+- **Batch Migration**: Select multiple tabs to migrate at once
 
 ## Browser Support
 
