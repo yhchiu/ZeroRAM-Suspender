@@ -320,6 +320,11 @@ async function scanForMarvellousTab() {
     const detectedExtensionIds = new Set();
     
     for (const tab of tabs) {
+      // Skip our own extension's tabs
+      if (tab.url && tab.url.startsWith(`chrome-extension://${chrome.runtime.id}/`)) {
+        continue;
+      }
+      
       if (tab.url && tab.url.includes('/suspended.html#')) {
         // Parse as potential Marvellous Suspender tab
         const potentialMatch = checkPotentialMarvellousTab(tab.url);
