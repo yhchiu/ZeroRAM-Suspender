@@ -234,6 +234,39 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     } else if (msg.command === 'checkTempWhitelist') {
       const whitelisted = tempWhitelist.includes(msg.url);
       sendResponse({ whitelisted });
+    } else if (msg.command === 'suspendSelectedTabs') {
+      // Force suspend selected tabs (ignore whitelist but respect internal URLs)
+      const settings = await getSettings();
+      for (const tabId of msg.tabIds) {
+        try {
+          const tab = await chrome.tabs.get(tabId);
+          if (!isInternalUrl(tab.url)) {
+            await suspendTab(tab, settings);
+          }
+        } catch (error) {
+          console.warn(`Failed to suspend tab ${tabId}:`, error);
+        }
+      }
+      sendResponse({ done: true });
+    } else if (msg.command === 'unsuspendSelectedTabs') {
+      // Force unsuspend selected tabs
+      for (const tabId of msg.tabIds) {
+        try {
+          const tab = await chrome.tabs.get(tabId);
+          if (tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) {
+            const urlParams = new URLSearchParams(tab.url.split('?')[1]);
+            const original = urlParams.get('uri');
+            if (original) {
+              // Start tracking this tab as being unsuspended
+              unsuspendingTabs.add(tabId);
+              await chrome.tabs.update(tabId, { url: original });
+            }
+          }
+        } catch (error) {
+          console.warn(`Failed to unsuspend tab ${tabId}:`, error);
+        }
+      }
+      sendResponse({ done: true });
     } else if (msg.command === 'startUnsuspending') {
       // Get the current tab ID from sender
       const tabId = sender.tab ? sender.tab.id : msg.tabId;

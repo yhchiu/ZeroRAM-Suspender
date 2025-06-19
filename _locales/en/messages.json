@@ -24,6 +24,8 @@
   "neverSuspendDomain": { "message": "Never suspend this domain" },
   "suspendOthers": { "message": "Suspend all other tabs" },
   "unsuspendAll": { "message": "Unsuspend all tabs" },
+  "suspendSelectedTabs": { "message": "Force suspend selected tabs" },
+  "unsuspendSelectedTabs": { "message": "Unsuspend selected tabs" },
   "settingsMenu": { "message": "Settings" },
   "suspendedInstruction": { "message": "Click here or press Ctrl+Shift+Z to reload this tab." },
   "basicSettings": { "message": "Basic Settings" },

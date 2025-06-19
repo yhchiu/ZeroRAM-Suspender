@@ -24,6 +24,8 @@
   "neverSuspendDomain": { "message": "永不休眠此網域" },
   "suspendOthers": { "message": "休眠其他所有分頁" },
   "unsuspendAll": { "message": "喚醒所有分頁" },
+  "suspendSelectedTabs": { "message": "強制休眠選中的分頁" },
+  "unsuspendSelectedTabs": { "message": "喚醒選中的分頁" },
   "settingsMenu": { "message": "設定" },
   "suspendedInstruction": { "message": "點擊此處或按 Ctrl+Shift+Z 即可重新載入此分頁。" },
   "basicSettings": { "message": "基本設定" },

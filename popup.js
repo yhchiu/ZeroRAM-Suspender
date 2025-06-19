@@ -47,6 +47,12 @@
     });
   }
 
+  // Check for selected tabs (highlighted tabs)
+  async function getSelectedTabs() {
+    const selectedTabs = await chrome.tabs.query({ highlighted: true, currentWindow: true });
+    return selectedTabs;
+  }
+
   const { [STORAGE_KEY]: settings = {} } = await chrome.storage.sync.get(STORAGE_KEY);
 
   const isPlaceholder = tab.url.startsWith(suspendedPrefix);
@@ -56,6 +62,10 @@
   const cannotSuspend = isInternal || isWhitelistedUrl;
   const bannerEl = document.getElementById('banner');
   const menuEl = document.getElementById('menu');
+
+  // Check for multiple selected tabs
+  const selectedTabs = await getSelectedTabs();
+  const hasMultipleSelected = selectedTabs.length > 1;
 
   // Fetch temporary whitelist status
   const { whitelisted: tempWhite } = await chrome.runtime.sendMessage({ command: 'checkTempWhitelist', url: tab.url });
@@ -164,7 +174,34 @@
     }, 'never');
   }
 
-  menuEl.appendChild(document.createElement('hr'));
+  // Add separator before bulk actions if we have single tab actions
+  if ((!isPlaceholder && !cannotSuspend) || (!isInternal && !isWhitelistedUrl)) {
+    menuEl.appendChild(document.createElement('hr'));
+  }
+
+  // Selected tabs actions (force suspend/unsuspend)
+  if (hasMultipleSelected) {
+    // Count suspendable and unsuspendable tabs
+    const suspendableTabs = selectedTabs.filter(t => !isInternalUrl(t.url) && !t.url.startsWith(suspendedPrefix));
+    const unsuspendableTabs = selectedTabs.filter(t => t.url.startsWith(suspendedPrefix));
+    
+    if (suspendableTabs.length > 0) {
+      addItem(getMessage('suspendSelectedTabs') + ` (${suspendableTabs.length})`, async () => {
+        await chrome.runtime.sendMessage({ command: 'suspendSelectedTabs', tabIds: suspendableTabs.map(t => t.id) });
+      }, 'suspend');
+    }
+    
+    if (unsuspendableTabs.length > 0) {
+      addItem(getMessage('unsuspendSelectedTabs') + ` (${unsuspendableTabs.length})`, async () => {
+        await chrome.runtime.sendMessage({ command: 'unsuspendSelectedTabs', tabIds: unsuspendableTabs.map(t => t.id) });
+      }, 'wake');
+    }
+
+    // Add separator after selected tabs actions
+    if (suspendableTabs.length > 0 || unsuspendableTabs.length > 0) {
+      menuEl.appendChild(document.createElement('hr'));
+    }
+  }
 
   addItem(getMessage('suspendOthers'), async () => {
     await chrome.runtime.sendMessage({ command: 'suspendOthers', tabId: tab.id });
