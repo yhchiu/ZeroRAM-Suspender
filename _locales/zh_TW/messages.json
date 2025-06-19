@@ -17,7 +17,7 @@
   "autoSuspendDisabled": { "message": "已停用自動休眠" },
   "autoSuspendPaused": { "message": "已暫停自動休眠" },
   "tabWillSuspend": { "message": "分頁將自動休眠。" },
-  "notNow": { "message": "現在不要" },
+  "notNow": { "message": "暫時不休眠" },
   "allowSuspend": { "message": "允許休眠" },
   "suspendThisTab": { "message": "立即休眠此分頁" },
   "neverSuspendURL": { "message": "永不休眠此網址" },
