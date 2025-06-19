@@ -2,7 +2,7 @@
 const STORAGE_KEY = 'utsSettings';
 const autoSuspendEl = document.getElementById('autoSuspend');
 const discardEl = document.getElementById('nativeDiscard');
-const whitelistEl = document.getElementById('whitelist');
+const whitelistEl = document.getElementById('whitelistList');
 
 /* ---------- Overlay Notice mechanism ---------- */
 /**
