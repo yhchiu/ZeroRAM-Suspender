@@ -36,7 +36,7 @@
   "whitelistDesc": { "message": "Manage websites and domains that will never be suspended" },
   "whitelistRules": { "message": "Whitelist Rules" },
   "whitelistLabel": { "message": "URL or domain list:" },
-  "whitelistHelpDetailed": { "message": "Enter one URL or domain per line. Examples:<br>• <code>google.com</code> - entire domain<br>• <code>https://example.com/page</code> - specific URL<br>• <code>localhost</code> - local development" },
+  "whitelistHelpDetailed": { "message": "Enter one URL or domain per line. Examples:\n• google.com - entire domain\n• https://example.com/page - specific URL\n• localhost - local development" },
   "refreshWhitelist": { "message": "Refresh" },
   "whitelistRefreshed": { "message": "Whitelist refreshed!" },
   "advancedSettings": { "message": "Advanced Settings" },

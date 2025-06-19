@@ -36,7 +36,7 @@
   "whitelistDesc": { "message": "管理永不暫停的網站和網域" },
   "whitelistRules": { "message": "白名單規則" },
   "whitelistLabel": { "message": "網址或網域列表：" },
-  "whitelistHelpDetailed": { "message": "每行輸入一個網址或網域。例如：<br>• <code>google.com</code> - 整個網域<br>• <code>https://example.com/page</code> - 特定網址<br>• <code>localhost</code> - 本地開發環境" },
+  "whitelistHelpDetailed": { "message": "每行輸入一個網址或網域。例如：\n• google.com - 整個網域\n• https://example.com/page - 特定網址\n• localhost - 本地開發環境" },
   "refreshWhitelist": { "message": "重新載入" },
   "whitelistRefreshed": { "message": "白名單已重新載入！" },
   "advancedSettings": { "message": "進階設定" },
