@@ -13,6 +13,7 @@
   "savedWhitelistSettings": { "message": "Whitelist settings saved!" },
   "cannotSuspend": { "message": "This tab cannot be suspended" },
   "tabSuspended": { "message": "Tab suspended" },
+  "tabReloading": { "message": "Reloading" },
   "autoSuspendDisabled": { "message": "Auto suspend disabled" },
   "autoSuspendPaused": { "message": "Auto suspend paused" },
   "tabWillSuspend": { "message": "Tab will suspend automatically." },

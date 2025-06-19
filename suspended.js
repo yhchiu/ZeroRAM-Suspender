@@ -71,12 +71,29 @@
 
   function unsuspend() {
     if (originalUrl) {
+      // Update status to "Reloading" before redirecting
+      const statusEl = document.querySelector('.status');
+      if (statusEl) {
+        // Get the translated text for "tabReloading"
+        if (typeof getMessage !== 'undefined') {
+          statusEl.textContent = getMessage('tabReloading');
+        } else {
+          // Fallback text
+          statusEl.textContent = 'Reloading...';
+        }
+        statusEl.setAttribute('data-i18n', 'tabReloading');
+      }
+      
       // Notify background script that this tab is being unsuspended
       chrome.runtime.sendMessage({
         command: 'startUnsuspending',
         tabId: chrome.tabs ? undefined : 'current' // Will be resolved by background script
       });
-      location.href = originalUrl;
+      
+      // Small delay to ensure the status update is visible
+      setTimeout(() => {
+        location.href = originalUrl;
+      }, 100);
     }
   }
 
