@@ -7,6 +7,9 @@ const DEFAULT_SETTINGS = {
   autoSuspendMinutes: 30, // 0 = never
   useNativeDiscard: true, // true = chrome.tabs.discard, false = placeholder page
   whitelist: [], // array of strings (exact url or domain)
+  neverSuspendAudio: true, // never suspend tabs playing audio
+  neverSuspendPinned: true, // never suspend pinned tabs
+  neverSuspendActive: false, // never suspend active tab in each window
 };
 
 const STORAGE_KEY = 'utsSettings';
@@ -101,12 +104,38 @@ async function checkTabs() {
 
   const threshold = Date.now() - settings.autoSuspendMinutes * 60 * 1000;
   const tabs = await chrome.tabs.query({ discarded: false });
+  
+  // Get active tabs for each window if neverSuspendActive is enabled
+  let activeTabsInWindows = new Set();
+  if (settings.neverSuspendActive) {
+    const windows = await chrome.windows.getAll();
+    for (const window of windows) {
+      const activeTabs = await chrome.tabs.query({ windowId: window.id, active: true });
+      if (activeTabs.length > 0) {
+        activeTabsInWindows.add(activeTabs[0].id);
+      }
+    }
+  }
+  
   for (const tab of tabs) {
     // Ignore active, placeholder, or internal pages
     if (tab.active || tab.url.startsWith(chrome.runtime.getURL('suspended.html')) || isInternalUrl(tab.url)) {
       continue;
     }
     if (isWhitelisted(tab.url, settings)) continue;
+
+    // Check new suspension prevention settings
+    if (settings.neverSuspendAudio && tab.audible) {
+      continue; // Skip tabs that are playing audio
+    }
+    
+    if (settings.neverSuspendPinned && tab.pinned) {
+      continue; // Skip pinned tabs
+    }
+    
+    if (settings.neverSuspendActive && activeTabsInWindows.has(tab.id)) {
+      continue; // Skip active tab in each window
+    }
 
     let last = tab.lastAccessed;
     if (typeof last !== 'number') {
@@ -198,8 +227,34 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       const currentTabId = msg.tabId;
       const tabs = await chrome.tabs.query({ discarded: false });
       const settings = await getSettings();
+      
+      // Get active tabs for each window if neverSuspendActive is enabled
+      let activeTabsInWindows = new Set();
+      if (settings.neverSuspendActive) {
+        const windows = await chrome.windows.getAll();
+        for (const window of windows) {
+          const activeTabs = await chrome.tabs.query({ windowId: window.id, active: true });
+          if (activeTabs.length > 0) {
+            activeTabsInWindows.add(activeTabs[0].id);
+          }
+        }
+      }
+      
       for (const tab of tabs) {
         if (tab.id !== currentTabId && !tab.active) {
+          // Check suspension prevention settings for "suspend others"
+          if (settings.neverSuspendAudio && tab.audible) {
+            continue; // Skip tabs that are playing audio
+          }
+          
+          if (settings.neverSuspendPinned && tab.pinned) {
+            continue; // Skip pinned tabs
+          }
+          
+          if (settings.neverSuspendActive && activeTabsInWindows.has(tab.id)) {
+            continue; // Skip active tab in each window
+          }
+          
           await suspendTab(tab, settings);
         }
       }

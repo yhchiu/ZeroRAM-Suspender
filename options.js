@@ -1,8 +1,17 @@
 // options.js - handle save/load settings with modern UI navigation
 const STORAGE_KEY = 'utsSettings';
-const autoSuspendEl = document.getElementById('autoSuspend');
-const discardEl = document.getElementById('nativeDiscard');
-const whitelistEl = document.getElementById('whitelistList');
+
+// Initialize DOM elements after DOM is loaded
+let autoSuspendEl, discardEl, whitelistEl, neverSuspendAudioEl, neverSuspendPinnedEl, neverSuspendActiveEl;
+
+function initializeElements() {
+  autoSuspendEl = document.getElementById('autoSuspend');
+  discardEl = document.getElementById('nativeDiscard');
+  whitelistEl = document.getElementById('whitelistList');
+  neverSuspendAudioEl = document.getElementById('neverSuspendAudio');
+  neverSuspendPinnedEl = document.getElementById('neverSuspendPinned');
+  neverSuspendActiveEl = document.getElementById('neverSuspendActive');
+}
 
 /* ---------- Overlay Notice mechanism ---------- */
 /**
@@ -111,6 +120,10 @@ function load() {
     autoSuspendEl.value = cfg.autoSuspendMinutes != null ? cfg.autoSuspendMinutes : 30;
     discardEl.checked = cfg.useNativeDiscard !== false; // default true
     whitelistEl.value = (cfg.whitelist || []).join('\n');
+    // Load new suspension prevention settings with defaults
+    neverSuspendAudioEl.checked = cfg.neverSuspendAudio !== false; // default true
+    neverSuspendPinnedEl.checked = cfg.neverSuspendPinned !== false; // default true
+    neverSuspendActiveEl.checked = cfg.neverSuspendActive === true; // default false
   });
 }
 
@@ -143,6 +156,9 @@ function save() {
       case 'basic':
         updatedCfg.autoSuspendMinutes = parseInt(autoSuspendEl.value, 10) || 0;
         updatedCfg.useNativeDiscard = discardEl.checked;
+        updatedCfg.neverSuspendAudio = neverSuspendAudioEl.checked;
+        updatedCfg.neverSuspendPinned = neverSuspendPinnedEl.checked;
+        updatedCfg.neverSuspendActive = neverSuspendActiveEl.checked;
         break;
       case 'whitelist':
         updatedCfg.whitelist = whitelistEl.value.split(/\n/).map(s => s.trim()).filter(Boolean);
@@ -159,6 +175,9 @@ function save() {
           autoSuspendMinutes: parseInt(autoSuspendEl.value, 10) || 0,
           useNativeDiscard: discardEl.checked,
           whitelist: whitelistEl.value.split(/\n/).map(s => s.trim()).filter(Boolean),
+          neverSuspendAudio: neverSuspendAudioEl.checked,
+          neverSuspendPinned: neverSuspendPinnedEl.checked,
+          neverSuspendActive: neverSuspendActiveEl.checked,
         };
     }
     
@@ -188,6 +207,7 @@ function save() {
 
 // Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+  initializeElements();
   initNavigation();
   setVersion();
   load();

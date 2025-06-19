@@ -473,6 +473,24 @@
             <input type="number" id="autoSuspend" min="0" step="1" />
             <div class="help-text" data-i18n="autoSuspendHelp">Set 0 to never auto suspend.</div>
           </div>
+          <div class="form-group">
+            <label class="checkbox-group">
+              <input type="checkbox" id="neverSuspendAudio" checked />
+              <span data-i18n="neverSuspendAudio">Never suspend tabs that are playing audio</span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="checkbox-group">
+              <input type="checkbox" id="neverSuspendPinned" checked />
+              <span data-i18n="neverSuspendPinned">Never suspend pinned tabs</span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="checkbox-group">
+              <input type="checkbox" id="neverSuspendActive" />
+              <span data-i18n="neverSuspendActive">Never suspend active tab in each window</span>
+            </label>
+          </div>
         </div>
 
         <div class="card">
