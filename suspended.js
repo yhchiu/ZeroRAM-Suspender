@@ -12,20 +12,28 @@
     if (titleEl) titleEl.textContent = title;
   }
   
-  // Set favicon if available
-  if (favicon) {
+  // Set favicon if available using original URL
+  if (originalUrl) {
     // Remove existing favicon links
     const existingLinks = document.querySelectorAll('link[rel*="icon"]');
     existingLinks.forEach(link => link.remove());
     
-    // Create transparent version of favicon
-    createTransparentFavicon(favicon);
+    // Create transparent version of favicon using page URL
+    createTransparentFavicon(originalUrl);
   }
   
-  // Function to create a transparent version of the favicon
-  function createTransparentFavicon(originalFaviconUrl) {
+  // Function to create a transparent version of the favicon using Chrome Extension favicon API
+  function createTransparentFavicon(pageUrl) {
+    // Construct favicon URL using Chrome Extension favicon API
+    function getFaviconURL(url) {
+      const faviconUrl = new URL(chrome.runtime.getURL("/_favicon/"));
+      faviconUrl.searchParams.set("pageUrl", url);
+      faviconUrl.searchParams.set("size", "32");
+      return faviconUrl.toString();
+    }
+
+    const faviconUrl = getFaviconURL(pageUrl);
     const img = new Image();
-    img.crossOrigin = 'anonymous'; // Handle CORS if possible
     
     img.onload = function() {
       // Create canvas
@@ -39,7 +47,7 @@
       // Set global alpha for transparency
       ctx.globalAlpha = 0.5; // 50% transparency
       
-      // Draw the original favicon
+      // Draw the favicon
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       
       // Convert canvas to data URL
@@ -53,14 +61,14 @@
     };
     
     img.onerror = function() {
-      // If loading fails (CORS or other issues), fall back to original favicon
+      // If loading fails, try to use the original page URL as fallback
       const link = document.createElement('link');
       link.rel = 'icon';
-      link.href = originalFaviconUrl;
+      link.href = faviconUrl;
       document.head.appendChild(link);
     };
     
-    img.src = originalFaviconUrl;
+    img.src = faviconUrl;
   }
 
   const urlEl = document.getElementById('origUrl');

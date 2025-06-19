@@ -15,10 +15,8 @@
     "tabs",
     "storage",
     "activeTab",
-    "alarms"
-  ],
-  "host_permissions": [
-    "<all_urls>"
+    "alarms",
+    "favicon"
   ],
   "background": {
     "service_worker": "background.js",
@@ -46,8 +44,9 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["suspended.html", "suspended.js", "i18n.js", "style.css"],
-      "matches": ["<all_urls>"]
+      "resources": ["suspended.html", "suspended.js", "i18n.js", "style.css", "_favicon/*"],
+      "matches": ["<all_urls>"],
+      "extension_ids": ["*"]
     }
   ]
 } 
