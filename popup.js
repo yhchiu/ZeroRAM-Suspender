@@ -206,6 +206,12 @@
   addItem(getMessage('suspendOthers'), async () => {
     await chrome.runtime.sendMessage({ command: 'suspendOthers', tabId: tab.id });
   }, 'others');
+  addItem(getMessage('suspendAllOthersAllWindows'), async () => {
+    await chrome.runtime.sendMessage({ command: 'suspendAllOthersAllWindows', tabId: tab.id });
+  }, 'others');
+  addItem(getMessage('unsuspendAllThisWindow'), async () => {
+    await chrome.runtime.sendMessage({ command: 'unsuspendAllThisWindow', tabId: tab.id });
+  }, 'wake');
   addItem(getMessage('unsuspendAll'), async () => {
     await chrome.runtime.sendMessage({ command: 'unsuspendAll' });
   }, 'wake');
