@@ -114,6 +114,15 @@ function load() {
   });
 }
 
+// Load only whitelist from storage
+function loadWhitelist() {
+  chrome.storage.sync.get(STORAGE_KEY, data => {
+    const cfg = data[STORAGE_KEY] || {};
+    whitelistEl.value = (cfg.whitelist || []).join('\n');
+    showNotice(getMessage('whitelistRefreshed') || 'Whitelist refreshed', 'success', 2000);
+  });
+}
+
 // Get currently active section
 function getCurrentActiveSection() {
   const activeSection = document.querySelector('.content-section.active');
@@ -192,6 +201,12 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Initialize tab migration functionality
   initTabMigration();
+  
+  // Add refresh whitelist button event listener
+  const refreshWhitelistBtn = document.getElementById('refreshWhitelistBtn');
+  if (refreshWhitelistBtn) {
+    refreshWhitelistBtn.addEventListener('click', loadWhitelist);
+  }
 });
 
 // Attach save button event listener

@@ -37,6 +37,8 @@
   "whitelistRules": { "message": "白名單規則" },
   "whitelistLabel": { "message": "網址或網域列表：" },
   "whitelistHelpDetailed": { "message": "每行輸入一個網址或網域。例如：<br>• <code>google.com</code> - 整個網域<br>• <code>https://example.com/page</code> - 特定網址<br>• <code>localhost</code> - 本地開發環境" },
+  "refreshWhitelist": { "message": "重新載入" },
+  "whitelistRefreshed": { "message": "白名單已重新載入！" },
   "advancedSettings": { "message": "進階設定" },
   "advancedSettingsDesc": { "message": "進階使用者選項（開發中）" },
   "aboutSettings": { "message": "關於" },
