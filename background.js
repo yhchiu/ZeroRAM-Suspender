@@ -241,7 +241,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       }
       
       for (const tab of tabs) {
-        if (tab.id !== currentTabId && !tab.active) {
+        if (tab.id !== currentTabId && !tab.active && !isInternalUrl(tab.url)) {
           // Check suspension prevention settings for "suspend others"
           if (settings.neverSuspendAudio && tab.audible) {
             continue; // Skip tabs that are playing audio
@@ -255,7 +255,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             continue; // Skip active tab in each window
           }
           
-          await suspendTab(tab, settings);
+          if (!isWhitelisted(tab.url, settings)) {
+            await suspendTab(tab, settings);
+          }
         }
       }
       sendResponse({ done: true });
