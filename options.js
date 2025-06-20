@@ -770,7 +770,7 @@ async function loadChangelog() {
     `;
     
     // Fetch commits from local CHANGELOG.json file
-    const response = await fetch('CHANGELOG.json');
+    const response = await fetch(chrome.runtime.getURL('CHANGELOG.json'));
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
