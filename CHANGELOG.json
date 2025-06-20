@@ -1,0 +1,255 @@
+[
+{
+  "sha": "8f83d0f5ea1075ae5c2aab0c8be3ede9e2b5d716",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8f83d0f5ea1075ae5c2aab0c8be3ede9e2b5d716",
+  "commit": {
+    "message": "Enhance tab suspension and unsuspending in this and all windows",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-19T19:26:37+08:00"
+    }
+  }
+},
+{
+  "sha": "d062842be870945c3ac70b825eacbcc6f86226d8",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/d062842be870945c3ac70b825eacbcc6f86226d8",
+  "commit": {
+    "message": "Update version to 1.1.0",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-19T17:15:50+08:00"
+    }
+  }
+},
+{
+  "sha": "084eaa6d3ab7925c23be4814afd6cf2298cbb91f",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/084eaa6d3ab7925c23be4814afd6cf2298cbb91f",
+  "commit": {
+    "message": "Enhance whitelist display in options.js",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-19T17:07:55+08:00"
+    }
+  }
+},
+{
+  "sha": "17b14c7f47e1a624cd5254ffc78d303120661eaa",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/17b14c7f47e1a624cd5254ffc78d303120661eaa",
+  "commit": {
+    "message": "Improve overlay notice progress bar animation in options.js",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-19T16:58:51+08:00"
+    }
+  }
+},
+{
+  "sha": "4b1d3b62c5c0edac8bc24b44690552e23611b4af",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/4b1d3b62c5c0edac8bc24b44690552e23611b4af",
+  "commit": {
+    "message": "Update transparent favicon handling on the suspended tab",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-19T16:22:07+08:00"
+    }
+  }
+},
+{
+  "sha": "3a71092e350ea681726606a9fec0f2956ddd0b33",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/3a71092e350ea681726606a9fec0f2956ddd0b33",
+  "commit": {
+    "message": "Enhance suspension logic for all other tabs",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-19T15:32:27+08:00"
+    }
+  }
+},
+{
+  "sha": "0d7ef57c0c326ca647e6004d82a0c53657e79480",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/0d7ef57c0c326ca647e6004d82a0c53657e79480",
+  "commit": {
+    "message": "Add never suspension settings",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-19T15:29:20+08:00"
+    }
+  }
+},
+{
+  "sha": "897dac8e4333d45be59eeb83b148d21b86348b21",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/897dac8e4333d45be59eeb83b148d21b86348b21",
+  "commit": {
+    "message": "Implement selected tabs suspension and unsuspension",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-19T14:17:53+08:00"
+    }
+  }
+},
+{
+  "sha": "2fe161c4d19601c4f36896a107a0c764145d47a8",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/2fe161c4d19601c4f36896a107a0c764145d47a8",
+  "commit": {
+    "message": "Update README",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-19T13:53:10+08:00"
+    }
+  }
+},
+{
+  "sha": "747cc7b15c59f8f90057d0a3f212408354965e5e",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/747cc7b15c59f8f90057d0a3f212408354965e5e",
+  "commit": {
+    "message": "Update translation (Traditional Chinese) for 'notNow' message",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-19T13:38:09+08:00"
+    }
+  }
+},
+{
+  "sha": "d3c0a0982ad9401a80e80d16b8d0570f17c7f5b9",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/d3c0a0982ad9401a80e80d16b8d0570f17c7f5b9",
+  "commit": {
+    "message": "Implement whitelist management in the popup",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-19T13:36:02+08:00"
+    }
+  }
+},
+{
+  "sha": "df1b87438c50774d8ca147bdb6d7bbc72958e71c",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/df1b87438c50774d8ca147bdb6d7bbc72958e71c",
+  "commit": {
+    "message": "Update whitelist help text formatting for better readability",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-19T13:12:13+08:00"
+    }
+  }
+},
+{
+  "sha": "a6353041e033632bb81853b032c607020f30146e",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/a6353041e033632bb81853b032c607020f30146e",
+  "commit": {
+    "message": "Add refresh button for whitelist functionality",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-19T13:09:34+08:00"
+    }
+  }
+},
+{
+  "sha": "041a726bf4f1ac2556cf0d38645d4793eccd5027",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/041a726bf4f1ac2556cf0d38645d4793eccd5027",
+  "commit": {
+    "message": "Fix issue where whitelist on the options page aren’t displaying correctly",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-19T12:52:57+08:00"
+    }
+  }
+},
+{
+  "sha": "49b2d66de8acfdd85e3ffe0361281ec22aa75993",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/49b2d66de8acfdd85e3ffe0361281ec22aa75993",
+  "commit": {
+    "message": "Enhance unsuspend process with status update",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-19T11:47:18+08:00"
+    }
+  }
+},
+{
+  "sha": "e67d2026b0147f056ce51c57e67f59afab255fd2",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/e67d2026b0147f056ce51c57e67f59afab255fd2",
+  "commit": {
+    "message": "Fix the tab migration potential issue where it may process our own tabs",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-19T11:31:22+08:00"
+    }
+  }
+},
+{
+  "sha": "d37095746d609f9fcb309d4757260e45b67127d9",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/d37095746d609f9fcb309d4757260e45b67127d9",
+  "commit": {
+    "message": "Enhance unsuspend functionality",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-18T22:35:27+08:00"
+    }
+  }
+},
+{
+  "sha": "cc94b0cb1e7817ed128fcbe9bd5744058ca9f79e",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/cc94b0cb1e7817ed128fcbe9bd5744058ca9f79e",
+  "commit": {
+    "message": "Implement tab unsuspension tracking",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-18T21:51:20+08:00"
+    }
+  }
+},
+{
+  "sha": "c4f8c97f433886f40d2f5683dacc90c1036b871a",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/c4f8c97f433886f40d2f5683dacc90c1036b871a",
+  "commit": {
+    "message": "Add tab migration feature",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-18T21:36:15+08:00"
+    }
+  }
+},
+{
+  "sha": "5ca41b847faa389198e07911c881658fd69f1723",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/5ca41b847faa389198e07911c881658fd69f1723",
+  "commit": {
+    "message": "Update suspended UI",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-18T16:15:50+08:00"
+    }
+  }
+},
+{
+  "sha": "17eca3dcea70623ade9d738425b04e96ead58f6b",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/17eca3dcea70623ade9d738425b04e96ead58f6b",
+  "commit": {
+    "message": "Add overlay notice feature for displaying messages",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-18T15:16:25+08:00"
+    }
+  }
+},
+{
+  "sha": "d6ba6af5f9c2b7859ea135120ba0b21229662f8e",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/d6ba6af5f9c2b7859ea135120ba0b21229662f8e",
+  "commit": {
+    "message": "Add section-specific save functionality and update UI behavior",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-18T11:47:16+08:00"
+    }
+  }
+},
+{
+  "sha": "230bd91bc569bb8abf7d13edb2028ae3fcf0c386",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/230bd91bc569bb8abf7d13edb2028ae3fcf0c386",
+  "commit": {
+    "message": "Initial commit",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-17T20:20:56+08:00"
+    }
+  }
+}
+]

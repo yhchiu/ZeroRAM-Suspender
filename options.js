@@ -111,8 +111,13 @@ function initNavigation() {
         loadWhitelist(false);
       }
       
+      // Load changelog when switching to changelog section
+      if (sectionId === 'changelog') {
+        loadChangelog();
+      }
+      
       // Show/hide save button based on section
-      if (sectionId === 'about' || sectionId === 'migration') {
+      if (sectionId === 'about' || sectionId === 'migration' || sectionId === 'changelog') {
         actionBar.style.display = 'none';
       } else {
         actionBar.style.display = 'flex';
@@ -234,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Check initial active section and hide save button if needed
   const initialActiveSection = getCurrentActiveSection();
   const actionBar = document.querySelector('.action-bar');
-  if (initialActiveSection === 'about' || initialActiveSection === 'migration') {
+  if (initialActiveSection === 'about' || initialActiveSection === 'migration' || initialActiveSection === 'changelog') {
     actionBar.style.display = 'none';
   }
   
@@ -634,4 +639,259 @@ if (typeof window !== 'undefined') {
   };
 }
 
-/* ---------- End Tab Migration Functions ---------- */ 
+/* ---------- End Tab Migration Functions ---------- */
+
+/* ---------- Change Log Functions ---------- */
+
+// Load and display changelog from GitHub API
+async function loadChangelog() {
+  const changelogContent = document.getElementById('changelogContent');
+  
+  try {
+    // Show loading state
+    changelogContent.innerHTML = `
+      <div class="loading-state" style="text-align: center; padding: 40px; color: #666;">
+        <div style="font-size: 24px; margin-bottom: 12px;">⏳</div>
+        <span data-i18n="loadingChanges">Loading change log...</span>
+      </div>
+    `;
+    
+    // Fetch commits from local CHANGELOG.json file
+    const response = await fetch('CHANGELOG.json');
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const commits = await response.json();
+    
+    // Parse commits and extract version changes
+    const changelog = parseCommitsToChangelog(commits);
+    
+    if (changelog.length === 0) {
+      changelogContent.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">📝</div>
+          <h3 data-i18n="noChangesFound">No version changes found</h3>
+        </div>
+      `;
+      return;
+    }
+    
+    // Render changelog
+    renderChangelog(changelog, changelogContent);
+    
+  } catch (error) {
+    console.error('Failed to load changelog:', error);
+    changelogContent.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">❌</div>
+        <h3 data-i18n="failedToLoadChanges">Failed to load change log</h3>
+        <p style="color: #999; font-size: 12px;">${error.message}</p>
+      </div>
+    `;
+  }
+}
+
+// Parse commits and group by version
+function parseCommitsToChangelog(commits) {
+  const changelog = [];
+  let currentVersion = null;
+  let currentChanges = [];
+  
+  // Check if there's an explicit 1.0.0 version update
+  const hasExplicitV100 = commits.some(commit => 
+    commit.commit.message.includes('Update version to 1.0.0')
+  );
+  
+  for (const commit of commits) {
+    const message = commit.commit.message;
+    const date = new Date(commit.commit.author.date);
+    
+    // Check if this is a version update commit
+    const versionMatch = message.match(/Update version to ([\d.]+)/);
+    
+    // Check if this is the initial commit (should be 1.0.0)
+    const isInitialCommit = message === 'Initial commit';
+    
+    if (versionMatch) {
+      // Save previous version changes if any
+      if (currentVersion && currentChanges.length > 0) {
+        changelog.push({
+          version: currentVersion.version,
+          date: currentVersion.date,
+          changes: currentChanges
+        });
+      }
+      
+      // Start new version
+      currentVersion = {
+        version: versionMatch[1],
+        date: date
+      };
+      currentChanges = [];
+    } else if (isInitialCommit && !hasExplicitV100) {
+      // Save previous version changes if any
+      if (currentVersion && currentChanges.length > 0) {
+        changelog.push({
+          version: currentVersion.version,
+          date: currentVersion.date,
+          changes: currentChanges
+        });
+      }
+      
+      // Start 1.0.0 for initial commit
+      currentVersion = {
+        version: '1.0.0',
+        date: date
+      };
+      currentChanges = [
+        { type: 'added', description: 'Initial release', sha: commit.sha.substring(0, 7), url: commit.html_url }
+      ];
+    } else if (currentVersion) {
+      // Add change to current version
+      const change = parseCommitMessage(message, commit);
+      if (change) {
+        currentChanges.push(change);
+      }
+    } else {
+      // Changes without version (for latest unreleased changes)
+      if (!currentVersion) {
+        currentVersion = {
+          version: getMessage("unreleased") || 'Unreleased',
+          date: date
+        };
+      }
+      const change = parseCommitMessage(message, commit);
+      if (change) {
+        currentChanges.push(change);
+      }
+    }
+  }
+  
+  // Add final version
+  if (currentVersion && currentChanges.length > 0) {
+    changelog.push({
+      version: currentVersion.version,
+      date: currentVersion.date,
+      changes: currentChanges
+    });
+  }
+  
+  return changelog;
+}
+
+// Parse individual commit message to extract meaningful changes
+function parseCommitMessage(message, commit) {
+  // Skip version update commits and merge commits
+  if (message.includes('Update version to') || message.startsWith('Merge ')) {
+    return null;
+  }
+  
+  // Clean up the message and get first line only
+  const description = message.split('\n')[0].trim();
+  const firstLine = description.toLowerCase();
+  
+  // Determine change type based on first line of message
+  let type = 'changed';
+  if (firstLine.includes('add') || firstLine.includes('new') || firstLine.includes('implement')) {
+    type = 'added';
+  } else if (firstLine.includes('fix') || firstLine.includes('repair')) {
+    type = 'fixed';
+  } else if (firstLine.includes('remove') || firstLine.includes('delete')) {
+    type = 'removed';
+  } else if (firstLine.includes('enhance') || firstLine.includes('improve')) {
+    type = 'improved';
+  }
+  
+  return {
+    type: type,
+    description: description,
+    sha: commit.sha.substring(0, 7),
+    url: commit.html_url
+  };
+}
+
+// Render changelog to DOM
+function renderChangelog(changelog, container) {
+  const html = changelog.map(version => {
+    // Group changes by type
+    const changesByType = version.changes.reduce((groups, change) => {
+      const type = change.type;
+      if (!groups[type]) {
+        groups[type] = [];
+      }
+      groups[type].push(change);
+      return groups;
+    }, {});
+    
+    // Define display order for change types
+    const typeOrder = ['added', 'improved', 'fixed', 'removed', 'changed'];
+    
+    // Generate HTML for each type group in order
+    const changesHtml = typeOrder.map(type => {
+      if (!changesByType[type] || changesByType[type].length === 0) {
+        return '';
+      }
+      
+      const typeChanges = changesByType[type].map(change => {
+        const icon = getChangeIcon(change.type);
+        return `
+          <li class="changelog-item" style="margin-bottom: 8px; display: flex; align-items: flex-start; gap: 8px;">
+            <span style="font-size: 14px; margin-top: 2px;">${icon}</span>
+            <div style="flex: 1;">
+              <span style="font-weight: 500; color: ${getChangeColor(change.type)}; text-transform: capitalize;">${change.type}:</span>
+              <span style="margin-left: 4px;">${escapeHtml(change.description)}</span>
+              <a href="${change.url}" target="_blank" style="margin-left: 8px; color: #667eea; text-decoration: none; font-size: 11px; opacity: 0.7;">${change.sha}</a>
+            </div>
+          </li>
+        `;
+      }).join('');
+      
+      return typeChanges;
+    }).filter(html => html !== '').join('');
+    
+    return `
+      <div class="card" style="margin-bottom: 20px;">
+        <div class="card-title" style="margin-bottom: 16px;">
+          <span style="font-size: 18px; font-weight: 600;">${version.version}</span>
+          <span style="margin-left: auto; color: #666; font-size: 12px; font-weight: normal;">
+            ${version.date.toLocaleDateString()}
+          </span>
+        </div>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          ${changesHtml}
+        </ul>
+      </div>
+    `;
+  }).join('');
+  
+  container.innerHTML = html;
+}
+
+// Get icon for change type
+function getChangeIcon(type) {
+  const icons = {
+    added: '✨',
+    fixed: '🐛',
+    changed: '🔄',
+    removed: '🗑️',
+    improved: '⚡',
+    security: '🔒'
+  };
+  return icons[type] || '📝';
+}
+
+// Get color for change type
+function getChangeColor(type) {
+  const colors = {
+    added: '#28a745',
+    fixed: '#dc3545',
+    changed: '#17a2b8',
+    removed: '#6c757d',
+    improved: '#ffc107',
+    security: '#fd7e14'
+  };
+  return colors[type] || '#6c757d';
+}
+
+/* ---------- End Change Log Functions ---------- */ 

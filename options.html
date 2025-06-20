@@ -448,6 +448,12 @@
             <span data-i18n="aboutSettings">About</span>
           </a>
         </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="changelog">
+            <div class="nav-icon">📋</div>
+            <span data-i18n="changeLogSettings">Change Log</span>
+          </a>
+        </li>
       </ul>
     </nav>
 
@@ -650,6 +656,21 @@
           <div class="card-description">
             <p data-i18n="licenseText">This extension is released under the GNU General Public License v3 (GPL v3). You are free to use, modify, and distribute this software under the terms of the GPL v3.</p>
             <p><span data-i18n="copyrightText">Copyright (C) Yu-Hsiung Chiu</span></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Change Log Section -->
+      <section id="changelog" class="content-section">
+        <div class="section-header">
+          <h2 data-i18n="changeLogSettings">Change Log</h2>
+          <p data-i18n="changeLogDesc">Version history and feature updates</p>
+        </div>
+
+        <div id="changelogContent">
+          <div class="loading-state" style="text-align: center; padding: 40px; color: #666;">
+            <div style="font-size: 24px; margin-bottom: 12px;">⏳</div>
+            <span data-i18n="loadingChanges">Loading change log...</span>
           </div>
         </div>
       </section>
