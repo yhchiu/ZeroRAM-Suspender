@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 400 400"
+     width="400" height="400" fill="none">
+
+  <!-- three blue gradients -->
+  <defs>
+    <linearGradient id="gradLarge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"  stop-color="#7CC8FF"/>
+      <stop offset="100%" stop-color="#358FFF"/>
+    </linearGradient>
+
+    <linearGradient id="gradMedium" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"  stop-color="#7EEBFF"/>
+      <stop offset="100%" stop-color="#4FC6FF"/>
+    </linearGradient>
+
+    <linearGradient id="gradSmall" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"  stop-color="#D0DFFF"/>
+      <stop offset="100%" stop-color="#9AB4FF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- big Z: -15°, right-up -->
+  <g transform="translate(215 110) rotate(-15)">
+    <polyline points="0 0 120 0 0 120 120 120"
+              stroke="url(#gradLarge)"
+              stroke-width="40"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+  </g>
+
+  <!-- medium Z: horizontal, right-up -->
+  <g transform="translate(130 190)">
+    <polyline points="0 0 90 0 0 90 90 90"
+              stroke="url(#gradMedium)"
+              stroke-width="32"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+  </g>
+
+  <!-- small Z: +8°, left-down -->
+  <g transform="translate(50 230) rotate(8)">
+    <polyline points="0 0 70 0 0 70 70 70"
+              stroke="url(#gradSmall)"
+              stroke-width="24"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+  </g>
+</svg>
