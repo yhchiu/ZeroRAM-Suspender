@@ -1,5 +1,93 @@
 [
 {
+  "sha": "61196286e65e668124a5242c822725ab5856385e",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/61196286e65e668124a5242c822725ab5856385e",
+  "commit": {
+    "message": "Update version to 1.2.0",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-20T20:55:23+08:00"
+    }
+  }
+},
+{
+  "sha": "9a5db6e9a1f25b11e8851ac54a20a807bdaa6322",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/9a5db6e9a1f25b11e8851ac54a20a807bdaa6322",
+  "commit": {
+    "message": "Update fetch method for CHANGELOG.json in loadChangelog function",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-20T20:51:07+08:00"
+    }
+  }
+},
+{
+  "sha": "aec524a150f061be3e38bbff8372d9372b32f7ad",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/aec524a150f061be3e38bbff8372d9372b32f7ad",
+  "commit": {
+    "message": "Add keyboard shortcuts feature",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-20T20:39:33+08:00"
+    }
+  }
+},
+{
+  "sha": "aee1e6c645a2f0f49a413b11baae558962dd39c9",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/aee1e6c645a2f0f49a413b11baae558962dd39c9",
+  "commit": {
+    "message": "Fix popup banner on suspended pages not displaying the suspended state",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-20T17:37:13+08:00"
+    }
+  }
+},
+{
+  "sha": "61f62d1436127a59f695cdefcabfd85a5422fbdd",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/61f62d1436127a59f695cdefcabfd85a5422fbdd",
+  "commit": {
+    "message": "Update messages for suspending all tabs for clarity",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-20T17:27:27+08:00"
+    }
+  }
+},
+{
+  "sha": "ecfe8a9711590022225d569d09ef5322e9debcdb",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/ecfe8a9711590022225d569d09ef5322e9debcdb",
+  "commit": {
+    "message": "Add reloading animations for unsuspend state",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-20T17:09:58+08:00"
+    }
+  }
+},
+{
+  "sha": "778d8ad8ed961c1c970d424a54ed0e7e525d0b8a",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/778d8ad8ed961c1c970d424a54ed0e7e525d0b8a",
+  "commit": {
+    "message": "Update the sleep icon with unified SVG in suspended.html",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-20T16:48:30+08:00"
+    }
+  }
+},
+{
+  "sha": "9a4251302601813b010617286214a968a79cf396",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/9a4251302601813b010617286214a968a79cf396",
+  "commit": {
+    "message": "Add Change Log on the options page",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-20T14:33:26+08:00"
+    }
+  }
+},
+{
   "sha": "8f83d0f5ea1075ae5c2aab0c8be3ede9e2b5d716",
   "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8f83d0f5ea1075ae5c2aab0c8be3ede9e2b5d716",
   "commit": {

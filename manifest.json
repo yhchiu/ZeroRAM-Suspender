@@ -2,7 +2,7 @@
   "name": "ZeroRAM Suspender",
   "description": "Suspend inactive tabs to save memory using native discard or lightweight placeholder.",
   "author": "Yu-Hsiung Chiu",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "manifest_version": 3,
   "minimum_chrome_version": "54",
   "browser_specific_settings": {
