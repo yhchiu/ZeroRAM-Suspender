@@ -78,7 +78,12 @@
   actionLink.style.marginLeft = '4px';
   bannerEl.appendChild(actionLink);
 
-  if (isInternal) {
+  if (isPlaceholder) {
+    bannerTextEl.textContent = getMessage('tabSuspended');
+    bannerEl.classList.remove('blue');
+    bannerEl.classList.add('gray');
+    actionLink.style.display = 'none';
+  } else if (isInternal) {
     bannerTextEl.textContent = getMessage('cannotSuspend');
     bannerEl.classList.remove('blue');
     bannerEl.classList.add('gray');
@@ -97,11 +102,6 @@
         window.close();
       }
     });
-  } else if (isPlaceholder) {
-    bannerTextEl.textContent = getMessage('tabSuspended');
-    bannerEl.classList.remove('blue');
-    bannerEl.classList.add('gray');
-    actionLink.style.display = 'none';
   } else {
     if (settings.autoSuspendMinutes === 0) {
       bannerTextEl.textContent = getMessage('autoSuspendDisabled');
