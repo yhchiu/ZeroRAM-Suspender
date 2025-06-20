@@ -158,7 +158,7 @@
   }
 
   // Menu items depending on state
-  if (!isPlaceholder && !cannotSuspend) {
+  if (!isPlaceholder && !isInternal) {
     addItem(getMessage('suspendThisTab'), async () => {
       await chrome.runtime.sendMessage({ command: 'suspendTab', tabId: tab.id });
     }, 'suspend');
@@ -175,7 +175,7 @@
   }
 
   // Add separator before bulk actions if we have single tab actions
-  if ((!isPlaceholder && !cannotSuspend) || (!isInternal && !isWhitelistedUrl)) {
+  if ((!isPlaceholder && !isInternal) || (!isInternal && !isWhitelistedUrl)) {
     menuEl.appendChild(document.createElement('hr'));
   }
 
