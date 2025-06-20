@@ -623,6 +623,100 @@ function deselectAllTabs() {
   });
 }
 
+// Generic progress bar utility functions for extension migrations
+const ProgressBarUtils = {
+  // Update progress display with flexible configuration
+  updateProgress: function(options = {}) {
+    const {
+      completed = 0,
+      total = 0,
+      containerSelector = '#migrationProgressContainer',
+      textSelector = '#progressText',
+      fillSelector = '#progressFill',
+      customText = null,
+      showPercentage = false
+    } = options;
+    
+    const progressContainer = document.querySelector(containerSelector);
+    const progressText = document.querySelector(textSelector);
+    const progressFill = document.querySelector(fillSelector);
+    
+    if (!progressContainer || !progressText || !progressFill) {
+      console.warn('[ZeroRAM Suspender] Progress elements not found with selectors:', {
+        containerSelector, textSelector, fillSelector
+      });
+      return false;
+    }
+    
+    // Show progress container
+    progressContainer.style.display = 'block';
+    
+    // Update progress text
+    if (customText) {
+      progressText.textContent = customText;
+    } else if (showPercentage) {
+      const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+      progressText.textContent = `${completed}/${total} (${percentage}%)`;
+    } else {
+      progressText.textContent = `${completed}/${total}`;
+    }
+    
+    // Update progress bar fill
+    const percentage = total > 0 ? (completed / total) * 100 : 0;
+    progressFill.style.width = `${Math.min(100, Math.max(0, percentage))}%`;
+    
+    return true;
+  },
+  
+  // Hide progress display
+  hideProgress: function(containerSelector = '#migrationProgressContainer') {
+    const progressContainer = document.querySelector(containerSelector);
+    if (progressContainer) {
+      progressContainer.style.display = 'none';
+      return true;
+    }
+    return false;
+  },
+  
+  // Reset progress to initial state
+  resetProgress: function(options = {}) {
+    const {
+      containerSelector = '#migrationProgressContainer',
+      textSelector = '#progressText',
+      fillSelector = '#progressFill'
+    } = options;
+    
+    this.updateProgress({
+      completed: 0,
+      total: 0,
+      containerSelector,
+      textSelector,
+      fillSelector,
+      customText: '0/0'
+    });
+    
+    // Hide after reset
+    setTimeout(() => {
+      this.hideProgress(containerSelector);
+    }, 100);
+  }
+};
+
+// wrapper functions for migration
+function updateMigrationProgress(completed, total) {
+  return ProgressBarUtils.updateProgress({
+    completed,
+    total,
+    containerSelector: '#migrationProgressContainer',
+    textSelector: '#progressText',
+    fillSelector: '#progressFill'
+  });
+}
+
+function hideMigrationProgress() {
+  return ProgressBarUtils.hideProgress('#migrationProgressContainer');
+}
+
 // Migrate selected tabs
 async function migrateSelectedTabs() {
   const checkboxes = document.querySelectorAll('#tabsContainer input[type="checkbox"]:checked');
@@ -633,14 +727,19 @@ async function migrateSelectedTabs() {
     return;
   }
   
-  // Disable migrate button
-  migrateBtn.disabled = true;
-  migrateBtn.style.opacity = '0.6';
-  
+  const totalTabs = checkboxes.length;
   let successCount = 0;
   let failureCount = 0;
+  let processedCount = 0;
   
   try {
+    // Disable migrate button
+    migrateBtn.disabled = true;
+    migrateBtn.style.opacity = '0.6';
+    
+    // Initialize progress bar
+    updateMigrationProgress(0, totalTabs);
+    
     for (const checkbox of checkboxes) {
       try {
         const tabId = parseInt(checkbox.dataset.tabId);
@@ -665,13 +764,20 @@ async function migrateSelectedTabs() {
         console.error('[ZeroRAM Suspender] Error migrating tab:', error);
         failureCount++;
       }
+      
+      // Update progress after each tab is processed
+      processedCount++;
+      updateMigrationProgress(processedCount, totalTabs);
+      
+      // Add a small delay to make progress visible and avoid overwhelming the browser
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
     
     // Show completion message
     if (successCount > 0) {
       showNotice(getMessage('migrationComplete') + ` (${successCount}${getMessage('tabsMigrated')})`, 'success');
       
-      // Refresh the tab list
+      // Refresh the tab list after a short delay
       setTimeout(() => {
         scanForMarvellousTab();
       }, 1000);
@@ -684,9 +790,12 @@ async function migrateSelectedTabs() {
     console.error('[ZeroRAM Suspender] Migration error:', error);
     showNotice(getMessage('migrationFailed') + ': ' + error.message, 'error');
   } finally {
-    // Re-enable migrate button
-    migrateBtn.disabled = false;
-    migrateBtn.style.opacity = '1';
+    // Hide progress bar and re-enable migrate button after a short delay
+    setTimeout(() => {
+      hideMigrationProgress();
+      migrateBtn.disabled = false;
+      migrateBtn.style.opacity = '1';
+    }, 1000);
   }
 }
 
@@ -748,7 +857,9 @@ if (typeof window !== 'undefined') {
     clearDiscoveredIds,
     resetMigrationState,
     getKnownIds: () => KNOWN_MARVELLOUS_SUSPENDER_IDS,
-    getDiscoveredIds: () => Array.from(discoveredMarvellousIds)
+    getDiscoveredIds: () => Array.from(discoveredMarvellousIds),
+    // Export progress utilities for testing and future use
+    ProgressBarUtils
   };
 }
 

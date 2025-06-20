@@ -104,5 +104,6 @@
   "notAssigned": { "message": "未設定" },
   "manageShortcuts": { "message": "管理快捷鍵" },
   "shortcutsRefreshed": { "message": "快捷鍵已重新載入！" },
-  "shortcutToggleSuspend": { "message": "休眠/喚醒目前分頁" }
+  "shortcutToggleSuspend": { "message": "休眠/喚醒目前分頁" },
+  "migrationProgress": { "message": "遷移進度" }
 } 

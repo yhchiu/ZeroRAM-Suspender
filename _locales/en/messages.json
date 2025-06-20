@@ -104,5 +104,6 @@
   "notAssigned": { "message": "Not assigned" },
   "manageShortcuts": { "message": "Manage Shortcuts" },
   "shortcutsRefreshed": { "message": "Shortcuts refreshed!" },
-  "shortcutToggleSuspend": { "message": "Suspend/Unsuspend current tab" }
+  "shortcutToggleSuspend": { "message": "Suspend/Unsuspend current tab" },
+  "migrationProgress": { "message": "Migration Progress" }
 } 
