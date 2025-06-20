@@ -51,6 +51,23 @@
       50% { opacity: 0.4; }
     }
 
+    /* Reloading animation for unsuspend state */
+    .sleep-icon.reloading {
+      animation: bounce 1s ease-in-out infinite, pulse-bright 1.5s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      25% { transform: translateY(-15px); }
+      50% { transform: translateY(0); }
+      75% { transform: translateY(-8px); }
+    }
+
+    @keyframes pulse-bright {
+      0%, 100% { opacity: 0.9; }
+      50% { opacity: 0.6; }
+    }
+
     .status {
       background: #5a5a5a;
       color: white;
@@ -61,6 +78,24 @@
       margin-bottom: 32px;
       display: inline-block;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s ease;
+    }
+
+    .status.reloading {
+      background: #007bff;
+      box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+      animation: background-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes background-pulse {
+      0%, 100% { 
+        background: #007bff;
+        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+      }
+      50% { 
+        background: #0056b3;
+        box-shadow: 0 2px 12px rgba(0, 86, 179, 0.5);
+      }
     }
 
     h1 {

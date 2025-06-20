@@ -90,6 +90,14 @@
           statusEl.textContent = 'Reloading...';
         }
         statusEl.setAttribute('data-i18n', 'tabReloading');
+        // Add reloading style for background color change
+        statusEl.classList.add('reloading');
+      }
+      
+      // Add reloading animation to sleep icon
+      const sleepIcon = document.querySelector('.sleep-icon');
+      if (sleepIcon) {
+        sleepIcon.classList.add('reloading');
       }
       
       // Notify background script that this tab is being unsuspended
