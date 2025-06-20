@@ -220,63 +220,19 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       sendResponse({ done: true });
     } else if (msg.command === 'unsuspendTab') {
       // Start tracking this tab as being unsuspended
-      unsuspendingTabs.add(msg.tabId);
-      await chrome.tabs.update(msg.tabId, { url: msg.originalUrl });
+      await unsuspendTabWithUrl(msg.tabId, msg.originalUrl);
       sendResponse({ done: true });
     } else if (msg.command === 'suspendOthers') {
       // Suspend other tabs in current window only
-      const currentTabId = msg.tabId;
-      const currentTab = await chrome.tabs.get(currentTabId);
-      const tabs = await chrome.tabs.query({ windowId: currentTab.windowId, discarded: false });
-      const settings = await getSettings();
-      
-      for (const tab of tabs) {
-        if (tab.id !== currentTabId && !tab.active && !isInternalUrl(tab.url)) {
-          // Check suspension prevention settings for "suspend others"
-          if (settings.neverSuspendAudio && tab.audible) {
-            continue; // Skip tabs that are playing audio
-          }
-          
-          if (settings.neverSuspendPinned && tab.pinned) {
-            continue; // Skip pinned tabs
-          }
-          
-          if (!isWhitelisted(tab.url, settings)) {
-            await suspendTab(tab, settings);
-          }
-        }
-      }
+      await suspendOthersInWindow(msg.tabId);
       sendResponse({ done: true });
     } else if (msg.command === 'unsuspendAll') {
-      const tabs = await chrome.tabs.query({});
-      for (const tab of tabs) {
-        if (tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) {
-          const urlParams = new URLSearchParams(tab.url.split('?')[1]);
-          const original = urlParams.get('uri');
-          if (original) {
-            // Start tracking this tab as being unsuspended
-            unsuspendingTabs.add(tab.id);
-            await chrome.tabs.update(tab.id, { url: original });
-          }
-        }
-      }
+      await unsuspendAllTabs();
       sendResponse({ done: true });
     } else if (msg.command === 'unsuspendAllThisWindow') {
       // Unsuspend all suspended tabs in current window only
-      const currentTabId = msg.tabId;
-      const currentTab = await chrome.tabs.get(currentTabId);
-      const tabs = await chrome.tabs.query({ windowId: currentTab.windowId });
-      for (const tab of tabs) {
-        if (tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) {
-          const urlParams = new URLSearchParams(tab.url.split('?')[1]);
-          const original = urlParams.get('uri');
-          if (original) {
-            // Start tracking this tab as being unsuspended
-            unsuspendingTabs.add(tab.id);
-            await chrome.tabs.update(tab.id, { url: original });
-          }
-        }
-      }
+      const currentTab = await chrome.tabs.get(msg.tabId);
+      await unsuspendAllTabsInWindow(currentTab.windowId);
       sendResponse({ done: true });
     } else if (msg.command === 'updateSettings') {
       await saveSettings(msg.settings);
@@ -296,75 +252,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       sendResponse({ whitelisted });
     } else if (msg.command === 'suspendSelectedTabs') {
       // Force suspend selected tabs (ignore whitelist but respect internal URLs)
-      const settings = await getSettings();
-      for (const tabId of msg.tabIds) {
-        try {
-          const tab = await chrome.tabs.get(tabId);
-          if (!isInternalUrl(tab.url)) {
-            await suspendTab(tab, settings);
-          }
-        } catch (error) {
-          console.warn(`Failed to suspend tab ${tabId}:`, error);
-        }
-      }
+      await suspendSelectedTabs(msg.tabIds);
       sendResponse({ done: true });
     } else if (msg.command === 'unsuspendSelectedTabs') {
       // Force unsuspend selected tabs
-      for (const tabId of msg.tabIds) {
-        try {
-          const tab = await chrome.tabs.get(tabId);
-          if (tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) {
-            const urlParams = new URLSearchParams(tab.url.split('?')[1]);
-            const original = urlParams.get('uri');
-            if (original) {
-              // Start tracking this tab as being unsuspended
-              unsuspendingTabs.add(tabId);
-              await chrome.tabs.update(tabId, { url: original });
-            }
-          }
-        } catch (error) {
-          console.warn(`Failed to unsuspend tab ${tabId}:`, error);
-        }
-      }
+      await unsuspendSelectedTabs(msg.tabIds);
       sendResponse({ done: true });
     } else if (msg.command === 'suspendAllOthersAllWindows') {
       // Suspend all other tabs across all windows (respects suspension prevention settings)
-      const currentTabId = msg.tabId;
-      const tabs = await chrome.tabs.query({ discarded: false });
-      const settings = await getSettings();
-      
-      // Get active tabs for each window if neverSuspendActive is enabled
-      let activeTabsInWindows = new Set();
-      if (settings.neverSuspendActive) {
-        const windows = await chrome.windows.getAll();
-        for (const window of windows) {
-          const activeTabs = await chrome.tabs.query({ windowId: window.id, active: true });
-          if (activeTabs.length > 0) {
-            activeTabsInWindows.add(activeTabs[0].id);
-          }
-        }
-      }
-      
-      for (const tab of tabs) {
-        if (tab.id !== currentTabId && !isInternalUrl(tab.url)) {
-          // Check suspension prevention settings
-          if (settings.neverSuspendAudio && tab.audible) {
-            continue; // Skip tabs that are playing audio
-          }
-          
-          if (settings.neverSuspendPinned && tab.pinned) {
-            continue; // Skip pinned tabs
-          }
-          
-          if (settings.neverSuspendActive && activeTabsInWindows.has(tab.id)) {
-            continue; // Skip active tab in each window
-          }
-          
-          if (!isWhitelisted(tab.url, settings)) {
-            await suspendTab(tab, settings);
-          }
-        }
-      }
+      await suspendOthersInAllWindows(msg.tabId);
       sendResponse({ done: true });
     } else if (msg.command === 'startUnsuspending') {
       // Get the current tab ID from sender
@@ -418,7 +314,182 @@ async function reDiscardInactiveSuspendedTabs() {
   }
 }
 
+// Unsuspend a single tab by tab ID
+async function unsuspendTabById(tabId) {
+  const tab = await chrome.tabs.get(tabId);
+  if (tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) {
+    const urlParams = new URLSearchParams(tab.url.split('?')[1]);
+    const original = urlParams.get('uri');
+    if (original) {
+      unsuspendingTabs.add(tabId);
+      await chrome.tabs.update(tabId, { url: original });
+      return true;
+    }
+  }
+  return false;
+}
+
+// Unsuspend a tab using original URL (for message handler)
+async function unsuspendTabWithUrl(tabId, originalUrl) {
+  unsuspendingTabs.add(tabId);
+  await chrome.tabs.update(tabId, { url: originalUrl });
+}
+
+// Suspend other tabs in the same window
+async function suspendOthersInWindow(currentTabId) {
+  const currentTab = await chrome.tabs.get(currentTabId);
+  const tabs = await chrome.tabs.query({ windowId: currentTab.windowId, discarded: false });
+  const settings = await getSettings();
+  
+  for (const tab of tabs) {
+    if (tab.id !== currentTabId && !tab.active && !isInternalUrl(tab.url)) {
+      // Check suspension prevention settings
+      if (settings.neverSuspendAudio && tab.audible) continue;
+      if (settings.neverSuspendPinned && tab.pinned) continue;
+      if (!isWhitelisted(tab.url, settings)) {
+        await suspendTab(tab, settings);
+      }
+    }
+  }
+}
+
+// Suspend other tabs in all windows
+async function suspendOthersInAllWindows(currentTabId) {
+  const tabs = await chrome.tabs.query({ discarded: false });
+  const settings = await getSettings();
+  
+  // Get active tabs for each window if neverSuspendActive is enabled
+  let activeTabsInWindows = new Set();
+  if (settings.neverSuspendActive) {
+    const windows = await chrome.windows.getAll();
+    for (const window of windows) {
+      const activeTabs = await chrome.tabs.query({ windowId: window.id, active: true });
+      if (activeTabs.length > 0) {
+        activeTabsInWindows.add(activeTabs[0].id);
+      }
+    }
+  }
+  
+  for (const tab of tabs) {
+    if (tab.id !== currentTabId && !isInternalUrl(tab.url)) {
+      // Check suspension prevention settings
+      if (settings.neverSuspendAudio && tab.audible) continue;
+      if (settings.neverSuspendPinned && tab.pinned) continue;
+      if (settings.neverSuspendActive && activeTabsInWindows.has(tab.id)) continue;
+      if (!isWhitelisted(tab.url, settings)) {
+        await suspendTab(tab, settings);
+      }
+    }
+  }
+}
+
+// Unsuspend all tabs in all windows
+async function unsuspendAllTabs() {
+  const tabs = await chrome.tabs.query({});
+  for (const tab of tabs) {
+    if (tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) {
+      const urlParams = new URLSearchParams(tab.url.split('?')[1]);
+      const original = urlParams.get('uri');
+      if (original) {
+        unsuspendingTabs.add(tab.id);
+        await chrome.tabs.update(tab.id, { url: original });
+      }
+    }
+  }
+}
+
+// Unsuspend all tabs in a specific window
+async function unsuspendAllTabsInWindow(windowId) {
+  const tabs = await chrome.tabs.query({ windowId: windowId });
+  for (const tab of tabs) {
+    if (tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) {
+      const urlParams = new URLSearchParams(tab.url.split('?')[1]);
+      const original = urlParams.get('uri');
+      if (original) {
+        unsuspendingTabs.add(tab.id);
+        await chrome.tabs.update(tab.id, { url: original });
+      }
+    }
+  }
+}
+
+// Suspend selected tabs (force suspend, ignore whitelist but respect internal URLs)
+async function suspendSelectedTabs(tabIds) {
+  const settings = await getSettings();
+  for (const tabId of tabIds) {
+    try {
+      const tab = await chrome.tabs.get(tabId);
+      if (!isInternalUrl(tab.url)) {
+        await suspendTab(tab, settings);
+      }
+    } catch (error) {
+      console.warn(`Failed to suspend tab ${tabId}:`, error);
+    }
+  }
+}
+
+// Unsuspend selected tabs
+async function unsuspendSelectedTabs(tabIds) {
+  for (const tabId of tabIds) {
+    try {
+      await unsuspendTabById(tabId);
+    } catch (error) {
+      console.warn(`Failed to unsuspend tab ${tabId}:`, error);
+    }
+  }
+}
+
+// Toggle suspend/unsuspend for a single tab
+async function toggleTabSuspension(tab) {
+  if (tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) {
+    // Unsuspend the tab
+    return await unsuspendTabById(tab.id);
+  } else {
+    // Suspend the tab
+    const settings = await getSettings();
+    if (!isInternalUrl(tab.url)) {
+      await suspendTab(tab, settings);
+      return true;
+    }
+  }
+  return false;
+}
+
 // Helper to save seen timestamps (debounced via alarm interval)
 function saveSeenTimestamps() {
   chrome.storage.session.set({ utsSeen: seenTimestamps });
-} 
+}
+
+// Handle keyboard shortcuts from commands API
+chrome.commands.onCommand.addListener(async (command, tab) => {
+  if (!tab || !tab.id) return;
+  
+  try {
+    switch (command) {
+      case '01-toggle-suspend':
+        await toggleTabSuspension(tab);
+        break;
+        
+      case '02-suspend-others-window':
+        await suspendOthersInWindow(tab.id);
+        break;
+        
+      case '03-suspend-others-all':
+        await suspendOthersInAllWindows(tab.id);
+        break;
+        
+      case '04-unsuspend-all-window':
+        await unsuspendAllTabsInWindow(tab.windowId);
+        break;
+        
+      case '05-unsuspend-all':
+        await unsuspendAllTabs();
+        break;
+        
+      default:
+        return; // Unknown command
+    }
+  } catch (error) {
+    console.error('Failed to execute shortcut command:', error);
+  }
+}); 

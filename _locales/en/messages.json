@@ -44,7 +44,7 @@
   "whitelistRules": { "message": "Whitelist Rules" },
   "whitelistLabel": { "message": "URL or domain list:" },
   "whitelistHelpDetailed": { "message": "Enter one URL or domain per line. Examples:\n• google.com - entire domain\n• https://example.com/page - specific URL\n• localhost - local development" },
-  "refreshWhitelist": { "message": "Refresh" },
+  "refresh": { "message": "Refresh" },
   "whitelistRefreshed": { "message": "Whitelist refreshed!" },
   "siteWhitelisted": { "message": "Site whitelisted." },
   "removeFromWhitelist": { "message": "Remove from whitelist" },
@@ -93,5 +93,16 @@
   "licenseCredits": { "message": "License & Credits" },
   "licenseText": { "message": "This extension is released under the GNU General Public License v3 (GPL v3). You are free to use, modify, and distribute this software under the terms of the GPL v3." },
   "copyright": { "message": "Copyright:" },
-  "copyrightText": { "message": "Copyright (C) Yu-Hsiung Chiu" }
+  "copyrightText": { "message": "Copyright (C) Yu-Hsiung Chiu" },
+  "keyboardShortcuts": { "message": "Keyboard Shortcuts" },
+  "keyboardShortcutsDesc": { "message": "View and manage extension keyboard shortcuts" },
+  "shortcutsList": { "message": "Available Shortcuts" },
+  "shortcutsHelp": { "message": "Below are the keyboard shortcuts configured for this extension. To modify shortcuts, click \"Manage Shortcuts\" to open Chrome's extension shortcuts page." },
+  "loadingShortcuts": { "message": "Loading shortcuts..." },
+  "errorLoadingShortcuts": { "message": "Error loading shortcuts" },
+  "noShortcutsFound": { "message": "No shortcuts found" },
+  "notAssigned": { "message": "Not assigned" },
+  "manageShortcuts": { "message": "Manage Shortcuts" },
+  "shortcutsRefreshed": { "message": "Shortcuts refreshed!" },
+  "shortcutToggleSuspend": { "message": "Suspend/Unsuspend current tab" }
 } 

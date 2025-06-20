@@ -431,6 +431,12 @@
           </a>
         </li>
         <li class="nav-item">
+          <a href="#" class="nav-link" data-section="shortcuts">
+            <div class="nav-icon">⌨️</div>
+            <span data-i18n="keyboardShortcuts">Keyboard Shortcuts</span>
+          </a>
+        </li>
+        <li class="nav-item">
           <a href="#" class="nav-link" data-section="migration">
             <div class="nav-icon">🔄</div>
             <span data-i18n="tabMigration">Tab Migration</span>
@@ -539,7 +545,7 @@
               <label for="whitelistList" data-i18n="whitelistLabel">URL or domain list:</label>
               <button id="refreshWhitelistBtn" class="btn" style="background: #e1e5e9; color: #333;">
                 <span>🔄</span>
-                <span data-i18n="refreshWhitelist">Refresh</span>
+                <span data-i18n="refresh">Refresh</span>
               </button>
             </div>
             <textarea id="whitelistList" data-i18n-placeholder="whitelistPlaceholder" placeholder="One entry per line"></textarea>
@@ -548,6 +554,41 @@
               • google.com - entire domain
               • https://example.com/page - specific URL
               • localhost - local development
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Keyboard Shortcuts Section -->
+      <section id="shortcuts" class="content-section">
+        <div class="section-header">
+          <h2 data-i18n="keyboardShortcuts">Keyboard Shortcuts</h2>
+          <p data-i18n="keyboardShortcutsDesc">View and manage extension keyboard shortcuts</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>⌨️</span>
+            <span data-i18n="shortcutsList">Available Shortcuts</span>
+          </div>
+          <div class="card-description" data-i18n="shortcutsHelp">
+            Below are the keyboard shortcuts configured for this extension. To modify shortcuts, click "Manage Shortcuts" to open Chrome's extension shortcuts page.
+          </div>
+          <div class="form-group">
+            <div id="shortcutsContainer" style="margin-bottom: 16px;">
+              <div class="loading-state" style="text-align: center; padding: 20px; color: #666;">
+                <span data-i18n="loadingShortcuts">Loading shortcuts...</span>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button id="manageShortcutsBtn" class="btn btn-primary">
+                <span>⚙️</span>
+                <span data-i18n="manageShortcuts">Manage Shortcuts</span>
+              </button>
+              <button id="refreshShortcutsBtn" class="btn" style="background: #e1e5e9; color: #333;">
+                <span>🔄</span>
+                <span data-i18n="refresh">Refresh</span>
+              </button>
             </div>
           </div>
         </div>

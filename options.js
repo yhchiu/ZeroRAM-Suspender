@@ -116,8 +116,13 @@ function initNavigation() {
         loadChangelog();
       }
       
+      // Load shortcuts when switching to shortcuts section
+      if (sectionId === 'shortcuts') {
+        loadKeyboardShortcuts();
+      }
+      
       // Show/hide save button based on section
-      if (sectionId === 'about' || sectionId === 'migration' || sectionId === 'changelog') {
+      if (sectionId === 'about' || sectionId === 'migration' || sectionId === 'changelog' || sectionId === 'shortcuts') {
         actionBar.style.display = 'none';
       } else {
         actionBar.style.display = 'flex';
@@ -239,12 +244,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Check initial active section and hide save button if needed
   const initialActiveSection = getCurrentActiveSection();
   const actionBar = document.querySelector('.action-bar');
-  if (initialActiveSection === 'about' || initialActiveSection === 'migration' || initialActiveSection === 'changelog') {
+  if (initialActiveSection === 'about' || initialActiveSection === 'migration' || initialActiveSection === 'changelog' || initialActiveSection === 'shortcuts') {
     actionBar.style.display = 'none';
   }
   
   // Initialize tab migration functionality
   initTabMigration();
+  
+  // Initialize keyboard shortcuts functionality
+  initKeyboardShortcuts();
   
   // Add refresh whitelist button event listener
   const refreshWhitelistBtn = document.getElementById('refreshWhitelistBtn');
@@ -263,6 +271,111 @@ document.addEventListener('keydown', (e) => {
     save();
   }
 });
+
+/* ---------- Keyboard Shortcuts Functions ---------- */
+
+// Initialize keyboard shortcuts functionality
+function initKeyboardShortcuts() {
+  const manageShortcutsBtn = document.getElementById('manageShortcutsBtn');
+  const refreshShortcutsBtn = document.getElementById('refreshShortcutsBtn');
+  
+  if (manageShortcutsBtn) {
+    manageShortcutsBtn.addEventListener('click', openShortcutsPage);
+  }
+  
+  if (refreshShortcutsBtn) {
+    refreshShortcutsBtn.addEventListener('click', refreshShortcuts);
+  }
+  
+  // Load shortcuts when visiting the shortcuts section
+  loadKeyboardShortcuts();
+}
+
+// Load and display keyboard shortcuts
+async function loadKeyboardShortcuts() {
+  const container = document.getElementById('shortcutsContainer');
+  if (!container) return;
+  
+  try {
+    const commands = await chrome.commands.getAll();
+    displayKeyboardShortcuts(commands, container);
+  } catch (error) {
+    console.error('Error loading keyboard shortcuts:', error);
+    container.innerHTML = `
+      <div style="text-align: center; padding: 20px; color: #dc3545;">
+        <span data-i18n="errorLoadingShortcuts">Error loading shortcuts</span>
+      </div>
+    `;
+  }
+}
+
+// Display keyboard shortcuts in the UI
+function displayKeyboardShortcuts(commands, container) {
+  if (!commands || commands.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 20px; color: #666;">
+        <span data-i18n="noShortcutsFound">No shortcuts found</span>
+      </div>
+    `;
+    return;
+  }
+  
+  // Filter out built-in Chrome commands like _execute_action
+  const filteredCommands = commands.filter(command => 
+    !command.name.startsWith('_execute_')
+  );
+  
+  if (filteredCommands.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 20px; color: #666;">
+        <span data-i18n="noShortcutsFound">No shortcuts found</span>
+      </div>
+    `;
+    return;
+  }
+  
+  // Define command descriptions with i18n keys
+  const commandDescriptions = {
+    '01-toggle-suspend': { key: 'shortcutToggleSuspend', default: 'Suspend/Unsuspend current tab' },
+    '02-suspend-others-window': { key: 'suspendOthers', default: 'Suspend all other tabs (this window)' },
+    '03-suspend-others-all': { key: 'suspendAllOthersAllWindows', default: 'Suspend all other tabs (all windows)' },
+    '04-unsuspend-all-window': { key: 'unsuspendAllThisWindow', default: 'Unsuspend all tabs (this window)' },
+    '05-unsuspend-all': { key: 'unsuspendAll', default: 'Unsuspend all tabs (all windows)' }
+  };
+  
+  const html = filteredCommands.map(command => {
+    const description = commandDescriptions[command.name];
+    const displayName = description ? (getMessage(description.key) || description.default) : command.description;
+    const shortcut = command.shortcut || getMessage('notAssigned') || 'Not assigned';
+    const isAssigned = !!command.shortcut;
+    
+    return `
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; margin-bottom: 8px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px;">
+        <div style="flex: 1;">
+          <div style="font-weight: 500; color: #333;">${escapeHtml(displayName)}</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="padding: 6px 12px; background: ${isAssigned ? '#e7f3ff' : '#f0f0f0'}; color: ${isAssigned ? '#0066cc' : '#666'}; border-radius: 4px; font-size: 13px; font-weight: 500; font-family: monospace; min-width: 120px; text-align: center;">
+            ${escapeHtml(shortcut)}
+          </span>
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  container.innerHTML = html;
+}
+
+// Refresh keyboard shortcuts display
+function refreshShortcuts() {
+  loadKeyboardShortcuts();
+  showNotice(getMessage('shortcutsRefreshed') || 'Shortcuts refreshed', 'success', 2000);
+}
+
+// Open Chrome's shortcuts management page
+function openShortcutsPage() {
+  chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+}
 
 /* ---------- Tab Migration Functions ---------- */
 

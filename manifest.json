@@ -42,6 +42,26 @@
     "page": "options.html",
     "open_in_tab": true
   },
+  "commands": {
+    "01-toggle-suspend": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Z"
+      },
+      "description": "__MSG_shortcutToggleSuspend__"
+    },
+    "02-suspend-others-window": {
+      "description": "__MSG_suspendOthers__"
+    },
+    "03-suspend-others-all": {
+      "description": "__MSG_suspendAllOthersAllWindows__"
+    },
+    "04-unsuspend-all-window": {
+      "description": "__MSG_unsuspendAllThisWindow__"
+    },
+    "05-unsuspend-all": {
+      "description": "__MSG_unsuspendAll__"
+    }
+  },
   "web_accessible_resources": [
     {
       "resources": ["suspended.html", "suspended.js", "i18n.js", "style.css", "_favicon/*"],

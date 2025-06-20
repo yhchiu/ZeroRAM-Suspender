@@ -44,7 +44,7 @@
   "whitelistRules": { "message": "白名單規則" },
   "whitelistLabel": { "message": "網址或網域列表：" },
   "whitelistHelpDetailed": { "message": "每行輸入一個網址或網域。例如：\n• google.com - 整個網域\n• https://example.com/page - 特定網址\n• localhost - 本地開發環境" },
-  "refreshWhitelist": { "message": "重新載入" },
+  "refresh": { "message": "重新載入" },
   "whitelistRefreshed": { "message": "白名單已重新載入！" },
   "siteWhitelisted": { "message": "網站已列入白名單。" },
   "removeFromWhitelist": { "message": "從白名單移除" },
@@ -93,5 +93,16 @@
   "licenseCredits": { "message": "授權" },
   "licenseText": { "message": "此擴展依據 GNU 通用公共授權條款第三版（GPL v3）發布。您可以在 GPL v3 條款規範下自由使用、修改和分發此軟體。" },
   "copyright": { "message": "版權：" },
-  "copyrightText": { "message": "Copyright (C) Yu-Hsiung Chiu" }
+  "copyrightText": { "message": "Copyright (C) Yu-Hsiung Chiu" },
+  "keyboardShortcuts": { "message": "鍵盤快捷鍵" },
+  "keyboardShortcutsDesc": { "message": "檢視和管理擴展的鍵盤快捷鍵" },
+  "shortcutsList": { "message": "可用快捷鍵" },
+  "shortcutsHelp": { "message": "以下是此擴展配置的鍵盤快捷鍵。若要修改快捷鍵，請點擊「管理快捷鍵」以開啟 Chrome 的擴展快捷鍵設定頁面。" },
+  "loadingShortcuts": { "message": "載入快捷鍵中..." },
+  "errorLoadingShortcuts": { "message": "載入快捷鍵時發生錯誤" },
+  "noShortcutsFound": { "message": "未找到快捷鍵" },
+  "notAssigned": { "message": "未設定" },
+  "manageShortcuts": { "message": "管理快捷鍵" },
+  "shortcutsRefreshed": { "message": "快捷鍵已重新載入！" },
+  "shortcutToggleSuspend": { "message": "休眠/喚醒目前分頁" }
 } 
