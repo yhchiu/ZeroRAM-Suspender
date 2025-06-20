@@ -70,7 +70,7 @@
   "tabMigration": { "message": "Tab Migration" },
   "tabMigrationDesc": { "message": "Migrate suspended tabs from other tab suspension extensions" },
   "marvellousTabDetection": { "message": "The Marvellous Suspender Tab Detection" },
-  "marvellousTabDetectionDesc": { "message": "Automatically detect and provide migration for The Marvellous Suspender and The Great Suspender (notrack) suspended tabs" },
+  "marvellousTabDetectionDesc": { "message": "Automatically detect and provide migration for The Marvellous Suspender, The Great Suspender (notrack), The Great-er Tab Discarder, and other similar suspended tabs" },
   "scanForMarvellousTab": { "message": "Scan for The Marvellous Suspender tabs" },
   "noMarvellousTabFound": { "message": "No The Marvellous Suspender tabs found" },
   "foundMarvellousTab": { "message": "Found %d The Marvellous Suspender tabs" },

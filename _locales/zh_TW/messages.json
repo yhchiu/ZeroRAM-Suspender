@@ -70,7 +70,7 @@
   "tabMigration": { "message": "分頁遷移" },
   "tabMigrationDesc": { "message": "從其他分頁暫停套件遷移已暫停的分頁" },
   "marvellousTabDetection": { "message": "The Marvellous Suspender 分頁偵測" },
-  "marvellousTabDetectionDesc": { "message": "自動偵測並提供遷移 The Marvellous Suspender 與 The Great Suspender (notrack) 已暫停的分頁" },
+  "marvellousTabDetectionDesc": { "message": "自動偵測並提供遷移 The Marvellous Suspender, The Great Suspender (notrack), The Great-er Tab Discarder, 及其他類似的已暫停分頁" },
   "scanForMarvellousTab": { "message": "掃描 The Marvellous Suspender 分頁" },
   "noMarvellousTabFound": { "message": "未找到 The Marvellous Suspender 分頁" },
   "foundMarvellousTab": { "message": "找到 %d 個 The Marvellous Suspender 分頁" },

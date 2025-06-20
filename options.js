@@ -408,6 +408,7 @@ const KNOWN_MARVELLOUS_SUSPENDER_IDS = [
   'ahfhijdlegdabablpippeagghigmibma', // Newer version
   'jlgkpaicikihijadgifklkbpdajbkhjo', // Community fork
   'ahkbmjhfoplmfkpncgoedjgkajkehcgo', // The Great Suspender (notrack)
+  'plpkmjcnhhnpkblimgenmdhghfgghdpp', // The Great-er Tab Discarder
   // Add more known IDs as needed
 ];
 
