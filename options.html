@@ -437,6 +437,12 @@
           </a>
         </li>
         <li class="nav-item">
+          <a href="#" class="nav-link" data-section="settings">
+            <div class="nav-icon">⚙️</div>
+            <span data-i18n="settingsManagement">Settings Management</span>
+          </a>
+        </li>
+        <li class="nav-item">
           <a href="#" class="nav-link" data-section="session">
             <div class="nav-icon">💾</div>
             <span data-i18n="sessionManagement">Session Management</span>
@@ -560,6 +566,108 @@
               • google.com - entire domain
               • https://example.com/page - specific URL
               • localhost - local development
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Settings Management Section -->
+      <section id="settings" class="content-section">
+        <div class="section-header">
+          <h2 data-i18n="settingsManagement">Settings Management</h2>
+          <p data-i18n="settingsManagementDesc">Backup and restore extension settings</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>📤</span>
+            <span data-i18n="exportSettings">Export Settings</span>
+          </div>
+          <div class="card-description" data-i18n="exportSettingsDesc">
+            Export all current extension settings to a JSON file for backup
+          </div>
+          <div class="form-group">
+            <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+              <button id="previewSettingsBtn" class="btn" style="background: #17a2b8; color: white;">
+                <span>👁️</span>
+                <span data-i18n="preview">Preview</span>
+              </button>
+              <button id="exportSettingsBtn" class="btn btn-primary">
+                <span>📤</span>
+                <span data-i18n="export">Export</span>
+              </button>
+            </div>
+            
+            <div id="settingsPreview" style="display: none; margin-bottom: 16px;">
+              <div style="margin-bottom: 8px; font-weight: 500;" data-i18n="settingsPreviewTitle">Settings Preview:</div>
+              <div id="settingsPreviewContent" style="max-height: 300px; overflow-y: auto; border: 1px solid #e1e5e9; border-radius: 8px; padding: 12px; background: #f9f9f9; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; font-size: 12px; line-height: 1.4; white-space: pre-wrap;">
+              </div>
+            </div>
+            
+            <div class="help-text" data-i18n="exportSettingsHelp">
+              Exports all settings including auto-suspend configuration, whitelist, and other preferences
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>📥</span>
+            <span data-i18n="importSettings">Import Settings</span>
+          </div>
+          <div class="card-description" data-i18n="importSettingsDesc">
+            Import previously exported settings to restore your configuration
+          </div>
+          <div class="form-group">
+            <label for="settingsFileInput" data-i18n="selectSettingsFile">Select settings file:</label>
+            <input type="file" id="settingsFileInput" accept=".json" style="margin-bottom: 16px; padding: 8px; border: 1px solid #e1e5e9; border-radius: 8px; width: 100%;">
+            
+            <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+              <button id="previewImportSettingsBtn" class="btn" style="background: #17a2b8; color: white;">
+                <span>👁️</span>
+                <span data-i18n="preview">Preview</span>
+              </button>
+              <button id="importSettingsBtn" class="btn btn-primary">
+                <span>📥</span>
+                <span data-i18n="import">Import</span>
+              </button>
+            </div>
+            
+            <div id="importSettingsPreview" style="display: none; margin-bottom: 16px;">
+              <div style="margin-bottom: 8px; font-weight: 500;" data-i18n="importPreviewTitle">Import Preview:</div>
+              <div id="importSettingsPreviewContent" style="max-height: 300px; overflow-y: auto; border: 1px solid #e1e5e9; border-radius: 8px; padding: 12px; background: #f9f9f9; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; font-size: 12px; line-height: 1.4; white-space: pre-wrap;">
+              </div>
+            </div>
+            
+            <div class="help-text" data-i18n="importSettingsHelp">
+              Import settings from a previously exported JSON file. This will replace all current settings.
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>🔄</span>
+            <span data-i18n="resetSettings">Reset Settings</span>
+          </div>
+          <div class="card-description" data-i18n="resetSettingsDesc">
+            Reset all settings to their default values
+          </div>
+          <div class="form-group">
+            <div style="padding: 12px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; margin-bottom: 16px;">
+              <div style="color: #856404; font-weight: 500; margin-bottom: 4px;">⚠️ <span data-i18n="warning">Warning</span></div>
+              <div style="color: #856404; font-size: 13px;" data-i18n="resetWarning">
+                This action will permanently delete all your current settings and restore defaults. This cannot be undone.
+              </div>
+            </div>
+            
+            <button id="resetSettingsBtn" class="btn" style="background: #dc3545; color: white;">
+              <span>🔄</span>
+              <span data-i18n="resetToDefaults">Reset to Defaults</span>
+            </button>
+            
+            <div class="help-text" data-i18n="resetHelp">
+              Consider exporting your current settings before resetting, in case you want to restore them later.
             </div>
           </div>
         </div>

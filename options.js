@@ -126,8 +126,13 @@ function initNavigation() {
         resetSessionPreviews();
       }
       
+      // Reset settings previews when switching to settings section
+      if (sectionId === 'settings') {
+        resetSettingsPreviews();
+      }
+      
       // Show/hide save button based on section
-      if (sectionId === 'about' || sectionId === 'migration' || sectionId === 'changelog' || sectionId === 'shortcuts' || sectionId === 'session') {
+      if (sectionId === 'about' || sectionId === 'migration' || sectionId === 'changelog' || sectionId === 'shortcuts' || sectionId === 'session' || sectionId === 'settings') {
         actionBar.style.display = 'none';
       } else {
         actionBar.style.display = 'flex';
@@ -249,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Check initial active section and hide save button if needed
   const initialActiveSection = getCurrentActiveSection();
   const actionBar = document.querySelector('.action-bar');
-  if (initialActiveSection === 'about' || initialActiveSection === 'migration' || initialActiveSection === 'changelog' || initialActiveSection === 'shortcuts' || initialActiveSection === 'session') {
+  if (initialActiveSection === 'about' || initialActiveSection === 'migration' || initialActiveSection === 'changelog' || initialActiveSection === 'shortcuts' || initialActiveSection === 'session' || initialActiveSection === 'settings') {
     actionBar.style.display = 'none';
   }
   
@@ -261,6 +266,9 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Initialize session management functionality
   initSessionManagement();
+  
+  // Initialize settings management functionality
+  initSettingsManagement();
   
   // Add refresh whitelist button event listener
   const refreshWhitelistBtn = document.getElementById('refreshWhitelistBtn');
@@ -1954,4 +1962,367 @@ function updateImportProgress(completed, total) {
   }
 }
 
-/* ---------- End Session Management Functions ---------- */ 
+/* ---------- End Session Management Functions ---------- */
+
+
+/* ---------- Settings Management Functions ---------- */
+
+// Initialize settings management functionality
+function initSettingsManagement() {
+  const exportSettingsBtn = document.getElementById('exportSettingsBtn');
+  const previewSettingsBtn = document.getElementById('previewSettingsBtn');
+  const settingsFileInput = document.getElementById('settingsFileInput');
+  const previewImportSettingsBtn = document.getElementById('previewImportSettingsBtn');
+  const importSettingsBtn = document.getElementById('importSettingsBtn');
+  const resetSettingsBtn = document.getElementById('resetSettingsBtn');
+
+  if (exportSettingsBtn) {
+    exportSettingsBtn.addEventListener('click', exportSettings);
+  }
+
+  if (previewSettingsBtn) {
+    previewSettingsBtn.addEventListener('click', previewSettings);
+  }
+
+  if (settingsFileInput) {
+    settingsFileInput.addEventListener('change', handleSettingsFileSelected);
+  }
+
+  if (previewImportSettingsBtn) {
+    previewImportSettingsBtn.addEventListener('click', previewImportSettings);
+  }
+
+  if (importSettingsBtn) {
+    importSettingsBtn.addEventListener('click', importSettings);
+  }
+
+  if (resetSettingsBtn) {
+    resetSettingsBtn.addEventListener('click', confirmResetSettings);
+  }
+}
+
+// Get default settings
+function getDefaultSettings() {
+  return {
+    autoSuspendMinutes: 30,
+    useNativeDiscard: true,
+    neverSuspendAudio: true,
+    neverSuspendPinned: true,
+    neverSuspendActive: false,
+    whitelist: []
+  };
+}
+
+// Get current settings
+async function getCurrentSettings() {
+  return new Promise((resolve) => {
+    chrome.storage.sync.get(STORAGE_KEY, data => {
+      const cfg = data[STORAGE_KEY] || {};
+      const settings = {
+        autoSuspendMinutes: cfg.autoSuspendMinutes != null ? cfg.autoSuspendMinutes : 30,
+        useNativeDiscard: cfg.useNativeDiscard !== false,
+        neverSuspendAudio: cfg.neverSuspendAudio !== false,
+        neverSuspendPinned: cfg.neverSuspendPinned !== false,
+        neverSuspendActive: cfg.neverSuspendActive === true,
+        whitelist: cfg.whitelist || []
+      };
+      resolve(settings);
+    });
+  });
+}
+
+// Export settings
+async function exportSettings() {
+  try {
+    showNotice(getMessage('exportingSettings') || 'Exporting settings...', 'info', 2000);
+    
+    const settings = await getCurrentSettings();
+    const exportData = {
+      ...settings,
+      exportedAt: new Date().toISOString(),
+      exportedBy: 'ZeroRAM Suspender',
+      version: chrome.runtime.getManifest().version
+    };
+    
+    const content = JSON.stringify(exportData, null, 2);
+    const filename = `ZeroRAMSuspender-settings_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+    
+    // Create and download file
+    const blob = new Blob([content], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showNotice(getMessage('settingsExported') || 'Settings exported successfully', 'success', 3000);
+    
+  } catch (error) {
+    console.error('[ZeroRAM Suspender] Error exporting settings:', error);
+    showNotice(getMessage('exportFailed') || 'Export failed', 'error', 3000);
+  }
+}
+
+// Preview current settings
+async function previewSettings() {
+  try {
+    showNotice(getMessage('generatingPreview') || 'Generating preview...', 'info', 1000);
+    
+    const settings = await getCurrentSettings();
+    const exportData = {
+      ...settings,
+      exportedAt: new Date().toISOString(),
+      exportedBy: 'ZeroRAM Suspender',
+      version: chrome.runtime.getManifest().version
+    };
+    
+    const content = JSON.stringify(exportData, null, 2);
+    
+    // Display preview
+    const previewContainer = document.getElementById('settingsPreview');
+    const previewContent = document.getElementById('settingsPreviewContent');
+    
+    if (previewContent) {
+      previewContent.textContent = content;
+    }
+    
+    if (previewContainer) {
+      previewContainer.style.display = 'block';
+    }
+    
+    showNotice(getMessage('settingsPreviewReady') || 'Settings preview ready', 'success', 2000);
+    
+  } catch (error) {
+    console.error('[ZeroRAM Suspender] Error generating settings preview:', error);
+    showNotice(getMessage('previewFailed') || 'Preview failed', 'error', 3000);
+  }
+}
+
+// Handle settings file selection
+function handleSettingsFileSelected(event) {
+  const file = event.target.files[0];
+  const importSettingsPreview = document.getElementById('importSettingsPreview');
+  
+  // Reset import preview when file selection changes
+  if (importSettingsPreview) {
+    importSettingsPreview.style.display = 'none';
+  }
+}
+
+// Preview import settings
+async function previewImportSettings() {
+  const fileInput = document.getElementById('settingsFileInput');
+  const file = fileInput.files[0];
+  
+  if (!file) {
+    showNotice(getMessage('pleaseSelectFile') || 'Please select a file first', 'warning', 3000);
+    return;
+  }
+  
+  try {
+    const content = await file.text();
+    const settingsData = JSON.parse(content);
+    
+    // Validate settings structure
+    if (!validateSettingsData(settingsData)) {
+      throw new Error('Invalid settings file format');
+    }
+    
+    // Display preview
+    const previewContainer = document.getElementById('importSettingsPreview');
+    const previewContent = document.getElementById('importSettingsPreviewContent');
+    
+    let previewText = `${getMessage('settingsFileInfo') || 'Settings File Information'}:\n`;
+    
+    // Format exported date to human readable format
+    let exportedAtText = 'Unknown';
+    if (settingsData.exportedAt) {
+      try {
+        const date = new Date(settingsData.exportedAt);
+        exportedAtText = date.toLocaleString();
+      } catch (error) {
+        exportedAtText = settingsData.exportedAt;
+      }
+    }
+    
+    previewText += `${getMessage('exportedAt') || 'Exported at'}: ${exportedAtText}\n`;
+    previewText += `${getMessage('version') || 'Version'}: ${settingsData.version || 'Unknown'}\n\n`;
+    previewText += `${getMessage('settingsToImport') || 'Settings to import'}:\n`;
+    previewText += `• ${getMessage('autoSuspendLabel') || 'Auto suspend'}: ${settingsData.autoSuspendMinutes || 0} ${getMessage('minutes') || 'minutes'}\n`;
+    previewText += `• ${getMessage('nativeDiscardLabel') || 'Native discard'}: ${settingsData.useNativeDiscard ? getMessage('enabled') || 'Enabled' : getMessage('disabled') || 'Disabled'}\n`;
+    previewText += `• ${getMessage('neverSuspendAudio') || 'Never suspend audio tabs'}: ${settingsData.neverSuspendAudio ? getMessage('enabled') || 'Enabled' : getMessage('disabled') || 'Disabled'}\n`;
+    previewText += `• ${getMessage('neverSuspendPinned') || 'Never suspend pinned tabs'}: ${settingsData.neverSuspendPinned ? getMessage('enabled') || 'Enabled' : getMessage('disabled') || 'Disabled'}\n`;
+    previewText += `• ${getMessage('neverSuspendActive') || 'Never suspend active tab'}: ${settingsData.neverSuspendActive ? getMessage('enabled') || 'Enabled' : getMessage('disabled') || 'Disabled'}\n`;
+    previewText += `• ${getMessage('whitelistTitle') || 'Whitelist'}: ${(settingsData.whitelist || []).length} ${getMessage('items') || 'items'}\n`;
+    
+    if (settingsData.whitelist && settingsData.whitelist.length > 0) {
+      previewText += '\n' + (getMessage('whitelistItems') || 'Whitelist items') + ':\n';
+      settingsData.whitelist.forEach((item, index) => {
+        previewText += `  ${index + 1}. ${item}\n`;
+      });
+    }
+    
+    if (previewContent) {
+      previewContent.textContent = previewText;
+    }
+    
+    if (previewContainer) {
+      previewContainer.style.display = 'block';
+    }
+    
+    showNotice(getMessage('importPreviewReady') || 'Import preview ready', 'success', 2000);
+    
+  } catch (error) {
+    console.error('[ZeroRAM Suspender] Error previewing import settings:', error);
+    showNotice(getMessage('previewFailed') || 'Preview failed: Invalid file format', 'error', 3000);
+  }
+}
+
+// Validate settings data structure
+function validateSettingsData(data) {
+  if (!data || typeof data !== 'object') return false;
+  
+  const requiredFields = ['autoSuspendMinutes', 'useNativeDiscard', 'neverSuspendAudio', 'neverSuspendPinned', 'neverSuspendActive', 'whitelist'];
+  
+  return requiredFields.every(field => field in data);
+}
+
+// Import settings
+async function importSettings() {
+  const fileInput = document.getElementById('settingsFileInput');
+  const file = fileInput.files[0];
+  
+  if (!file) {
+    showNotice(getMessage('pleaseSelectFile') || 'Please select a file first', 'warning', 3000);
+    return;
+  }
+  
+  try {
+    const content = await file.text();
+    const settingsData = JSON.parse(content);
+    
+    // Validate settings structure
+    if (!validateSettingsData(settingsData)) {
+      throw new Error('Invalid settings file format');
+    }
+    
+    // Prepare settings object
+    const newSettings = {
+      autoSuspendMinutes: settingsData.autoSuspendMinutes != null ? settingsData.autoSuspendMinutes : 30,
+      useNativeDiscard: settingsData.useNativeDiscard !== false,
+      neverSuspendAudio: settingsData.neverSuspendAudio !== false,
+      neverSuspendPinned: settingsData.neverSuspendPinned !== false,
+      neverSuspendActive: settingsData.neverSuspendActive === true,
+      whitelist: Array.isArray(settingsData.whitelist) ? settingsData.whitelist : []
+    };
+    
+    // Save to storage
+    await new Promise((resolve, reject) => {
+      chrome.storage.sync.set({ [STORAGE_KEY]: newSettings }, () => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve();
+        }
+      });
+    });
+    
+    // Update UI
+    load();
+    
+    showNotice(getMessage('settingsImported') || 'Settings imported successfully', 'success', 4000);
+    
+    // Reset file input
+    fileInput.value = '';
+    document.getElementById('importSettingsPreview').style.display = 'none';
+    
+  } catch (error) {
+    console.error('[ZeroRAM Suspender] Error importing settings:', error);
+    showNotice(getMessage('importFailed') || 'Import failed: ' + error.message, 'error', 4000);
+  }
+}
+
+// Confirm reset settings
+function confirmResetSettings() {
+  const confirmMsg = getMessage('confirmResetSettings') || 'Are you sure you want to reset all settings to their default values? This action cannot be undone.';
+  
+  if (confirm(confirmMsg)) {
+    resetSettings();
+  }
+}
+
+// Reset settings to defaults
+async function resetSettings() {
+  try {
+    const defaultSettings = getDefaultSettings();
+    
+    // Save to storage
+    await new Promise((resolve, reject) => {
+      chrome.storage.sync.set({ [STORAGE_KEY]: defaultSettings }, () => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve();
+        }
+      });
+    });
+    
+    // Update UI
+    load();
+    
+    showNotice(getMessage('settingsReset') || 'Settings have been reset to defaults', 'success', 4000);
+    
+    // Hide previews
+    const settingsPreview = document.getElementById('settingsPreview');
+    const importSettingsPreview = document.getElementById('importSettingsPreview');
+    
+    if (settingsPreview) {
+      settingsPreview.style.display = 'none';
+    }
+    if (importSettingsPreview) {
+      importSettingsPreview.style.display = 'none';
+    }
+    
+  } catch (error) {
+    console.error('[ZeroRAM Suspender] Error resetting settings:', error);
+    showNotice(getMessage('resetFailed') || 'Reset failed', 'error', 3000);
+  }
+}
+
+// Reset settings previews when switching to settings section
+function resetSettingsPreviews() {
+  // Reset file input
+  const settingsFileInput = document.getElementById('settingsFileInput');
+  if (settingsFileInput) {
+    settingsFileInput.value = '';
+  }
+  
+  // Hide export preview
+  const settingsPreview = document.getElementById('settingsPreview');
+  if (settingsPreview) {
+    settingsPreview.style.display = 'none';
+  }
+  
+  // Hide import preview
+  const importSettingsPreview = document.getElementById('importSettingsPreview');
+  if (importSettingsPreview) {
+    importSettingsPreview.style.display = 'none';
+  }
+  
+  // Clear preview content
+  const settingsPreviewContent = document.getElementById('settingsPreviewContent');
+  if (settingsPreviewContent) {
+    settingsPreviewContent.textContent = '';
+  }
+  
+  const importSettingsPreviewContent = document.getElementById('importSettingsPreviewContent');
+  if (importSettingsPreviewContent) {
+    importSettingsPreviewContent.textContent = '';
+  }
+}
+
+/* ---------- End Settings Management Functions ---------- */ 
