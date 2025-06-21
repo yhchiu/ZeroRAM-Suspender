@@ -426,6 +426,25 @@ const MIGRATION_CONFIGS = {
       progressTextId: 'tabSuspenderProgressText',
       progressFillId: 'tabSuspenderProgressFill'
     }
+  },
+  custom: {
+    name: 'Custom Extension',
+    knownExtensionIds: [], // Will be populated dynamically
+    urlPattern: '', // Will be set dynamically
+    parseFunction: 'parseCustomTab',
+    ui: {
+      scanBtnId: 'scanCustomBtn',
+      resultsId: 'customResults',
+      statusId: 'customStatus',
+      tabsListId: 'customTabsList',
+      tabsContainerId: 'customTabsContainer',
+      selectAllBtnId: 'selectAllCustomBtn',
+      deselectAllBtnId: 'deselectAllCustomBtn',
+      migrateBtnId: 'migrateCustomBtn',
+      progressContainerId: 'customProgressContainer',
+      progressTextId: 'customProgressText',
+      progressFillId: 'customProgressFill'
+    }
   }
 };
 
@@ -439,6 +458,9 @@ function initTabMigration() {
   
   // Initialize Tab Suspender migration
   initExtensionMigration('tabSuspender');
+  
+  // Initialize Custom migration
+  initCustomMigration();
 }
 
 // Generic function to initialize migration for a specific extension
@@ -465,6 +487,96 @@ function initExtensionMigration(extensionKey) {
   }
 }
 
+// Initialize custom migration functionality
+function initCustomMigration() {
+  const testBtn = document.getElementById('testCustomPatternBtn');
+  const scanBtn = document.getElementById('scanCustomBtn');
+  const selectAllBtn = document.getElementById('selectAllCustomBtn');
+  const deselectAllBtn = document.getElementById('deselectAllCustomBtn');
+  const migrateBtn = document.getElementById('migrateCustomBtn');
+  
+  if (testBtn) {
+    testBtn.addEventListener('click', testCustomPattern);
+  }
+  if (scanBtn) {
+    scanBtn.addEventListener('click', scanForCustomTabs);
+  }
+  if (selectAllBtn) {
+    selectAllBtn.addEventListener('click', () => selectAllTabs('customTabsContainer'));
+  }
+  if (deselectAllBtn) {
+    deselectAllBtn.addEventListener('click', () => deselectAllTabs('customTabsContainer'));
+  }
+  if (migrateBtn) {
+    migrateBtn.addEventListener('click', () => migrateSelectedTabs('custom'));
+  }
+}
+
+// Test the custom pattern configuration
+function testCustomPattern() {
+  const extensionId = document.getElementById('customExtensionId').value.trim();
+  const path = document.getElementById('customPath').value.trim();
+  const separator = document.getElementById('customSeparator').value;
+  const titleParam = document.getElementById('customTitleParam').value.trim();
+  const urlParam = document.getElementById('customUrlParam').value.trim();
+  
+  // Validate inputs
+  if (!extensionId || !path || !titleParam || !urlParam) {
+    showNotice(getMessage('fillAllFields') || 'Please fill in all fields', 'warning');
+    return;
+  }
+  
+  // Generate example URL
+  const exampleUrl = `chrome-extension://${extensionId}/${path}${separator}${titleParam}=${encodeURIComponent('Example Page Title')}&${urlParam}=${encodeURIComponent('https://example.com')}`;
+  
+  // Test parsing
+  const customConfig = createCustomConfig();
+  const parsedTab = parseCustomTab(exampleUrl);
+  
+  if (parsedTab) {
+    showNotice(getMessage('patternTestSuccess') || 'Pattern test successful! Example URL parsed correctly.', 'success');
+    console.log('[ZeroRAM Suspender] Custom pattern test result:', parsedTab);
+  } else {
+    showNotice(getMessage('patternTestFailed') || 'Pattern test failed. Please check your configuration.', 'error');
+  }
+}
+
+// Create custom configuration based on user input
+function createCustomConfig() {
+  const extensionId = document.getElementById('customExtensionId').value.trim();
+  const path = document.getElementById('customPath').value.trim();
+  const separator = document.getElementById('customSeparator').value;
+  const titleParam = document.getElementById('customTitleParam').value.trim();
+  const urlParam = document.getElementById('customUrlParam').value.trim();
+  
+  return {
+    extensionId,
+    path,
+    separator,
+    titleParam,
+    urlParam
+  };
+}
+
+// Scan for custom extension tabs
+async function scanForCustomTabs() {
+  const customConfig = createCustomConfig();
+  
+  // Validate inputs
+  if (!customConfig.extensionId || !customConfig.path || !customConfig.titleParam || !customConfig.urlParam) {
+    showNotice(getMessage('fillAllFields') || 'Please fill in all fields', 'warning');
+    return;
+  }
+  
+  // Update the custom configuration
+  MIGRATION_CONFIGS.custom.knownExtensionIds = [customConfig.extensionId];
+  MIGRATION_CONFIGS.custom.urlPattern = `/${customConfig.path}${customConfig.separator}`;
+  MIGRATION_CONFIGS.custom.name = `Custom Extension (${customConfig.extensionId.substring(0, 8)}...)`;
+  
+  // Perform scan using the generic function
+  await scanForExtensionTabs('custom');
+}
+
 // Generic function to check if URL is from a known extension
 function isKnownExtensionTab(url, extensionKey) {
   const config = MIGRATION_CONFIGS[extensionKey];
@@ -477,6 +589,12 @@ function isKnownExtensionTab(url, extensionKey) {
   if (extensionKey === 'tabSuspender') {
     // Check for both Tab Suspender URL patterns
     matchesPattern = url.includes('/park.html?') || url.includes('/suspended.html?');
+  } else if (extensionKey === 'custom') {
+    // For custom extension, check if configuration is available
+    const customConfig = createCustomConfig();
+    matchesPattern = customConfig.extensionId && 
+                    url.includes(customConfig.extensionId) && 
+                    url.includes(`/${customConfig.path}${customConfig.separator}`);
   } else {
     // For other extensions, use the single pattern
     matchesPattern = url.includes(config.urlPattern);
@@ -601,6 +719,71 @@ function parseTabSuspenderTab(url) {
   }
 }
 
+// Parse custom extension tab format
+function parseCustomTab(url) {
+  try {
+    if (!url || !url.startsWith('chrome-extension://')) {
+      return null;
+    }
+    
+    const customConfig = createCustomConfig();
+    
+    // Check if URL matches the custom pattern
+    if (!url.includes(`/${customConfig.path}${customConfig.separator}`)) {
+      return null;
+    }
+    
+    // Check if the extension ID matches
+    if (!url.includes(customConfig.extensionId)) {
+      return null;
+    }
+    
+    let title, originalUrl;
+    
+    if (customConfig.separator === '?') {
+      // Parse as query string
+      const urlObj = new URL(url);
+      title = urlObj.searchParams.get(customConfig.titleParam);
+      originalUrl = urlObj.searchParams.get(customConfig.urlParam);
+    } else {
+      // Parse as hash fragment
+      const hashPart = url.split('#')[1];
+      if (!hashPart) {
+        return null;
+      }
+      
+      const params = new URLSearchParams(hashPart);
+      title = params.get(customConfig.titleParam);
+      originalUrl = params.get(customConfig.urlParam);
+    }
+    
+    // Must have both title and URL parameters
+    if (!originalUrl || !title) {
+      return null;
+    }
+    
+    // Safely decode parameters
+    let decodedTitle = title;
+    let decodedUrl = originalUrl;
+    
+    try {
+      decodedTitle = decodeURIComponent(title);
+      decodedUrl = decodeURIComponent(originalUrl);
+    } catch (decodeError) {
+      console.warn('[ZeroRAM Suspender] Failed to decode custom tab parameters:', decodeError);
+    }
+
+    return {
+      title: decodedTitle,
+      originalUrl: decodedUrl,
+      extensionId: customConfig.extensionId
+    };
+  } catch (error) {
+    console.error('[ZeroRAM Suspender] Error parsing custom tab:', error);
+    return null;
+  }
+}
+
 // Generic function to scan for extension tabs
 async function scanForExtensionTabs(extensionKey) {
   const config = MIGRATION_CONFIGS[extensionKey];
@@ -637,6 +820,12 @@ async function scanForExtensionTabs(extensionKey) {
       if (extensionKey === 'tabSuspender') {
         // Check for both Tab Suspender URL patterns
         shouldParse = tab.url && (tab.url.includes('/park.html?') || tab.url.includes('/suspended.html?'));
+      } else if (extensionKey === 'custom') {
+        // For custom extension, check if configuration is available
+        const customConfig = createCustomConfig();
+        shouldParse = tab.url && customConfig.extensionId && 
+                     tab.url.includes(customConfig.extensionId) && 
+                     tab.url.includes(`/${customConfig.path}${customConfig.separator}`);
       } else {
         // For other extensions, use the single pattern
         shouldParse = tab.url && tab.url.includes(config.urlPattern);
@@ -649,6 +838,8 @@ async function scanForExtensionTabs(extensionKey) {
           parsedTab = parseMarvellousTab(tab.url);
         } else if (config.parseFunction === 'parseTabSuspenderTab') {
           parsedTab = parseTabSuspenderTab(tab.url);
+        } else if (config.parseFunction === 'parseCustomTab') {
+          parsedTab = parseCustomTab(tab.url);
         }
         
         if (parsedTab) {
@@ -991,6 +1182,9 @@ function resetMigrationState() {
   
   // Reset Tab Suspender migration state
   resetExtensionMigrationState('tabSuspender');
+  
+  // Reset Custom migration state
+  resetExtensionMigrationState('custom');
   
   console.log('[ZeroRAM Suspender] All migration states reset');
 }

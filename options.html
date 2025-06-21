@@ -697,6 +697,92 @@
             </div>
           </div>
         </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>🛠️</span>
+            <span data-i18n="customTabDetection">Custom Suspended Tab Detection</span>
+          </div>
+          <div class="card-description" data-i18n="customTabDetectionDesc">
+            Configure custom detection pattern for other suspended tab extensions
+          </div>
+          <div class="form-group">
+            <label data-i18n="customPatternLabel">Custom URL Pattern:</label>
+            <div style="font-family: monospace; font-size: 14px; color: #666; margin-bottom: 16px; padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 3px solid #007bff;">
+              chrome-extension://<strong>ExtensionID</strong>/<strong>Path</strong><strong>[?|#]</strong><strong>TitleParam</strong>=Title&<strong>URLParam</strong>=URL
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+              <div>
+                <label for="customExtensionId" data-i18n="extensionIdLabel">Extension ID:</label>
+                <input type="text" id="customExtensionId" placeholder="abcdefghijklmnopqrstuvwxyz123456" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace;">
+              </div>
+              <div>
+                <label for="customPath" data-i18n="pathLabel">Path:</label>
+                <input type="text" id="customPath" placeholder="suspended.html" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace;">
+              </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: auto 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+              <div>
+                <label for="customSeparator" data-i18n="separatorLabel">Separator:</label>
+                <select id="customSeparator" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                  <option value="?">? (Query String)</option>
+                  <option value="#"># (Hash Fragment)</option>
+                </select>
+              </div>
+              <div>
+                <label for="customTitleParam" data-i18n="titleParamLabel">Title Parameter:</label>
+                <input type="text" id="customTitleParam" placeholder="title" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace;">
+              </div>
+              <div>
+                <label for="customUrlParam" data-i18n="urlParamLabel">URL Parameter:</label>
+                <input type="text" id="customUrlParam" placeholder="url" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace;">
+              </div>
+            </div>
+            
+            <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+              <button id="testCustomPatternBtn" class="btn" style="background: #17a2b8; color: white;">
+                <span>🧪</span>
+                <span data-i18n="testPattern">Test Pattern</span>
+              </button>
+              <button id="scanCustomBtn" class="btn btn-primary">
+                <span>🔍</span>
+                <span data-i18n="scanCustomTabs">Scan for Custom Tabs</span>
+              </button>
+            </div>
+            
+            <div id="customResults" style="display: none;">
+              <div id="customStatus" style="margin-bottom: 16px; font-weight: 500;"></div>
+              <div id="customTabsList" style="display: none;">
+                <div style="margin-bottom: 12px; display: flex; gap: 8px;">
+                  <button id="selectAllCustomBtn" class="btn" style="background: #e1e5e9; color: #333;">
+                    <span data-i18n="selectAllTabs">Select All</span>
+                  </button>
+                  <button id="deselectAllCustomBtn" class="btn" style="background: #e1e5e9; color: #333;">
+                    <span data-i18n="deselectAllTabs">Deselect All</span>
+                  </button>
+                </div>
+                <div id="customTabsContainer" style="max-height: 300px; overflow-y: auto; border: 1px solid #e1e5e9; border-radius: 8px; padding: 12px; background: #f9f9f9;">
+                </div>
+                <!-- Migration Progress Bar -->
+                <div id="customProgressContainer" style="display: none; margin-top: 16px;">
+                  <div style="margin-bottom: 8px; font-size: 14px; color: #666;">
+                    <span data-i18n="migrationProgress">Migration Progress:</span>
+                    <span id="customProgressText">0/0</span>
+                  </div>
+                  <div class="progress-bar" style="width: 100%; height: 8px; background-color: #e1e5e9; border-radius: 4px; overflow: hidden;">
+                    <div id="customProgressFill" style="height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); width: 0%; transition: width 0.3s ease;"></div>
+                  </div>
+                </div>
+                <button id="migrateCustomBtn" class="btn btn-primary" style="margin-top: 16px;">
+                  <span>🔄</span>
+                  <span data-i18n="migrateSelected">Migrate selected tabs</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- Advanced Settings Section -->
