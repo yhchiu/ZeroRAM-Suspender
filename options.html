@@ -437,6 +437,12 @@
           </a>
         </li>
         <li class="nav-item">
+          <a href="#" class="nav-link" data-section="session">
+            <div class="nav-icon">💾</div>
+            <span data-i18n="sessionManagement">Session Management</span>
+          </a>
+        </li>
+        <li class="nav-item">
           <a href="#" class="nav-link" data-section="migration">
             <div class="nav-icon">🔄</div>
             <span data-i18n="tabMigration">Tab Migration</span>
@@ -554,6 +560,114 @@
               • google.com - entire domain
               • https://example.com/page - specific URL
               • localhost - local development
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Session Management Section -->
+      <section id="session" class="content-section">
+        <div class="section-header">
+          <h2 data-i18n="sessionManagement">Session Management</h2>
+          <p data-i18n="sessionManagementDesc">Export and import all tabs from all windows</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>📤</span>
+            <span data-i18n="exportSessions">Export Sessions</span>
+          </div>
+          <div class="card-description" data-i18n="exportSessionsDesc">
+            Export all tabs from all windows to save your current browsing session
+          </div>
+          <div class="form-group">
+            <label for="exportFormat" data-i18n="exportFormat">Export format:</label>
+            <div style="display: flex; gap: 8px; margin-bottom: 16px; align-items: center;">
+              <select id="exportFormat" style="padding: 8px 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; min-width: 120px;">
+                <option value="txt" data-i18n="formatTxt">TXT</option>
+                <option value="json" data-i18n="formatJson">JSON</option>
+              </select>
+              <button id="exportPreviewBtn" class="btn" style="background: #17a2b8; color: white;">
+                <span>👁️</span>
+                <span data-i18n="preview">Preview</span>
+              </button>
+              <button id="exportBtn" class="btn btn-primary">
+                <span>📤</span>
+                <span data-i18n="export">Export</span>
+              </button>
+            </div>
+            
+            <div id="exportPreview" style="display: none; margin-bottom: 16px;">
+              <div style="margin-bottom: 8px; font-weight: 500;" data-i18n="exportPreviewTitle">Export Preview:</div>
+              <div id="exportPreviewContent" style="max-height: 300px; overflow-y: auto; border: 1px solid #e1e5e9; border-radius: 8px; padding: 12px; background: #f9f9f9; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; font-size: 12px; line-height: 1.4; white-space: pre-wrap;">
+              </div>
+            </div>
+            
+            <div class="help-text">
+              <div data-i18n="exportHelpTxt">TXT format: One URL per line, windows separated by blank lines</div>
+              <div data-i18n="exportHelpJson">JSON format: Array of windows with title and URL for each tab</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>📥</span>
+            <span data-i18n="importSessions">Import Sessions</span>
+          </div>
+          <div class="card-description" data-i18n="importSessionsDesc">
+            Import tabs from previously exported session files
+          </div>
+          <div class="form-group">
+            <label for="sessionFileInput" data-i18n="selectSessionFile">Select session file:</label>
+            <input type="file" id="sessionFileInput" accept=".txt,.json" style="margin-bottom: 16px; padding: 8px; border: 1px solid #e1e5e9; border-radius: 8px; width: 100%;">
+            
+            <div class="form-group">
+              <label class="checkbox-group">
+                <input type="checkbox" id="importAsSuspended" checked />
+                <span data-i18n="importAsSuspended">Import tabs as suspended (saves memory)</span>
+              </label>
+              <div class="help-text" data-i18n="importAsSuspendedHelp">
+                When enabled, imported tabs will be suspended immediately to save memory
+              </div>
+            </div>
+            
+            <div style="display: flex; gap: 8px;">
+              <button id="previewSessionBtn" class="btn" style="background: #17a2b8; color: white;">
+                <span>👁️</span>
+                <span data-i18n="preview">Preview</span>
+              </button>
+              <button id="importSessionBtn" class="btn btn-primary">
+                <span>📥</span>
+                <span data-i18n="import">Import</span>
+              </button>
+            </div>
+            
+            <div id="sessionPreview" style="display: none; margin-top: 16px;">
+              <div style="margin-bottom: 8px; font-weight: 500;" data-i18n="sessionPreviewTitle">Session Preview:</div>
+              <div id="sessionPreviewContent" style="max-height: 300px; overflow-y: auto; border: 1px solid #e1e5e9; border-radius: 8px; padding: 12px; background: #f9f9f9; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; font-size: 12px; line-height: 1.4;">
+              </div>
+            </div>
+            
+            <div class="help-text" data-i18n="importHelp">
+              Supports TXT and JSON formats. TXT files should have one URL per line with blank lines separating windows. JSON files should contain an array of windows with tab objects.
+            </div>
+          </div>
+        </div>
+
+        <!-- Import Progress -->
+        <div id="importProgressContainer" style="display: none; margin-top: 16px;">
+          <div class="card">
+            <div class="card-title">
+              <span>⏳</span>
+              <span data-i18n="importProgress">Import Progress</span>
+            </div>
+            <div style="margin-bottom: 8px; font-size: 14px; color: #666;">
+              <span data-i18n="importProgressText">Progress:</span>
+              <span id="importProgressText">0/0</span>
+            </div>
+            <div class="progress-bar" style="width: 100%; height: 8px; background-color: #e1e5e9; border-radius: 4px; overflow: hidden;">
+              <div id="importProgressFill" style="height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); width: 0%; transition: width 0.3s ease;"></div>
             </div>
           </div>
         </div>

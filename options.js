@@ -121,8 +121,13 @@ function initNavigation() {
         loadKeyboardShortcuts();
       }
       
+      // Reset session previews when switching to session section
+      if (sectionId === 'session') {
+        resetSessionPreviews();
+      }
+      
       // Show/hide save button based on section
-      if (sectionId === 'about' || sectionId === 'migration' || sectionId === 'changelog' || sectionId === 'shortcuts') {
+      if (sectionId === 'about' || sectionId === 'migration' || sectionId === 'changelog' || sectionId === 'shortcuts' || sectionId === 'session') {
         actionBar.style.display = 'none';
       } else {
         actionBar.style.display = 'flex';
@@ -244,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Check initial active section and hide save button if needed
   const initialActiveSection = getCurrentActiveSection();
   const actionBar = document.querySelector('.action-bar');
-  if (initialActiveSection === 'about' || initialActiveSection === 'migration' || initialActiveSection === 'changelog' || initialActiveSection === 'shortcuts') {
+  if (initialActiveSection === 'about' || initialActiveSection === 'migration' || initialActiveSection === 'changelog' || initialActiveSection === 'shortcuts' || initialActiveSection === 'session') {
     actionBar.style.display = 'none';
   }
   
@@ -253,6 +258,9 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Initialize keyboard shortcuts functionality
   initKeyboardShortcuts();
+  
+  // Initialize session management functionality
+  initSessionManagement();
   
   // Add refresh whitelist button event listener
   const refreshWhitelistBtn = document.getElementById('refreshWhitelistBtn');
@@ -1501,4 +1509,449 @@ function getChangeColor(type) {
   return colors[type] || '#6c757d';
 }
 
-/* ---------- End Change Log Functions ---------- */ 
+/* ---------- End Change Log Functions ---------- */
+
+
+/* ---------- Session Management Functions ---------- */
+
+// Reset session management previews
+function resetSessionPreviews() {
+  // Reset export preview
+  const exportPreview = document.getElementById('exportPreview');
+  if (exportPreview) {
+    exportPreview.style.display = 'none';
+  }
+  
+  // Reset import preview
+  const sessionPreview = document.getElementById('sessionPreview');
+  if (sessionPreview) {
+    sessionPreview.style.display = 'none';
+  }
+  
+  // Reset file input
+  const sessionFileInput = document.getElementById('sessionFileInput');
+  if (sessionFileInput) {
+    sessionFileInput.value = '';
+  }
+}
+
+// Initialize session management functionality
+function initSessionManagement() {
+  const exportBtn = document.getElementById('exportBtn');
+  const exportPreviewBtn = document.getElementById('exportPreviewBtn');
+  const sessionFileInput = document.getElementById('sessionFileInput');
+  const importSessionBtn = document.getElementById('importSessionBtn');
+  const previewSessionBtn = document.getElementById('previewSessionBtn');
+
+  if (exportBtn) {
+    exportBtn.addEventListener('click', handleExport);
+  }
+
+  if (exportPreviewBtn) {
+    exportPreviewBtn.addEventListener('click', previewExport);
+  }
+
+  if (sessionFileInput) {
+    sessionFileInput.addEventListener('change', handleSessionFileSelected);
+  }
+
+  if (importSessionBtn) {
+    importSessionBtn.addEventListener('click', importSession);
+  }
+
+  if (previewSessionBtn) {
+    previewSessionBtn.addEventListener('click', previewSession);
+  }
+}
+
+// Parse suspended tab URL to get original URL and title
+function parseSuspendedTab(url) {
+  try {
+    // Check if it's our extension's suspended page
+    const suspendedPrefix = chrome.runtime.getURL('suspended.html');
+    if (url.startsWith(suspendedPrefix)) {
+      const urlObj = new URL(url);
+      const originalUrl = urlObj.searchParams.get('uri');
+      const title = urlObj.searchParams.get('ttl');
+      
+      if (originalUrl) {
+        return {
+          url: originalUrl,
+          title: title || originalUrl,
+          isSuspended: true
+        };
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error('Error parsing suspended tab:', error);
+    return null;
+  }
+}
+
+// Get all tabs from all windows with proper handling of suspended tabs
+async function getAllTabs() {
+  try {
+    const windows = await chrome.windows.getAll({ populate: true });
+    return windows.map(window => {
+      return window.tabs.map(tab => {
+        // Check if this is a suspended tab and extract original info
+        const suspendedInfo = parseSuspendedTab(tab.url);
+        if (suspendedInfo) {
+          return {
+            title: suspendedInfo.title,
+            url: suspendedInfo.url,
+            originalTab: tab,
+            wasSuspended: true
+          };
+        }
+        
+        return {
+          title: tab.title,
+          url: tab.url,
+          originalTab: tab,
+          wasSuspended: false
+        };
+      });
+    });
+  } catch (error) {
+    console.error('Error getting all tabs:', error);
+    throw error;
+  }
+}
+
+// Handle export button click
+function handleExport() {
+  const formatSelect = document.getElementById('exportFormat');
+  const format = formatSelect ? formatSelect.value : 'txt';
+  exportSession(format);
+}
+
+// Preview export content
+async function previewExport() {
+  const formatSelect = document.getElementById('exportFormat');
+  const format = formatSelect ? formatSelect.value : 'txt';
+  
+  try {
+    showNotice(getMessage('generatingPreview') || 'Generating preview...', 'info', 1000);
+    
+    const windowTabs = await getAllTabs();
+    let content = '';
+
+    if (format === 'txt') {
+      // TXT format: one URL per line, windows separated by blank lines
+      content = windowTabs.map(windowTabs => 
+        windowTabs.map(tab => tab.url).join('\n')
+      ).join('\n\n');
+      
+    } else if (format === 'json') {
+      // JSON format: array of windows with tab objects
+      const sessionData = windowTabs.map(windowTabs => 
+        windowTabs.map(tab => ({
+          title: tab.title,
+          url: tab.url
+        }))
+      );
+      
+      content = JSON.stringify(sessionData, null, 2);
+    }
+
+    // Display preview
+    const previewContainer = document.getElementById('exportPreview');
+    const previewContent = document.getElementById('exportPreviewContent');
+    
+    if (previewContent) {
+      previewContent.textContent = content;
+    }
+    
+    if (previewContainer) {
+      previewContainer.style.display = 'block';
+    }
+    
+    showNotice(getMessage('exportPreviewReady') || 'Export preview ready', 'success', 2000);
+    
+  } catch (error) {
+    console.error('[ZeroRAM Suspender] Error generating export preview:', error);
+    showNotice(getMessage('previewFailed') || 'Preview failed', 'error', 3000);
+  }
+}
+
+// Export session in specified format
+async function exportSession(format) {
+  try {
+    showNotice(getMessage('exportingSession') || 'Exporting session...', 'info', 2000);
+    
+    const windowTabs = await getAllTabs();
+    let content = '';
+    let filename = '';
+    let mimeType = '';
+
+    if (format === 'txt') {
+      // TXT format: one URL per line, windows separated by blank lines
+      content = windowTabs.map(windowTabs => 
+        windowTabs.map(tab => tab.url).join('\n')
+      ).join('\n\n');
+      
+      filename = `session_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+      mimeType = 'text/plain';
+      
+    } else if (format === 'json') {
+      // JSON format: array of windows with tab objects
+      const sessionData = windowTabs.map(windowTabs => 
+        windowTabs.map(tab => ({
+          title: tab.title,
+          url: tab.url
+        }))
+      );
+      
+      content = JSON.stringify(sessionData, null, 2);
+      filename = `session_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+      mimeType = 'application/json';
+    }
+
+    // Create and download file
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showNotice(getMessage('sessionExported') || `Session exported as ${format.toUpperCase()}`, 'success', 3000);
+    
+  } catch (error) {
+    console.error('[ZeroRAM Suspender] Error exporting session:', error);
+    showNotice(getMessage('exportFailed') || 'Export failed', 'error', 3000);
+  }
+}
+
+// Handle session file selection
+function handleSessionFileSelected(event) {
+  const sessionPreview = document.getElementById('sessionPreview');
+  
+  // Reset session preview when file selection changes
+  if (sessionPreview) {
+    sessionPreview.style.display = 'none';
+  }
+}
+
+// Parse session file content
+function parseSessionFile(content, filename) {
+  const isJson = filename.toLowerCase().endsWith('.json');
+  
+  if (isJson) {
+    try {
+      const data = JSON.parse(content);
+      if (Array.isArray(data)) {
+        // Validate JSON structure
+        const isValid = data.every(window => 
+          Array.isArray(window) && 
+          window.every(tab => 
+            typeof tab === 'object' && 
+            typeof tab.url === 'string' && 
+            typeof tab.title === 'string'
+          )
+        );
+        
+        if (isValid) {
+          return data;
+        }
+      }
+      throw new Error('Invalid JSON structure');
+    } catch (error) {
+      throw new Error('Invalid JSON format');
+    }
+    
+  } else {
+    // Parse TXT format
+    const lines = content.split('\n');
+    const windows = [];
+    let currentWindow = [];
+    
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      if (trimmedLine === '') {
+        // Empty line indicates new window
+        if (currentWindow.length > 0) {
+          windows.push(currentWindow);
+          currentWindow = [];
+        }
+      // } else if (trimmedLine.startsWith('http://') || trimmedLine.startsWith('https://') || trimmedLine.startsWith('ftp://')) {  // Valid URL
+      } else {
+        currentWindow.push({
+          title: trimmedLine,
+          url: trimmedLine
+        });
+      }
+    }
+    
+    // Add last window if not empty
+    if (currentWindow.length > 0) {
+      windows.push(currentWindow);
+    }
+    
+    return windows;
+  }
+}
+
+// Preview session content
+async function previewSession() {
+  const fileInput = document.getElementById('sessionFileInput');
+  const file = fileInput.files[0];
+  
+  if (!file) {
+    showNotice(getMessage('pleaseSelectFile') || 'Please select a file first', 'warning', 3000);
+    return;
+  }
+  
+  try {
+    const content = await file.text();
+    const sessionData = parseSessionFile(content, file.name);
+    
+    // Display preview
+    const previewContainer = document.getElementById('sessionPreview');
+    const previewContent = document.getElementById('sessionPreviewContent');
+    
+    let previewHtml = '';
+    sessionData.forEach((windowTabs, windowIndex) => {
+      previewHtml += `<div style="margin-bottom: 16px;">`;
+      previewHtml += `<div style="font-weight: bold; color: #667eea; margin-bottom: 8px;">${getMessage('window') || 'Window'} ${windowIndex + 1} (${windowTabs.length} ${getMessage('tabs') || 'tabs'})</div>`;
+      
+      windowTabs.forEach((tab, tabIndex) => {
+        previewHtml += `<div style="margin-left: 16px; margin-bottom: 4px;">`;
+        previewHtml += `<span style="color: #666; font-size: 11px;">${tabIndex + 1}.</span> `;
+        previewHtml += `<span style="font-weight: 500;">${escapeHtml(tab.title)}</span><br/>`;
+        previewHtml += `<span style="margin-left: 16px; color: #888; font-size: 11px;">${escapeHtml(tab.url)}</span>`;
+        previewHtml += `</div>`;
+      });
+      
+      previewHtml += `</div>`;
+    });
+    
+    previewContent.innerHTML = previewHtml;
+    previewContainer.style.display = 'block';
+    
+    showNotice(getMessage('sessionPreviewed') || 'Session preview ready', 'success', 2000);
+    
+  } catch (error) {
+    console.error('[ZeroRAM Suspender] Error previewing session:', error);
+    showNotice(getMessage('previewFailed') || 'Preview failed: Invalid file format', 'error', 3000);
+  }
+}
+
+// Import session
+async function importSession() {
+  const fileInput = document.getElementById('sessionFileInput');
+  const importAsSuspended = document.getElementById('importAsSuspended').checked;
+  const file = fileInput.files[0];
+  
+  if (!file) {
+    showNotice(getMessage('pleaseSelectFile') || 'Please select a file first', 'warning', 3000);
+    return;
+  }
+  
+  try {
+    const content = await file.text();
+    const sessionData = parseSessionFile(content, file.name);
+    
+    // Show progress
+    showImportProgress(true);
+    let totalTabs = 0;
+    let completedTabs = 0;
+    
+    // Count total tabs
+    sessionData.forEach(windowTabs => {
+      totalTabs += windowTabs.length;
+    });
+    
+    updateImportProgress(completedTabs, totalTabs);
+    
+    // Import each window
+    for (const windowTabs of sessionData) {
+      if (windowTabs.length === 0) continue;
+      
+      // Create new window with first tab
+      const firstTab = windowTabs[0];
+      let tabUrl = firstTab.url;
+      
+      if (importAsSuspended) {
+        tabUrl = chrome.runtime.getURL('suspended.html') + 
+          `?uri=${encodeURIComponent(firstTab.url)}&ttl=${encodeURIComponent(firstTab.title)}`;
+      }
+      
+      const newWindow = await chrome.windows.create({
+        url: tabUrl,
+        focused: false
+      });
+      
+      completedTabs++;
+      updateImportProgress(completedTabs, totalTabs);
+      
+      // Add remaining tabs to the window
+      for (let i = 1; i < windowTabs.length; i++) {
+        const tab = windowTabs[i];
+        let tabUrl = tab.url;
+        
+        if (importAsSuspended) {
+          tabUrl = chrome.runtime.getURL('suspended.html') + 
+            `?uri=${encodeURIComponent(tab.url)}&ttl=${encodeURIComponent(tab.title)}`;
+        }
+        
+        await chrome.tabs.create({
+          windowId: newWindow.id,
+          url: tabUrl,
+          active: false
+        });
+        
+        completedTabs++;
+        updateImportProgress(completedTabs, totalTabs);
+        
+        // Small delay to prevent overwhelming the browser
+        if (i % 5 === 0) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+    }
+    
+    showImportProgress(false);
+    showNotice(getMessage('sessionImported') || `Session imported successfully (${totalTabs} tabs)`, 'success', 4000);
+    
+    // Reset file input
+    fileInput.value = '';
+    document.getElementById('sessionPreview').style.display = 'none';
+    
+  } catch (error) {
+    console.error('[ZeroRAM Suspender] Error importing session:', error);
+    showImportProgress(false);
+    showNotice(getMessage('importFailed') || 'Import failed: ' + error.message, 'error', 4000);
+  }
+}
+
+// Show/hide import progress
+function showImportProgress(show) {
+  const container = document.getElementById('importProgressContainer');
+  if (container) {
+    container.style.display = show ? 'block' : 'none';
+  }
+}
+
+// Update import progress
+function updateImportProgress(completed, total) {
+  const progressText = document.getElementById('importProgressText');
+  const progressFill = document.getElementById('importProgressFill');
+  
+  if (progressText) {
+    progressText.textContent = `${completed}/${total}`;
+  }
+  
+  if (progressFill) {
+    const percentage = total > 0 ? (completed / total) * 100 : 0;
+    progressFill.style.width = `${percentage}%`;
+  }
+}
+
+/* ---------- End Session Management Functions ---------- */ 
