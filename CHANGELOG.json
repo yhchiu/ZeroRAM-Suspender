@@ -1,12 +1,144 @@
 [
 {
-  "sha": "61196286e65e668124a5242c822725ab5856385e",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/61196286e65e668124a5242c822725ab5856385e",
+  "sha": "68dd03ea7ed37c01f9f4ca1b0af7f61d9e1ae80a",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/68dd03ea7ed37c01f9f4ca1b0af7f61d9e1ae80a",
+  "commit": {
+    "message": "Update version to 1.5.0",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-22T00:09:11+08:00"
+    }
+  }
+},
+{
+  "sha": "c0d20bfd1fc0ea0e463ee0fe06c10e5086e33e8e",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/c0d20bfd1fc0ea0e463ee0fe06c10e5086e33e8e",
+  "commit": {
+    "message": "Update extension description in manifest and localization files",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-22T00:07:15+08:00"
+    }
+  }
+},
+{
+  "sha": "cdc5c0862cfba6b774c1fce98cdbfd85f05fccd5",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/cdc5c0862cfba6b774c1fce98cdbfd85f05fccd5",
+  "commit": {
+    "message": "Update UI for About section in options.html",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-21T23:58:25+08:00"
+    }
+  }
+},
+{
+  "sha": "57fedf9fa5baacfc3994934ba985730b0d1b7520",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/57fedf9fa5baacfc3994934ba985730b0d1b7520",
+  "commit": {
+    "message": "Add settings management functionality",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-21T23:36:03+08:00"
+    }
+  }
+},
+{
+  "sha": "08db05fc59779e788085a62b9a33f3f67d63e0f5",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/08db05fc59779e788085a62b9a33f3f67d63e0f5",
+  "commit": {
+    "message": "Add session management functionality",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-21T23:01:12+08:00"
+    }
+  }
+},
+{
+  "sha": "ce2f76f5ebe6a0e34439b77768e1311826550a71",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/ce2f76f5ebe6a0e34439b77768e1311826550a71",
+  "commit": {
+    "message": "Add custom suspended tab migration functionality",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-21T16:52:54+08:00"
+    }
+  }
+},
+{
+  "sha": "ce5b46d6dfef6d2cd7472b7e3a3ce9f43386b3bb",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/ce5b46d6dfef6d2cd7472b7e3a3ce9f43386b3bb",
+  "commit": {
+    "message": "Add Tab Suspender migration functionality",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-21T15:37:03+08:00"
+    }
+  }
+},
+{
+  "sha": "f855c203130e71683fe6b9255edf1254bb9d54cc",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/f855c203130e71683fe6b9255edf1254bb9d54cc",
+  "commit": {
+    "message": "Enhance title decoding in scanning function for tab migration",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-21T13:12:52+08:00"
+    }
+  }
+},
+{
+  "sha": "feea383ffbe877fe9be96f46bcec5aaebcc0f008",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/feea383ffbe877fe9be96f46bcec5aaebcc0f008",
+  "commit": {
+    "message": "Update known IDs and descriptions for tab migration",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-20T23:08:35+08:00"
+    }
+  }
+},
+{
+  "sha": "12208d28f653324f99db46f2d631b16930bdff79",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/12208d28f653324f99db46f2d631b16930bdff79",
+  "commit": {
+    "message": "Update popup.js to allow suspension for whitelisted tab",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-20T22:56:50+08:00"
+    }
+  }
+},
+{
+  "sha": "692de25f9cfc8265a12f1740fdf623509dc83c50",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/692de25f9cfc8265a12f1740fdf623509dc83c50",
+  "commit": {
+    "message": "Add migration progress bar",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-20T22:38:58+08:00"
+    }
+  }
+},
+{
+  "sha": "b0850c72e10aae13b030f0a962f948dd7c2fb868",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/b0850c72e10aae13b030f0a962f948dd7c2fb868",
+  "commit": {
+    "message": "Update popup.html styles for improved layout and alignment",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-20T22:16:53+08:00"
+    }
+  }
+},
+{
+  "sha": "eaac9601af0f52a3ee390182ec60606c750d2e68",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/eaac9601af0f52a3ee390182ec60606c750d2e68",
   "commit": {
     "message": "Update version to 1.2.0",
     "author": {
       "name": "Arthur Chiu",
-      "date": "2025-06-20T20:55:23+08:00"
+      "date": "2025-06-20T21:16:56+08:00"
     }
   }
 },
