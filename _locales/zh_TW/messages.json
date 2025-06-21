@@ -62,7 +62,7 @@
   "unreleased": { "message": "尚未發布" },
   "description": { "message": "說明" },
   "supportWebsite": { "message": "網站" },
-  "extDescription": { "message": "透過暫停閒置分頁來節省記憶體使用" },
+  "extDescription": { "message": "暫停閒置分頁以節省瀏覽器記憶體 (使用原生丟棄或輕量靜態頁面)" },
   "comingSoon": { "message": "即將推出" },
   "comingSoonDesc": { "message": "更多進階設定功能正在開發中" },
   "privacyNotice": { "message": "隱私聲明" },

@@ -62,7 +62,7 @@
   "unreleased": { "message": "Unreleased" },
   "description": { "message": "Description" },
   "supportWebsite": { "message": "Website" },
-  "extDescription": { "message": "Save memory by suspending idle tabs" },
+  "extDescription": { "message": "Suspend inactive tabs to save memory using native discard or lightweight placeholder." },
   "comingSoon": { "message": "Coming Soon" },
   "comingSoonDesc": { "message": "More advanced settings are in development" },
   "privacyNotice": { "message": "Privacy Notice" },

@@ -1,6 +1,6 @@
 {
   "name": "ZeroRAM Suspender",
-  "description": "Suspend inactive tabs to save memory using native discard or lightweight placeholder.",
+  "description": "__MSG_extDescription__",
   "author": "Yu-Hsiung Chiu",
   "version": "1.2.0",
   "manifest_version": 3,
