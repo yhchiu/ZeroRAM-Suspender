@@ -458,8 +458,20 @@ function checkPotentialMarvellousTab(url) {
     const matches = url.match(/chrome-extension:\/\/([a-z]+)\/suspended\.html#/);
     const extensionId = matches ? matches[1] : 'unknown';
     
+    // Safely decode title with fallback
+    let decodedTitle = originalUrl;
+    if (title) {
+      try {
+        decodedTitle = decodeURIComponent(title);
+      } catch (decodeError) {
+        // If decoding fails, try to decode as much as possible or use the original
+        console.warn('[ZeroRAM Suspender] Failed to decode title, using original encoded version:', title);
+        decodedTitle = title;
+      }
+    }
+
     return {
-      title: title ? decodeURIComponent(title) : originalUrl,
+      title: decodedTitle,
       originalUrl: originalUrl,
       position: position ? parseInt(position) : 0,
       extensionId: extensionId
