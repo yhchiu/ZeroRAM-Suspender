@@ -379,60 +379,125 @@ function openShortcutsPage() {
 
 /* ---------- Tab Migration Functions ---------- */
 
+// Migration configuration for different extensions
+const MIGRATION_CONFIGS = {
+  marvellous: {
+    name: 'The Marvellous Suspender',
+    knownExtensionIds: [
+      'klbibkeccnjlkjkiokjodocebajanakg', // Original The Marvellous Suspender
+      'noogafoofpebimajpfpamcfhoaifemoa', // Alternative version  
+      'gcknhkkoolaabfmlnjonogaaifnjlfnp', // Another known ID
+      'ahfhijdlegdabablpippeagghigmibma', // Newer version
+      'jlgkpaicikihijadgifklkbpdajbkhjo', // Community fork
+      'ahkbmjhfoplmfkpncgoedjgkajkehcgo', // The Great Suspender (notrack)
+      'plpkmjcnhhnpkblimgenmdhghfgghdpp', // The Great-er Tab Discarder
+    ],
+    urlPattern: '/suspended.html#',
+    parseFunction: 'parseMarvellousTab',
+    ui: {
+      scanBtnId: 'scanMarvellousBtn',
+      resultsId: 'migrationResults',
+      statusId: 'migrationStatus',
+      tabsListId: 'tabsList',
+      tabsContainerId: 'tabsContainer',
+      selectAllBtnId: 'selectAllBtn',
+      deselectAllBtnId: 'deselectAllBtn',
+      migrateBtnId: 'migrateSelectedBtn',
+      progressContainerId: 'migrationProgressContainer',
+      progressTextId: 'progressText',
+      progressFillId: 'progressFill'
+    }
+  },
+  tabSuspender: {
+    name: 'Tab Suspender',
+    knownExtensionIds: ['fiabciakcmgepblmdkmemdbbkilneeeh', 'laameccjpleogmfhilmffpdbiibgbekf'],
+    urlPattern: '/park.html?|/suspended.html?',
+    parseFunction: 'parseTabSuspenderTab',
+    ui: {
+      scanBtnId: 'scanTabSuspenderBtn',
+      resultsId: 'tabSuspenderResults',
+      statusId: 'tabSuspenderStatus',
+      tabsListId: 'tabSuspenderTabsList',
+      tabsContainerId: 'tabSuspenderTabsContainer',
+      selectAllBtnId: 'selectAllTabSuspenderBtn',
+      deselectAllBtnId: 'deselectAllTabSuspenderBtn',
+      migrateBtnId: 'migrateTabSuspenderBtn',
+      progressContainerId: 'tabSuspenderProgressContainer',
+      progressTextId: 'tabSuspenderProgressText',
+      progressFillId: 'tabSuspenderProgressFill'
+    }
+  }
+};
+
+// Cache for dynamically discovered extension IDs
+let discoveredExtensionIds = new Set();
+
 // Initialize tab migration functionality
 function initTabMigration() {
-  const scanBtn = document.getElementById('scanMarvellousBtn');
-  const selectAllBtn = document.getElementById('selectAllBtn');
-  const deselectAllBtn = document.getElementById('deselectAllBtn');
-  const migrateBtn = document.getElementById('migrateSelectedBtn');
+  // Initialize Marvellous Suspender migration
+  initExtensionMigration('marvellous');
+  
+  // Initialize Tab Suspender migration
+  initExtensionMigration('tabSuspender');
+}
+
+// Generic function to initialize migration for a specific extension
+function initExtensionMigration(extensionKey) {
+  const config = MIGRATION_CONFIGS[extensionKey];
+  if (!config) return;
+  
+  const scanBtn = document.getElementById(config.ui.scanBtnId);
+  const selectAllBtn = document.getElementById(config.ui.selectAllBtnId);
+  const deselectAllBtn = document.getElementById(config.ui.deselectAllBtnId);
+  const migrateBtn = document.getElementById(config.ui.migrateBtnId);
   
   if (scanBtn) {
-    scanBtn.addEventListener('click', scanForMarvellousTab);
+    scanBtn.addEventListener('click', () => scanForExtensionTabs(extensionKey));
   }
   if (selectAllBtn) {
-    selectAllBtn.addEventListener('click', selectAllTabs);
+    selectAllBtn.addEventListener('click', () => selectAllTabs(config.ui.tabsContainerId));
   }
   if (deselectAllBtn) {
-    deselectAllBtn.addEventListener('click', deselectAllTabs);
+    deselectAllBtn.addEventListener('click', () => deselectAllTabs(config.ui.tabsContainerId));
   }
   if (migrateBtn) {
-    migrateBtn.addEventListener('click', migrateSelectedTabs);
+    migrateBtn.addEventListener('click', () => migrateSelectedTabs(extensionKey));
   }
 }
 
-// Known The Marvellous Suspender extension IDs
-const KNOWN_MARVELLOUS_SUSPENDER_IDS = [
-  'klbibkeccnjlkjkiokjodocebajanakg', // Original The Marvellous Suspender
-  'noogafoofpebimajpfpamcfhoaifemoa', // Alternative version  
-  'gcknhkkoolaabfmlnjonogaaifnjlfnp', // Another known ID
-  'ahfhijdlegdabablpippeagghigmibma', // Newer version
-  'jlgkpaicikihijadgifklkbpdajbkhjo', // Community fork
-  'ahkbmjhfoplmfkpncgoedjgkajkehcgo', // The Great Suspender (notrack)
-  'plpkmjcnhhnpkblimgenmdhghfgghdpp', // The Great-er Tab Discarder
-  // Add more known IDs as needed
-];
-
-// Cache for dynamically discovered extension IDs
-let discoveredMarvellousIds = new Set();
-
-// Check if URL is from The Marvellous Suspender
-function isMarvellousTabUrl(url) {
-  if (!url || !url.startsWith('chrome-extension://') || !url.includes('/suspended.html#')) {
+// Generic function to check if URL is from a known extension
+function isKnownExtensionTab(url, extensionKey) {
+  const config = MIGRATION_CONFIGS[extensionKey];
+  if (!config || !url || !url.startsWith('chrome-extension://')) {
+    return false;
+  }
+  
+  // Check URL pattern based on extension type
+  let matchesPattern = false;
+  if (extensionKey === 'tabSuspender') {
+    // Check for both Tab Suspender URL patterns
+    matchesPattern = url.includes('/park.html?') || url.includes('/suspended.html?');
+  } else {
+    // For other extensions, use the single pattern
+    matchesPattern = url.includes(config.urlPattern);
+  }
+  
+  if (!matchesPattern) {
     return false;
   }
   
   // Extract extension ID from URL
-  const matches = url.match(/chrome-extension:\/\/([a-z]+)\/suspended\.html#/);
+  const matches = url.match(/chrome-extension:\/\/([a-z]+)\//);
   if (!matches || matches.length < 2) {
     return false;
   }
   
   const extensionId = matches[1];
-  return KNOWN_MARVELLOUS_SUSPENDER_IDS.includes(extensionId) || discoveredMarvellousIds.has(extensionId);
+  return config.knownExtensionIds.includes(extensionId) || discoveredExtensionIds.has(extensionId);
 }
 
-// Check if URL might be from an unknown Marvellous Suspender variant
-function checkPotentialMarvellousTab(url) {
+// Parse Marvellous Suspender tab format
+function parseMarvellousTab(url) {
   try {
     if (!url || !url.startsWith('chrome-extension://') || !url.includes('/suspended.html#')) {
       return null;
@@ -477,18 +542,75 @@ function checkPotentialMarvellousTab(url) {
       extensionId: extensionId
     };
   } catch (error) {
-    console.error('[ZeroRAM Suspender] Error checking potential Marvellous Suspender variant:', error);
+    console.error('[ZeroRAM Suspender] Error parsing Marvellous Suspender tab:', error);
     return null;
   }
 }
 
-// Scan for The Marvellous Suspender tabs
-async function scanForMarvellousTab() {
-  const scanBtn = document.getElementById('scanMarvellousBtn');
-  const resultsDiv = document.getElementById('migrationResults');
-  const statusDiv = document.getElementById('migrationStatus');
-  const tabsListDiv = document.getElementById('tabsList');
-  const tabsContainer = document.getElementById('tabsContainer');
+// Parse Tab Suspender tab format
+function parseTabSuspenderTab(url) {
+  try {
+    if (!url || !url.startsWith('chrome-extension://')) {
+      return null;
+    }
+    
+    // Check for both Tab Suspender variants
+    let isVariant1 = url.includes('fiabciakcmgepblmdkmemdbbkilneeeh/park.html?');
+    let isVariant2 = url.includes('laameccjpleogmfhilmffpdbiibgbekf/suspended.html?');
+    
+    if (!isVariant1 && !isVariant2) {
+      return null;
+    }
+    
+    const urlObj = new URL(url);
+    const title = urlObj.searchParams.get('title');
+    const originalUrl = urlObj.searchParams.get('url');
+    
+    // Must have both 'title' and 'url' parameters
+    if (!originalUrl || !title) {
+      return null;
+    }
+    
+    // Extract extension ID from URL
+    let extensionId = '';
+    if (isVariant1) {
+      extensionId = 'fiabciakcmgepblmdkmemdbbkilneeeh';
+    } else if (isVariant2) {
+      extensionId = 'laameccjpleogmfhilmffpdbiibgbekf';
+    }
+    
+    // Safely decode parameters
+    let decodedTitle = title;
+    let decodedUrl = originalUrl;
+    
+    try {
+      decodedTitle = decodeURIComponent(title);
+      decodedUrl = decodeURIComponent(originalUrl);
+    } catch (decodeError) {
+      console.warn('[ZeroRAM Suspender] Failed to decode Tab Suspender parameters:', decodeError);
+    }
+
+    return {
+      title: decodedTitle,
+      originalUrl: decodedUrl,
+      extensionId: extensionId
+    };
+  } catch (error) {
+    console.error('[ZeroRAM Suspender] Error parsing Tab Suspender tab:', error);
+    return null;
+  }
+}
+
+// Generic function to scan for extension tabs
+async function scanForExtensionTabs(extensionKey) {
+  const config = MIGRATION_CONFIGS[extensionKey];
+  if (!config) return;
+  
+  const scanBtn = document.getElementById(config.ui.scanBtnId);
+  const resultsDiv = document.getElementById(config.ui.resultsId);
+  const statusDiv = document.getElementById(config.ui.statusId);
+  const tabsListDiv = document.getElementById(config.ui.tabsListId);
+  const tabsContainer = document.getElementById(config.ui.tabsContainerId);
   
   // Disable scan button and show loading
   scanBtn.disabled = true;
@@ -501,7 +623,7 @@ async function scanForMarvellousTab() {
   try {
     // Query all tabs
     const tabs = await chrome.tabs.query({});
-    const marvellousTab = [];
+    const foundTabs = [];
     const detectedExtensionIds = new Set();
     
     for (const tab of tabs) {
@@ -510,28 +632,44 @@ async function scanForMarvellousTab() {
         continue;
       }
       
-      if (tab.url && tab.url.includes('/suspended.html#')) {
-        // Parse as potential Marvellous Suspender tab
-        const potentialMatch = checkPotentialMarvellousTab(tab.url);
-        if (potentialMatch) {
+      // Check URL pattern based on extension type
+      let shouldParse = false;
+      if (extensionKey === 'tabSuspender') {
+        // Check for both Tab Suspender URL patterns
+        shouldParse = tab.url && (tab.url.includes('/park.html?') || tab.url.includes('/suspended.html?'));
+      } else {
+        // For other extensions, use the single pattern
+        shouldParse = tab.url && tab.url.includes(config.urlPattern);
+      }
+      
+      if (shouldParse) {
+        // Parse tab using the appropriate parser
+        let parsedTab = null;
+        if (config.parseFunction === 'parseMarvellousTab') {
+          parsedTab = parseMarvellousTab(tab.url);
+        } else if (config.parseFunction === 'parseTabSuspenderTab') {
+          parsedTab = parseTabSuspenderTab(tab.url);
+        }
+        
+        if (parsedTab) {
           // Check if this extension ID is in our known list
-          const isKnownVariant = KNOWN_MARVELLOUS_SUSPENDER_IDS.includes(potentialMatch.extensionId);
+          const isKnownVariant = config.knownExtensionIds.includes(parsedTab.extensionId);
           
-          console.log(`[ZeroRAM Suspender] Found tab with extension ID: ${potentialMatch.extensionId}, isKnownVariant: ${isKnownVariant}`);
+          console.log(`[ZeroRAM Suspender] Found ${config.name} tab with extension ID: ${parsedTab.extensionId}, isKnownVariant: ${isKnownVariant}`);
           
-          marvellousTab.push({
-            ...potentialMatch,
+          foundTabs.push({
+            ...parsedTab,
             tabId: tab.id,
             tabIndex: tab.index,
             favIconUrl: tab.favIconUrl,
             isUnknownVariant: !isKnownVariant
           });
           
-          detectedExtensionIds.add(potentialMatch.extensionId);
+          detectedExtensionIds.add(parsedTab.extensionId);
           
           // Add to discovered IDs if it's unknown
           if (!isKnownVariant) {
-            discoveredMarvellousIds.add(potentialMatch.extensionId);
+            discoveredExtensionIds.add(parsedTab.extensionId);
           }
         }
       }
@@ -539,32 +677,34 @@ async function scanForMarvellousTab() {
     
     // Log detected extension IDs for debugging
     if (detectedExtensionIds.size > 0) {
-      console.log('[ZeroRAM Suspender] Detected The Marvellous Suspender extension IDs:', Array.from(detectedExtensionIds));
+      console.log(`[ZeroRAM Suspender] Detected ${config.name} extension IDs:`, Array.from(detectedExtensionIds));
     }
     
     // Update status and display results
-    if (marvellousTab.length === 0) {
-      statusDiv.textContent = getMessage('noMarvellousTabFound');
+    if (foundTabs.length === 0) {
+      const noTabsFoundKey = extensionKey === 'marvellous' ? 'noMarvellousTabFound' : 'noTabSuspenderTabFound';
+      statusDiv.textContent = getMessage(noTabsFoundKey) || `No ${config.name} tabs found`;
       statusDiv.style.color = '#666';
     } else {
-      const knownVariants = marvellousTab.filter(tab => !tab.isUnknownVariant).length;
-      const unknownVariants = marvellousTab.filter(tab => tab.isUnknownVariant).length;
+      const knownVariants = foundTabs.filter(tab => !tab.isUnknownVariant).length;
+      const unknownVariants = foundTabs.filter(tab => tab.isUnknownVariant).length;
       
-      let statusText = getMessage('foundMarvellousTab').replace('%d', marvellousTab.length);
+      const foundTabsKey = extensionKey === 'marvellous' ? 'foundMarvellousTab' : 'foundTabSuspenderTab';
+      let statusText = (getMessage(foundTabsKey) || `Found %d ${config.name} tabs`).replace('%d', foundTabs.length);
       if (unknownVariants > 0) {
-        statusText += ` (${unknownVariants} ${getMessage('unknownVariant').toLowerCase()})`;
+        statusText += ` (${unknownVariants} ${getMessage('unknownVariant') || 'unknown variant'})`;
       }
       
       statusDiv.textContent = statusText;
       statusDiv.style.color = '#27ae60';
       
       // Display tabs list
-      displayMarvellousTab(marvellousTab, tabsContainer);
+      displayExtensionTabs(foundTabs, tabsContainer);
       tabsListDiv.style.display = 'block';
     }
   } catch (error) {
-    console.error('[ZeroRAM Suspender] Error scanning tabs:', error);
-    statusDiv.textContent = getMessage('errorScanningTabs') + error.message;
+    console.error(`[ZeroRAM Suspender] Error scanning ${config.name} tabs:`, error);
+    statusDiv.textContent = (getMessage('errorScanningTabs') || 'Error scanning tabs: ') + error.message;
     statusDiv.style.color = '#dc3545';
   } finally {
     // Re-enable scan button
@@ -573,8 +713,8 @@ async function scanForMarvellousTab() {
   }
 }
 
-// Display found Marvellous Suspender tabs
-function displayMarvellousTab(tabs, container) {
+// Generic function to display found extension tabs
+function displayExtensionTabs(tabs, container) {
   container.innerHTML = '';
   
   tabs.forEach((tabData, index) => {
@@ -591,7 +731,7 @@ function displayMarvellousTab(tabs, container) {
     `;
     
     const variantBadge = tabData.isUnknownVariant 
-      ? `<span style="background: #ffc107; color: #333; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 8px;">${getMessage('unknownVariant')}</span>`
+      ? `<span style="background: #ffc107; color: #333; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 8px;">${getMessage('unknownVariant') || 'Unknown Variant'}</span>`
       : '';
     
     tabItem.innerHTML = `
@@ -611,7 +751,7 @@ function displayMarvellousTab(tabs, container) {
           ${escapeHtml(tabData.originalUrl)}
         </div>
         <div style="font-size: 10px; color: #999; margin-top: 2px;">
-          ${getMessage('extensionId')}: ${tabData.extensionId}
+          ${getMessage('extensionId') || 'Extension ID'}: ${tabData.extensionId}
         </div>
       </div>
     `;
@@ -620,17 +760,17 @@ function displayMarvellousTab(tabs, container) {
   });
 }
 
-// Select all tabs
-function selectAllTabs() {
-  const checkboxes = document.querySelectorAll('#tabsContainer input[type="checkbox"]');
+// Generic function to select all tabs in a container
+function selectAllTabs(containerId) {
+  const checkboxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]`);
   checkboxes.forEach(checkbox => {
     checkbox.checked = true;
   });
 }
 
-// Deselect all tabs
-function deselectAllTabs() {
-  const checkboxes = document.querySelectorAll('#tabsContainer input[type="checkbox"]');
+// Generic function to deselect all tabs in a container
+function deselectAllTabs(containerId) {
+  const checkboxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]`);
   checkboxes.forEach(checkbox => {
     checkbox.checked = false;
   });
@@ -730,13 +870,16 @@ function hideMigrationProgress() {
   return ProgressBarUtils.hideProgress('#migrationProgressContainer');
 }
 
-// Migrate selected tabs
-async function migrateSelectedTabs() {
-  const checkboxes = document.querySelectorAll('#tabsContainer input[type="checkbox"]:checked');
-  const migrateBtn = document.getElementById('migrateSelectedBtn');
+// Generic function to migrate selected tabs
+async function migrateSelectedTabs(extensionKey) {
+  const config = MIGRATION_CONFIGS[extensionKey];
+  if (!config) return;
+  
+  const checkboxes = document.querySelectorAll(`#${config.ui.tabsContainerId} input[type="checkbox"]:checked`);
+  const migrateBtn = document.getElementById(config.ui.migrateBtnId);
   
   if (checkboxes.length === 0) {
-    showNotice(getMessage('noTabsSelected'), 'warning');
+    showNotice(getMessage('noTabsSelected') || 'No tabs selected', 'warning');
     return;
   }
   
@@ -750,8 +893,14 @@ async function migrateSelectedTabs() {
     migrateBtn.disabled = true;
     migrateBtn.style.opacity = '0.6';
     
-    // Initialize progress bar
-    updateMigrationProgress(0, totalTabs);
+    // Initialize progress bar using the extension-specific elements
+    ProgressBarUtils.updateProgress({
+      completed: 0,
+      total: totalTabs,
+      containerSelector: `#${config.ui.progressContainerId}`,
+      textSelector: `#${config.ui.progressTextId}`,
+      fillSelector: `#${config.ui.progressFillId}`
+    });
     
     for (const checkbox of checkboxes) {
       try {
@@ -774,13 +923,19 @@ async function migrateSelectedTabs() {
         await chrome.tabs.update(tabId, { url: suspendedUrl });
         successCount++;
       } catch (error) {
-        console.error('[ZeroRAM Suspender] Error migrating tab:', error);
+        console.error(`[ZeroRAM Suspender] Error migrating ${config.name} tab:`, error);
         failureCount++;
       }
       
       // Update progress after each tab is processed
       processedCount++;
-      updateMigrationProgress(processedCount, totalTabs);
+      ProgressBarUtils.updateProgress({
+        completed: processedCount,
+        total: totalTabs,
+        containerSelector: `#${config.ui.progressContainerId}`,
+        textSelector: `#${config.ui.progressTextId}`,
+        fillSelector: `#${config.ui.progressFillId}`
+      });
       
       // Add a small delay to make progress visible and avoid overwhelming the browser
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -788,24 +943,29 @@ async function migrateSelectedTabs() {
     
     // Show completion message
     if (successCount > 0) {
-      showNotice(getMessage('migrationComplete') + ` (${successCount}${getMessage('tabsMigrated')})`, 'success');
+      const migrationCompleteMsg = getMessage('migrationComplete') || 'Migration completed';
+      const tabsMigratedMsg = getMessage('tabsMigrated') || ' tabs migrated';
+      showNotice(`${migrationCompleteMsg} (${successCount}${tabsMigratedMsg})`, 'success');
       
       // Refresh the tab list after a short delay
       setTimeout(() => {
-        scanForMarvellousTab();
+        scanForExtensionTabs(extensionKey);
       }, 1000);
     }
     
     if (failureCount > 0) {
-      showNotice(getMessage('migrationFailed') + ` (${failureCount}${getMessage('tabsFailed')})`, 'error');
+      const migrationFailedMsg = getMessage('migrationFailed') || 'Migration failed';
+      const tabsFailedMsg = getMessage('tabsFailed') || ' tabs failed';
+      showNotice(`${migrationFailedMsg} (${failureCount}${tabsFailedMsg})`, 'error');
     }
   } catch (error) {
-    console.error('[ZeroRAM Suspender] Migration error:', error);
-    showNotice(getMessage('migrationFailed') + ': ' + error.message, 'error');
+    console.error(`[ZeroRAM Suspender] ${config.name} migration error:`, error);
+    const migrationFailedMsg = getMessage('migrationFailed') || 'Migration failed';
+    showNotice(`${migrationFailedMsg}: ${error.message}`, 'error');
   } finally {
     // Hide progress bar and re-enable migrate button after a short delay
     setTimeout(() => {
-      hideMigrationProgress();
+      ProgressBarUtils.hideProgress(`#${config.ui.progressContainerId}`);
       migrateBtn.disabled = false;
       migrateBtn.style.opacity = '1';
     }, 1000);
@@ -826,11 +986,25 @@ function getMessage(key) {
 
 // Reset migration state when switching to migration section
 function resetMigrationState() {
-  const resultsDiv = document.getElementById('migrationResults');
-  const statusDiv = document.getElementById('migrationStatus');
-  const tabsListDiv = document.getElementById('tabsList');
-  const tabsContainer = document.getElementById('tabsContainer');
-  const scanBtn = document.getElementById('scanMarvellousBtn');
+  // Reset Marvellous Suspender migration state
+  resetExtensionMigrationState('marvellous');
+  
+  // Reset Tab Suspender migration state
+  resetExtensionMigrationState('tabSuspender');
+  
+  console.log('[ZeroRAM Suspender] All migration states reset');
+}
+
+// Generic function to reset migration state for a specific extension
+function resetExtensionMigrationState(extensionKey) {
+  const config = MIGRATION_CONFIGS[extensionKey];
+  if (!config) return;
+  
+  const resultsDiv = document.getElementById(config.ui.resultsId);
+  const statusDiv = document.getElementById(config.ui.statusId);
+  const tabsListDiv = document.getElementById(config.ui.tabsListId);
+  const tabsContainer = document.getElementById(config.ui.tabsContainerId);
+  const scanBtn = document.getElementById(config.ui.scanBtnId);
   
   // Hide results and reset content
   if (resultsDiv) {
@@ -855,12 +1029,12 @@ function resetMigrationState() {
     scanBtn.style.opacity = '1';
   }
   
-  console.log('[ZeroRAM Suspender] Migration state reset');
+  console.log(`[ZeroRAM Suspender] ${config.name} migration state reset`);
 }
 
 // Clear discovered extension IDs cache (for testing purposes)
 function clearDiscoveredIds() {
-  discoveredMarvellousIds.clear();
+  discoveredExtensionIds.clear();
   console.log('[ZeroRAM Suspender] Cleared discovered extension IDs cache');
 }
 
@@ -869,8 +1043,10 @@ if (typeof window !== 'undefined') {
   window.ZeroRAMSuspenderDebug = {
     clearDiscoveredIds,
     resetMigrationState,
-    getKnownIds: () => KNOWN_MARVELLOUS_SUSPENDER_IDS,
-    getDiscoveredIds: () => Array.from(discoveredMarvellousIds),
+    resetExtensionMigrationState,
+    getMigrationConfigs: () => MIGRATION_CONFIGS,
+    getDiscoveredIds: () => Array.from(discoveredExtensionIds),
+    scanForExtensionTabs,
     // Export progress utilities for testing and future use
     ProgressBarUtils
   };
