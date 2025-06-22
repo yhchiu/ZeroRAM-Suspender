@@ -1460,7 +1460,7 @@ function renderChangelog(changelog, container) {
         const icon = getChangeIcon(change.type);
         return `
           <li class="changelog-item" style="margin-bottom: 8px; display: flex; align-items: flex-start; gap: 8px;">
-            <span style="font-size: 14px; margin-top: 2px;">${icon}</span>
+            <span style="font-size: 14px; margin-top: 2px; width: 16px; text-align: center; flex-shrink: 0;">${icon}</span>
             <div style="flex: 1;">
               <span style="font-weight: 500; color: ${getChangeColor(change.type)}; text-transform: capitalize;">${change.type}:</span>
               <span style="margin-left: 4px;">${escapeHtml(change.description)}</span>
