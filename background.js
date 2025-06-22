@@ -24,6 +24,9 @@ let seenTimestamps = {};
 // Track tabs that are currently being unsuspended to prevent re-suspension
 let unsuspendingTabs = new Set();
 
+// Track tabs that are being suspended and waiting for discard
+let pendingDiscardTabs = new Map(); // tabId -> {settings, resolve}
+
 // Alarm period (minutes)
 const ALARM_PERIOD_MINUTES = 1; // must be >=1 for chrome.alarms
 
@@ -80,14 +83,59 @@ async function suspendTab(tab, settings) {
   // If user enables native discard and tab is NOT active, discard after placeholder is loaded
   if (settings.useNativeDiscard && !tab.active) {
     try {
-      // Give Chrome a tiny delay to register new URL
-      await new Promise(r => setTimeout(r, 200));
-      await chrome.tabs.discard(tab.id);
+      // Wait for the suspended.html page to fully load before discarding
+      await waitForTabLoaded(tab.id, settings);
+      
+      // Check again if tab is still inactive before discarding
+      // (user might have clicked on it during loading)
+      const currentTab = await chrome.tabs.get(tab.id);
+      if (!currentTab.active) {
+        await chrome.tabs.discard(tab.id);
+      }
     } catch (e) {
-      // Discard may fail for active tab; ignore gracefully
-      console.warn('Discard failed (may be active tab)', e);
+      // Discard may fail for active tab or if tab was closed; ignore gracefully
+      console.warn('Discard failed (may be active tab or tab closed)', e);
     }
   }
+}
+
+// Wait for tab to finish loading the suspended.html page
+async function waitForTabLoaded(tabId, settings) {
+  return new Promise((resolve, reject) => {
+    // Set up timeout as fallback (max 10 seconds)
+    const timeout = setTimeout(() => {
+      pendingDiscardTabs.delete(tabId);
+      resolve(); // Resolve anyway to prevent hanging
+    }, 10000);
+
+    // Store the resolve function to be called when tab finishes loading
+    pendingDiscardTabs.set(tabId, { 
+      settings, 
+      resolve: () => {
+        clearTimeout(timeout);
+        pendingDiscardTabs.delete(tabId);
+        resolve();
+      }
+    });
+
+    // Check if tab is already loaded (race condition handling)
+    chrome.tabs.get(tabId).then(tab => {
+      if (tab && tab.status === 'complete' && 
+          tab.url && tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) {
+        // Tab is already loaded
+        const pendingInfo = pendingDiscardTabs.get(tabId);
+        if (pendingInfo) {
+          pendingInfo.resolve();
+        }
+      }
+    }).catch(() => {
+      // Tab might have been closed, just resolve
+      const pendingInfo = pendingDiscardTabs.get(tabId);
+      if (pendingInfo) {
+        pendingInfo.resolve();
+      }
+    });
+  });
 }
 
 async function suspendWithPlaceholder(tab) {
@@ -187,6 +235,15 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (unsuspendingTabs.has(tabId)) {
       unsuspendingTabs.delete(tabId);
     }
+    
+    // If tab was waiting for discard and suspended.html is now loaded, trigger discard
+    if (pendingDiscardTabs.has(tabId) && tab.url && 
+        tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) {
+      const pendingInfo = pendingDiscardTabs.get(tabId);
+      if (pendingInfo) {
+        pendingInfo.resolve();
+      }
+    }
   }
   
   // Track tabs that are being unsuspended (URL changed from suspended.html to original URL)
@@ -206,6 +263,16 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 // Clean up tracking when tabs are closed
 chrome.tabs.onRemoved.addListener((tabId) => {
   unsuspendingTabs.delete(tabId);
+  
+  // Clean up pending discard if tab is closed
+  if (pendingDiscardTabs.has(tabId)) {
+    const pendingInfo = pendingDiscardTabs.get(tabId);
+    if (pendingInfo) {
+      pendingInfo.resolve(); // Resolve to prevent hanging promises
+    }
+    pendingDiscardTabs.delete(tabId);
+  }
+  
   delete seenTimestamps[tabId];
   saveSeenTimestamps();
 });
