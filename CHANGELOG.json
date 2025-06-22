@@ -1,12 +1,78 @@
 [
 {
-  "sha": "68dd03ea7ed37c01f9f4ca1b0af7f61d9e1ae80a",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/68dd03ea7ed37c01f9f4ca1b0af7f61d9e1ae80a",
+  "sha": "ef2ff2e856d699a78fec743385d7f4a0eea18f18",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/ef2ff2e856d699a78fec743385d7f4a0eea18f18",
+  "commit": {
+    "message": "Update version to 1.5.1",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-23T00:37:23+08:00"
+    }
+  }
+},
+{
+  "sha": "827761dd1f59643bc7b085117daa58ee1e5cd11a",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/827761dd1f59643bc7b085117daa58ee1e5cd11a",
+  "commit": {
+    "message": "Update options to swap TXT/JSON order in session export dropdown",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-23T00:36:46+08:00"
+    }
+  }
+},
+{
+  "sha": "1db5219d4880b6cc7d33b6ad44ec84ea106c019e",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/1db5219d4880b6cc7d33b6ad44ec84ea106c019e",
+  "commit": {
+    "message": "Add Simplified Chinese translation",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-22T22:41:12+08:00"
+    }
+  }
+},
+{
+  "sha": "33a03f7b23af09cb1b0408d02f0630a4eb51352e",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/33a03f7b23af09cb1b0408d02f0630a4eb51352e",
+  "commit": {
+    "message": "Update translation for tab suspension terminology in Traditional Chinese",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-22T22:32:27+08:00"
+    }
+  }
+},
+{
+  "sha": "8d68bc83837cbc3d5e1630e4b575d61107fd788d",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8d68bc83837cbc3d5e1630e4b575d61107fd788d",
+  "commit": {
+    "message": "Update suspend all logic to include discarded tabs",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-22T17:17:16+08:00"
+    }
+  }
+},
+{
+  "sha": "cae77b8808b7f7bdcf55b7d748bb46659a5e068b",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/cae77b8808b7f7bdcf55b7d748bb46659a5e068b",
+  "commit": {
+    "message": "Improve tab discard reliability with event-driven loading detection",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-22T16:46:53+08:00"
+    }
+  }
+},
+{
+  "sha": "f1250c376e0f2d6d4f2d13a5c177ef2b1df9eb63",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/f1250c376e0f2d6d4f2d13a5c177ef2b1df9eb63",
   "commit": {
     "message": "Update version to 1.5.0",
     "author": {
       "name": "Arthur Chiu",
-      "date": "2025-06-22T00:09:11+08:00"
+      "date": "2025-06-22T00:11:18+08:00"
     }
   }
 },
