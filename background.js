@@ -405,11 +405,15 @@ async function unsuspendTabWithUrl(tabId, originalUrl) {
 // Suspend other tabs in the same window
 async function suspendOthersInWindow(currentTabId) {
   const currentTab = await chrome.tabs.get(currentTabId);
-  const tabs = await chrome.tabs.query({ windowId: currentTab.windowId, discarded: false });
+  // Get all tabs in the window, including discarded ones
+  const tabs = await chrome.tabs.query({ windowId: currentTab.windowId });
   const settings = await getSettings();
   
   for (const tab of tabs) {
     if (tab.id !== currentTabId && !tab.active && !isInternalUrl(tab.url)) {
+      // Skip if tab is already suspended by our extension
+      if (tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) continue;
+      
       // Check suspension prevention settings
       if (settings.neverSuspendAudio && tab.audible) continue;
       if (settings.neverSuspendPinned && tab.pinned) continue;
@@ -422,7 +426,8 @@ async function suspendOthersInWindow(currentTabId) {
 
 // Suspend other tabs in all windows
 async function suspendOthersInAllWindows(currentTabId) {
-  const tabs = await chrome.tabs.query({ discarded: false });
+  // Get all tabs, including discarded ones
+  const allTabs = await chrome.tabs.query({});
   const settings = await getSettings();
   
   // Get active tabs for each window if neverSuspendActive is enabled
@@ -437,8 +442,11 @@ async function suspendOthersInAllWindows(currentTabId) {
     }
   }
   
-  for (const tab of tabs) {
+  for (const tab of allTabs) {
     if (tab.id !== currentTabId && !isInternalUrl(tab.url)) {
+      // Skip if tab is already suspended by our extension
+      if (tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) continue;
+      
       // Check suspension prevention settings
       if (settings.neverSuspendAudio && tab.audible) continue;
       if (settings.neverSuspendPinned && tab.pinned) continue;
