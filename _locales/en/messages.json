@@ -189,5 +189,6 @@
   "disabled": { "message": "Disabled" },
   "items": { "message": "items" },
   "whitelistItems": { "message": "Whitelist items" },
-  "importPreviewReady": { "message": "Import preview ready" }
+  "importPreviewReady": { "message": "Import preview ready" },
+  "reportIssue": { "message": "Report Bug or Request Feature" }
 } 
