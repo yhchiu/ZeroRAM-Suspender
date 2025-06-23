@@ -1,12 +1,45 @@
 [
 {
-  "sha": "ef2ff2e856d699a78fec743385d7f4a0eea18f18",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/ef2ff2e856d699a78fec743385d7f4a0eea18f18",
+  "sha": "8791dadf1db93690c4af68779cc7d08bba7fd63c",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8791dadf1db93690c4af68779cc7d08bba7fd63c",
+  "commit": {
+    "message": "Update version to 1.5.2",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-23T01:11:20+08:00"
+    }
+  }
+},
+{
+  "sha": "8da863e28d7b420ad9e4d151161fd18e095c5328",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8da863e28d7b420ad9e4d151161fd18e095c5328",
+  "commit": {
+    "message": "Fix changelog items alignment by setting fixed icon width in options.html",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-23T01:09:53+08:00"
+    }
+  }
+},
+{
+  "sha": "96849f9c2f92984aea2e94f737107750c6d492a3",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/96849f9c2f92984aea2e94f737107750c6d492a3",
+  "commit": {
+    "message": "Add link for reporting issues or requesting features in options.html",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-23T00:58:03+08:00"
+    }
+  }
+},
+{
+  "sha": "82d72927d05efa3ae8ab132cade70898cd95bc57",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/82d72927d05efa3ae8ab132cade70898cd95bc57",
   "commit": {
     "message": "Update version to 1.5.1",
     "author": {
       "name": "Arthur Chiu",
-      "date": "2025-06-23T00:37:23+08:00"
+      "date": "2025-06-23T00:39:32+08:00"
     }
   }
 },
