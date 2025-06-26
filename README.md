@@ -14,10 +14,35 @@ ZeroRAM Suspender dramatically reduces your browser's memory usage by intelligen
 - **Whitelist Support**: Protect important websites from being suspended
 - **Manual Controls**: Suspend or unsuspend tabs manually when needed
 - **Tab Migration**: Seamlessly migrate suspended tabs from other tab suspension extensions (like The Marvellous Suspender)
+- **Session Management**: Export and import all tabs from all windows for easy backup and restoration
 - **Simple Interface**: Easy-to-use popup and settings page
 - **Privacy Focused**: All processing happens locally - no data is sent to external servers
 
+## Screenshots
+
+### Extension Popup Interface
+![Extension Popup](screenshots/01-popup.png)
+
+### Suspended Page
+![Suspended Page](screenshots/02-suspended-page.png)
+
+### Whitelist Management
+![Whitelist Management](screenshots/03-whitelist.png)
+
+### Tab Migration
+![Tab Migration](screenshots/04-tab-migration.png)
+
+### Session Management
+![Session Management](screenshots/05-session-management.png)
+
 ## How to Install
+
+### From Chrome Web Store (Recommended)
+Install directly from the Chrome Web Store: [ZeroRAM Suspender](https://chromewebstore.google.com/detail/zeroram-suspender/nlnebbghnncihbiabpnhemjamfmjappo)
+
+1. Visit the Chrome Web Store link above
+2. Click "Add to Chrome" button
+3. Confirm the installation when prompted
 
 ### From Source
 1. Download or clone this repository
@@ -46,6 +71,7 @@ Right-click the extension icon and select "Options" to configure:
 - **Memory optimization**: Choose between native discard or placeholder pages
 - **Whitelist**: Add URLs or domains that should never be suspended
 - **Tab Migration**: Convert suspended tabs from other extensions to ZeroRAM Suspender format
+- **Session Management**: Export and import all tabs from all windows
 
 ## Settings Explained
 
@@ -70,19 +96,12 @@ Migrate suspended tabs from other tab suspension extensions:
 - **Auto Detection**: Automatically detects and lists suspended tabs from other extensions
 - **Batch Migration**: Select multiple tabs to migrate at once
 
-## Browser Support
-
-- **Chrome**: Version 54 or later
-- **Firefox**: Version 58 or later
-- **Edge**: Version 79 or later (Chromium-based)
-
-## Technical Details
-
-- Uses Manifest V3 for modern browser compatibility
-- Service worker architecture for better performance
-- Supports both Chrome's native tab discarding and custom suspension
-- Local storage for settings and temporary whitelist
-- Internationalization support (English and Traditional Chinese)
+### Session Management
+Export and import tab sessions for backup and restoration:
+- **Export Current Session**: Save all tabs from all windows to a JSON file
+- **Import Session**: Restore tabs from a previously exported session file
+- **Backup & Restore**: Useful for switching devices or recovering after browser crashes
+- **Full Window Support**: Preserves window grouping and tab order during export/import
 
 ## Privacy
 
