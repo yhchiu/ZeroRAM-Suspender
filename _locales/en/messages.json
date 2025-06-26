@@ -190,5 +190,6 @@
   "items": { "message": "items" },
   "whitelistItems": { "message": "Whitelist items" },
   "importPreviewReady": { "message": "Import preview ready" },
-  "reportIssue": { "message": "Report Bug or Request Feature" }
+  "reportIssue": { "message": "Report Bug or Request Feature" },
+  "rateUs": { "message": "⭐ Rate us on Chrome Web Store" }
 } 

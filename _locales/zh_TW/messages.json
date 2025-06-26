@@ -190,5 +190,6 @@
   "items": { "message": "項目" },
   "whitelistItems": { "message": "白名單項目" },
   "importPreviewReady": { "message": "匯入預覽已準備就緒" },
-  "reportIssue": { "message": "回報錯誤或請求功能" }
+  "reportIssue": { "message": "回報錯誤或請求功能" },
+  "rateUs": { "message": "⭐ 在 Chrome 線上應用程式商店評分" }
 } 

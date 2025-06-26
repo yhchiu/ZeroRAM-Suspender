@@ -190,5 +190,6 @@
   "items": { "message": "项目" },
   "whitelistItems": { "message": "白名单项目" },
   "importPreviewReady": { "message": "导入预览已准备就绪" },
-  "reportIssue": { "message": "回报错误或请求功能" }
+  "reportIssue": { "message": "回报错误或请求功能" },
+  "rateUs": { "message": "⭐ 在 Chrome 网上应用店评分" }
 }
