@@ -2,6 +2,8 @@
 
 A browser tab suspender that saves memory by using native discarding to achieve almost zero memory usage.
 
+[Available in the Chrome Web Store](https://chromewebstore.google.com/detail/zeroram-suspender/nlnebbghnncihbiabpnhemjamfmjappo)
+
 ## What It Does
 
 ZeroRAM Suspender dramatically reduces your browser's memory usage by intelligently suspending unused tabs. Unlike traditional tab suspenders that use placeholder pages, ZeroRAM Suspender utilizes the browser's native tab discarding mechanism to achieve almost zero memory consumption for suspended tabs. When a tab hasn't been used for a while, the extension automatically suspends it using this native approach, freeing up memory while keeping the tab available for instant restoration when you need it.
