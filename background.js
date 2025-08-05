@@ -153,23 +153,26 @@ async function checkTabs() {
   const threshold = Date.now() - settings.autoSuspendMinutes * 60 * 1000;
   const tabs = await chrome.tabs.query({ discarded: false });
   
-  // Get active tabs for each window if neverSuspendActive is enabled
-  let activeTabsInWindows = new Set();
-  if (settings.neverSuspendActive) {
-    const windows = await chrome.windows.getAll();
-    for (const window of windows) {
-      const activeTabs = await chrome.tabs.query({ windowId: window.id, active: true });
-      if (activeTabs.length > 0) {
-        activeTabsInWindows.add(activeTabs[0].id);
-      }
+  // Get the focused window and active tab in focused window
+  const windows = await chrome.windows.getAll();
+  const focusedWindow = windows.find(w => w.focused);
+  let focusedWindowActiveTabId = null;
+  
+  if (focusedWindow) {
+    const activeTabs = await chrome.tabs.query({ windowId: focusedWindow.id, active: true });
+    if (activeTabs.length > 0) {
+      focusedWindowActiveTabId = activeTabs[0].id;
     }
   }
   
+  // This variable is no longer needed as we handle active tab protection in the main loop
+  
   for (const tab of tabs) {
-    // Ignore active, placeholder, or internal pages
-    if (tab.active || tab.url.startsWith(chrome.runtime.getURL('suspended.html')) || isInternalUrl(tab.url)) {
+    // Ignore placeholder or internal pages
+    if (tab.url.startsWith(chrome.runtime.getURL('suspended.html')) || isInternalUrl(tab.url)) {
       continue;
     }
+    
     if (isWhitelisted(tab.url, settings)) continue;
 
     // Check new suspension prevention settings
@@ -181,8 +184,18 @@ async function checkTabs() {
       continue; // Skip pinned tabs
     }
     
-    if (settings.neverSuspendActive && activeTabsInWindows.has(tab.id)) {
-      continue; // Skip active tab in each window
+    // Handle active tab protection based on settings
+    if (tab.active) {
+      if (settings.neverSuspendActive) {
+        // If neverSuspendActive is enabled, protect active tabs in all windows
+        continue;
+      } else {
+        // Default behavior: only protect active tab in the currently focused window
+        if (tab.id === focusedWindowActiveTabId) {
+          continue;
+        }
+        // Active tabs in non-focused windows can be suspended
+      }
     }
 
     let last = tab.lastAccessed;
@@ -430,15 +443,15 @@ async function suspendOthersInAllWindows(currentTabId) {
   const allTabs = await chrome.tabs.query({});
   const settings = await getSettings();
   
-  // Get active tabs for each window if neverSuspendActive is enabled
-  let activeTabsInWindows = new Set();
-  if (settings.neverSuspendActive) {
-    const windows = await chrome.windows.getAll();
-    for (const window of windows) {
-      const activeTabs = await chrome.tabs.query({ windowId: window.id, active: true });
-      if (activeTabs.length > 0) {
-        activeTabsInWindows.add(activeTabs[0].id);
-      }
+  // Get the focused window and active tab in focused window for consistent logic
+  const windows = await chrome.windows.getAll();
+  const focusedWindow = windows.find(w => w.focused);
+  let focusedWindowActiveTabId = null;
+  
+  if (focusedWindow) {
+    const activeTabs = await chrome.tabs.query({ windowId: focusedWindow.id, active: true });
+    if (activeTabs.length > 0) {
+      focusedWindowActiveTabId = activeTabs[0].id;
     }
   }
   
@@ -450,8 +463,21 @@ async function suspendOthersInAllWindows(currentTabId) {
       // Check suspension prevention settings
       if (settings.neverSuspendAudio && tab.audible) continue;
       if (settings.neverSuspendPinned && tab.pinned) continue;
-      if (settings.neverSuspendActive && activeTabsInWindows.has(tab.id)) continue;
       if (!isWhitelisted(tab.url, settings)) {
+        // Handle active tab protection based on settings (same logic as checkTabs)
+        if (tab.active) {
+          if (settings.neverSuspendActive) {
+            // If neverSuspendActive is enabled, protect active tabs in all windows
+            continue;
+          } else {
+            // Default behavior: only protect active tab in the currently focused window
+            if (tab.id === focusedWindowActiveTabId) {
+              continue;
+            }
+            // Active tabs in non-focused windows can be suspended
+          }
+        }
+        
         await suspendTab(tab, settings);
       }
     }
