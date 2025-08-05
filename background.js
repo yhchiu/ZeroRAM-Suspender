@@ -150,7 +150,7 @@ async function checkTabs() {
   const settings = await getSettings();
   if (settings.autoSuspendMinutes === 0) return; // never auto suspend
 
-  const threshold = Date.now() - settings.autoSuspendMinutes * 60 * 1000;
+  const autoSuspendTime = settings.autoSuspendMinutes * 60 * 1000;
   const tabs = await chrome.tabs.query({ discarded: false });
   
   // Get the focused window and active tab in focused window
@@ -170,6 +170,11 @@ async function checkTabs() {
   for (const tab of tabs) {
     // Ignore placeholder or internal pages
     if (tab.url.startsWith(chrome.runtime.getURL('suspended.html')) || isInternalUrl(tab.url)) {
+      continue;
+    }
+    
+    // Skip tabs that are currently being unsuspended
+    if (unsuspendingTabs.has(tab.id)) {
       continue;
     }
     
@@ -198,16 +203,27 @@ async function checkTabs() {
       }
     }
 
-    let last = tab.lastAccessed;
-    if (typeof last !== 'number') {
-      // Use our own persisted tracking for tabs that have never been active
-      last = seenTimestamps[tab.id];
-      if (last === undefined) {
-        last = Date.now();
-        seenTimestamps[tab.id] = last;
-      }
+    // Get both timestamps
+    const chromeTimestamp = tab.lastAccessed;
+    const ourTimestamp = seenTimestamps[tab.id];
+
+    let last;
+    if (typeof chromeTimestamp === 'number' && typeof ourTimestamp === 'number') {
+      // Both timestamps exist, use the more recent one
+      last = Math.max(chromeTimestamp, ourTimestamp);
+    } else if (typeof ourTimestamp === 'number') {
+      // Only our timestamp exists
+      last = ourTimestamp;
+    } else if (typeof chromeTimestamp === 'number') {
+      // Only Chrome timestamp exists
+      last = chromeTimestamp;
+    } else {
+      // Neither exists, set current time and skip suspension check
+      seenTimestamps[tab.id] = Date.now();
+      continue;
     }
-    if (last < threshold) {
+
+    if (last < (Date.now() - autoSuspendTime)) {
       await suspendTab(tab, settings);
     }
   }
@@ -402,6 +418,9 @@ async function unsuspendTabById(tabId) {
     const original = urlParams.get('uri');
     if (original) {
       unsuspendingTabs.add(tabId);
+      // Update timestamp immediately to prevent re-suspension
+      seenTimestamps[tabId] = Date.now();
+      saveSeenTimestamps();
       await chrome.tabs.update(tabId, { url: original });
       return true;
     }
@@ -412,6 +431,9 @@ async function unsuspendTabById(tabId) {
 // Unsuspend a tab using original URL (for message handler)
 async function unsuspendTabWithUrl(tabId, originalUrl) {
   unsuspendingTabs.add(tabId);
+  // Update timestamp immediately to prevent re-suspension
+  seenTimestamps[tabId] = Date.now();
+  saveSeenTimestamps();
   await chrome.tabs.update(tabId, { url: originalUrl });
 }
 
@@ -493,10 +515,13 @@ async function unsuspendAllTabs() {
       const original = urlParams.get('uri');
       if (original) {
         unsuspendingTabs.add(tab.id);
+        // Update timestamp immediately to prevent re-suspension
+        seenTimestamps[tab.id] = Date.now();
         await chrome.tabs.update(tab.id, { url: original });
       }
     }
   }
+  saveSeenTimestamps();
 }
 
 // Unsuspend all tabs in a specific window
@@ -508,10 +533,13 @@ async function unsuspendAllTabsInWindow(windowId) {
       const original = urlParams.get('uri');
       if (original) {
         unsuspendingTabs.add(tab.id);
+        // Update timestamp immediately to prevent re-suspension
+        seenTimestamps[tab.id] = Date.now();
         await chrome.tabs.update(tab.id, { url: original });
       }
     }
   }
+  saveSeenTimestamps();
 }
 
 // Suspend selected tabs (force suspend, ignore whitelist but respect internal URLs)
