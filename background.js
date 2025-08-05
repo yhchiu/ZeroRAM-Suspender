@@ -284,7 +284,9 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
   
   if (changeInfo.active === false) {
-    // Tab became inactive
+    // Tab became inactive - update timestamp to track when it was last seen
+    seenTimestamps[tabId] = Date.now();
+    saveSeenTimestamps();
     reDiscardInactiveSuspendedTabs();
   }
 });
