@@ -4,7 +4,38 @@
   <meta charset="utf-8" />
   <title>Suspended</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <!-- Set theme immediately to prevent FOUC - must run before CSS -->
+  <script src="suspended-theme.js"></script>
   <style>
+    /* Light theme colors */
+    [data-theme="light"] {
+      --bg-color: #f8f9fa;
+      --text-color: #2c3e50;
+      --text-secondary: #7f8c8d;
+      --text-muted: #6c757d;
+      --status-bg: #5a5a5a;
+      --status-text: white;
+      --status-reloading-bg: #007bff;
+      --status-reloading-shadow: rgba(0, 123, 255, 0.3);
+      --status-reloading-shadow-alt: rgba(0, 86, 179, 0.5);
+      --status-reloading-bg-alt: #0056b3;
+    }
+
+    /* Dark theme colors */
+    [data-theme="dark"] {
+      --bg-color: #1a1a1a;
+      --text-color: #e8e8e8;
+      --text-secondary: #b0b0b0;
+      --text-muted: #888888;
+      --status-bg: #404040;
+      --status-text: #e8e8e8;
+      --status-reloading-bg: #0d6efd;
+      --status-reloading-shadow: rgba(13, 110, 253, 0.4);
+      --status-reloading-shadow-alt: rgba(10, 88, 202, 0.6);
+      --status-reloading-bg-alt: #0a58ca;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -12,8 +43,8 @@
     }
 
     body {
-      background: #f8f9fa;
-      color: #2c3e50;
+      background: var(--bg-color);
+      color: var(--text-color);
       display: flex;
       flex-direction: column;
       /* justify-content: center; */
@@ -21,6 +52,7 @@
       min-height: 100vh;
       cursor: pointer;
       user-select: none;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     .container {
@@ -44,11 +76,28 @@
       background-position: center;
       opacity: 0.7;
       animation: pulse 2s ease-in-out infinite;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Dark theme icon with adjusted opacity and brightness */
+    [data-theme="dark"] .sleep-icon {
+      opacity: 0.6;
+      filter: brightness(0.9);
     }
 
     @keyframes pulse {
       0%, 100% { opacity: 0.7; }
       50% { opacity: 0.4; }
+    }
+
+    /* Dark theme pulse animation */
+    [data-theme="dark"] .sleep-icon {
+      animation: pulse-dark 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dark {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 0.3; }
     }
 
     /* Reloading animation for unsuspend state */
@@ -69,8 +118,8 @@
     }
 
     .status {
-      background: #5a5a5a;
-      color: white;
+      background: var(--status-bg);
+      color: var(--status-text);
       padding: 8px 16px;
       border-radius: 20px;
       font-size: 13px;
@@ -78,32 +127,33 @@
       margin-bottom: 32px;
       display: inline-block;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      transition: background-color 0.3s ease;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     .status.reloading {
-      background: #007bff;
-      box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+      background: var(--status-reloading-bg);
+      box-shadow: 0 2px 8px var(--status-reloading-shadow);
       animation: background-pulse 2s ease-in-out infinite;
     }
 
     @keyframes background-pulse {
       0%, 100% { 
-        background: #007bff;
-        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+        background: var(--status-reloading-bg);
+        box-shadow: 0 2px 8px var(--status-reloading-shadow);
       }
       50% { 
-        background: #0056b3;
-        box-shadow: 0 2px 12px rgba(0, 86, 179, 0.5);
+        background: var(--status-reloading-bg-alt);
+        box-shadow: 0 2px 12px var(--status-reloading-shadow-alt);
       }
     }
 
     h1 {
       font-size: 24px;
       font-weight: 600;
-      color: #2c3e50;
+      color: var(--text-color);
       margin-bottom: 12px;
       line-height: 1.3;
+      transition: color 0.3s ease;
     }
 
     .title {
@@ -112,19 +162,21 @@
     }
 
     .url {
-      color: #7f8c8d;
+      color: var(--text-secondary);
       font-size: 14px;
       word-break: break-all;
       margin-bottom: 32px;
       /* padding: 0 20px; */
       line-height: 1.4;
+      transition: color 0.3s ease;
     }
 
     .instruction {
-      color: #6c757d;
+      color: var(--text-muted);
       font-size: 15px;
       font-weight: 500;
       margin-bottom: 16px;
+      transition: color 0.3s ease;
     }
 
     @media (max-width: 480px) {

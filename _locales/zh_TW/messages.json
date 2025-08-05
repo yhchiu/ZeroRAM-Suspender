@@ -191,5 +191,12 @@
   "whitelistItems": { "message": "白名單項目" },
   "importPreviewReady": { "message": "匯入預覽已準備就緒" },
   "reportIssue": { "message": "回報錯誤或請求功能" },
-  "rateUs": { "message": "⭐ 在 Chrome 線上應用程式商店評分" }
+  "rateUs": { "message": "⭐ 在 Chrome 線上應用程式商店評分" },
+  "themeSettings": { "message": "主題設定" },
+  "themeSettingsDesc": { "message": "選擇休眠分頁的外觀主題" },
+  "themeMode": { "message": "主題模式：" },
+  "themeAuto": { "message": "自動跟隨系統/瀏覽器主題" },
+  "themeLight": { "message": "淺色主題" },
+  "themeDark": { "message": "深色主題" },
+  "themeHelpText": { "message": "休眠分頁需要重新載入以套用主題。自動模式會跟隨您的系統深色/淺色主題偏好設定。" }
 } 

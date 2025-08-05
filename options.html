@@ -540,6 +540,27 @@
             </div>
           </div>
         </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>🎨</span>
+            <span data-i18n="themeSettings">Theme Settings</span>
+          </div>
+          <div class="card-description" data-i18n="themeSettingsDesc">
+            Choose the appearance theme for the suspended tab page
+          </div>
+          <div class="form-group">
+            <label for="themeMode" data-i18n="themeMode">Theme mode:</label>
+            <select id="themeMode" style="padding: 10px 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: all 0.2s ease; min-width: 180px;">
+              <option value="auto" data-i18n="themeAuto">Follow system/browser theme</option>
+              <option value="light" data-i18n="themeLight">Light theme</option>
+              <option value="dark" data-i18n="themeDark">Dark theme</option>
+            </select>
+            <div class="help-text" data-i18n="themeHelpText">
+              The theme setting only applies to the suspended tab page. Auto mode will follow your system's dark/light theme preference.
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- Whitelist Section -->

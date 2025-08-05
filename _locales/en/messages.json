@@ -191,5 +191,12 @@
   "whitelistItems": { "message": "Whitelist items" },
   "importPreviewReady": { "message": "Import preview ready" },
   "reportIssue": { "message": "Report Bug or Request Feature" },
-  "rateUs": { "message": "⭐ Rate us on Chrome Web Store" }
+  "rateUs": { "message": "⭐ Rate us on Chrome Web Store" },
+  "themeSettings": { "message": "Theme Settings" },
+  "themeSettingsDesc": { "message": "Choose the appearance theme for the suspended tab page" },
+  "themeMode": { "message": "Theme mode:" },
+  "themeAuto": { "message": "Follow system/browser theme" },
+  "themeLight": { "message": "Light theme" },
+  "themeDark": { "message": "Dark theme" },
+  "themeHelpText": { "message": "The suspended tab page needs to be reloaded to apply the theme. Auto mode will follow your system's dark/light theme preference." }
 } 

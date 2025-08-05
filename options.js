@@ -1,8 +1,9 @@
 // options.js - handle save/load settings with modern UI navigation
 const STORAGE_KEY = 'utsSettings';
+const CACHE_THEME_KEY = 'utsCacheThemeMode';
 
 // Initialize DOM elements after DOM is loaded
-let autoSuspendEl, discardEl, whitelistEl, neverSuspendAudioEl, neverSuspendPinnedEl, neverSuspendActiveEl;
+let autoSuspendEl, discardEl, whitelistEl, neverSuspendAudioEl, neverSuspendPinnedEl, neverSuspendActiveEl, themeModeEl;
 
 function initializeElements() {
   autoSuspendEl = document.getElementById('autoSuspend');
@@ -11,6 +12,7 @@ function initializeElements() {
   neverSuspendAudioEl = document.getElementById('neverSuspendAudio');
   neverSuspendPinnedEl = document.getElementById('neverSuspendPinned');
   neverSuspendActiveEl = document.getElementById('neverSuspendActive');
+  themeModeEl = document.getElementById('themeMode');
 }
 
 /* ---------- Overlay Notice mechanism ---------- */
@@ -161,6 +163,8 @@ function load() {
     neverSuspendAudioEl.checked = cfg.neverSuspendAudio !== false; // default true
     neverSuspendPinnedEl.checked = cfg.neverSuspendPinned !== false; // default true
     neverSuspendActiveEl.checked = cfg.neverSuspendActive === true; // default false
+    // Load theme settings with default to 'auto'
+    themeModeEl.value = cfg.themeMode || 'auto'; // default to auto (follow system)
   });
 }
 
@@ -198,6 +202,7 @@ function save() {
         updatedCfg.neverSuspendAudio = neverSuspendAudioEl.checked;
         updatedCfg.neverSuspendPinned = neverSuspendPinnedEl.checked;
         updatedCfg.neverSuspendActive = neverSuspendActiveEl.checked;
+        updatedCfg.themeMode = themeModeEl.value;
         break;
       case 'whitelist':
         updatedCfg.whitelist = whitelistEl.value.split(/\n/).map(s => s.trim()).filter(Boolean);
@@ -217,9 +222,17 @@ function save() {
           neverSuspendAudio: neverSuspendAudioEl.checked,
           neverSuspendPinned: neverSuspendPinnedEl.checked,
           neverSuspendActive: neverSuspendActiveEl.checked,
+          themeMode: themeModeEl.value,
         };
     }
-    
+
+    // Save theme mode to localStorage for suspended page caching
+    try {
+      localStorage.setItem(CACHE_THEME_KEY, updatedCfg.themeMode);
+    } catch (e) {
+      console.warn('[ZeroRAM Suspender] Failed to cache theme in localStorage:', e);
+    }
+
     chrome.storage.sync.set({ [STORAGE_KEY]: updatedCfg }, () => {
       chrome.runtime.sendMessage({ command: 'updateSettings', settings: updatedCfg });
       
@@ -2009,7 +2022,8 @@ function getDefaultSettings() {
     neverSuspendAudio: true,
     neverSuspendPinned: true,
     neverSuspendActive: false,
-    whitelist: []
+    whitelist: [],
+    themeMode: 'auto'
   };
 }
 
@@ -2024,7 +2038,8 @@ async function getCurrentSettings() {
         neverSuspendAudio: cfg.neverSuspendAudio !== false,
         neverSuspendPinned: cfg.neverSuspendPinned !== false,
         neverSuspendActive: cfg.neverSuspendActive === true,
-        whitelist: cfg.whitelist || []
+        whitelist: cfg.whitelist || [],
+        themeMode: cfg.themeMode || 'auto'
       };
       resolve(settings);
     });
@@ -2157,6 +2172,7 @@ async function previewImportSettings() {
     previewText += `• ${getMessage('neverSuspendAudio') || 'Never suspend audio tabs'}: ${settingsData.neverSuspendAudio ? getMessage('enabled') || 'Enabled' : getMessage('disabled') || 'Disabled'}\n`;
     previewText += `• ${getMessage('neverSuspendPinned') || 'Never suspend pinned tabs'}: ${settingsData.neverSuspendPinned ? getMessage('enabled') || 'Enabled' : getMessage('disabled') || 'Disabled'}\n`;
     previewText += `• ${getMessage('neverSuspendActive') || 'Never suspend active tab'}: ${settingsData.neverSuspendActive ? getMessage('enabled') || 'Enabled' : getMessage('disabled') || 'Disabled'}\n`;
+    previewText += `• ${getMessage('themeSettings') || 'Theme'}: ${settingsData.themeMode || 'auto'} (${getMessage('theme' + (settingsData.themeMode || 'auto').charAt(0).toUpperCase() + (settingsData.themeMode || 'auto').slice(1)) || settingsData.themeMode || 'auto'})\n`;
     previewText += `• ${getMessage('whitelistTitle') || 'Whitelist'}: ${(settingsData.whitelist || []).length} ${getMessage('items') || 'items'}\n`;
     
     if (settingsData.whitelist && settingsData.whitelist.length > 0) {
@@ -2188,6 +2204,7 @@ function validateSettingsData(data) {
   
   const requiredFields = ['autoSuspendMinutes', 'useNativeDiscard', 'neverSuspendAudio', 'neverSuspendPinned', 'neverSuspendActive', 'whitelist'];
   
+  // themeMode is optional for backward compatibility
   return requiredFields.every(field => field in data);
 }
 
@@ -2217,9 +2234,17 @@ async function importSettings() {
       neverSuspendAudio: settingsData.neverSuspendAudio !== false,
       neverSuspendPinned: settingsData.neverSuspendPinned !== false,
       neverSuspendActive: settingsData.neverSuspendActive === true,
-      whitelist: Array.isArray(settingsData.whitelist) ? settingsData.whitelist : []
+      whitelist: Array.isArray(settingsData.whitelist) ? settingsData.whitelist : [],
+      themeMode: settingsData.themeMode || 'auto'
     };
     
+    // Save theme mode to localStorage for suspended page caching
+    try {
+      localStorage.setItem(CACHE_THEME_KEY, newSettings.themeMode);
+    } catch (e) {
+      console.warn('[ZeroRAM Suspender] Failed to cache theme in localStorage:', e);
+    }
+
     // Save to storage
     await new Promise((resolve, reject) => {
       chrome.storage.sync.set({ [STORAGE_KEY]: newSettings }, () => {

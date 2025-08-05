@@ -191,5 +191,12 @@
   "whitelistItems": { "message": "白名单项目" },
   "importPreviewReady": { "message": "导入预览已准备就绪" },
   "reportIssue": { "message": "回报错误或请求功能" },
-  "rateUs": { "message": "⭐ 在 Chrome 网上应用店评分" }
+  "rateUs": { "message": "⭐ 在 Chrome 网上应用店评分" },
+  "themeSettings": { "message": "主题设置" },
+  "themeSettingsDesc": { "message": "选择挂起标签页面的外观主题" },
+  "themeMode": { "message": "主题模式：" },
+  "themeAuto": { "message": "自动跟随系统/浏览器主题" },
+  "themeLight": { "message": "浅色主题" },
+  "themeDark": { "message": "深色主题" },
+  "themeHelpText": { "message": "挂起标签页面需要重新加载以应用主题。自动模式会跟随您的系统深色/浅色主题偏好设置。" }
 }
