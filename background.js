@@ -32,6 +32,67 @@ let pendingDiscardTabs = new Map(); // tabId -> {settings, resolve}
 // Track last active tab for remembering when browser loses focus
 let lastActiveTabId = null;
 
+// Track tabs with no favicon (normally caused by lazy loaded after browser restart)
+let fixFaviconTabs = new Set(); // tabId set for tabs with no favicon
+
+// Background process for fixing tab favicon
+let fixFaviconProcessor = {
+  isRunning: false,
+  timeoutId: null,
+  
+  start() {
+    if (this.isRunning || fixFaviconTabs.size === 0) return;
+    this.isRunning = true;
+    this.processNext();
+  },
+  
+  stop() {
+    this.isRunning = false;
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
+    }
+  },
+  
+  async processNext() {
+    if (!this.isRunning || fixFaviconTabs.size === 0) {
+      this.isRunning = false;
+      return;
+    }
+    
+    // Get the first tab from the set
+    const tabId = fixFaviconTabs.values().next().value;
+    fixFaviconTabs.delete(tabId);
+    
+    try {
+      const tab = await chrome.tabs.get(tabId);
+      const settings = await getSettings();
+      
+      // Force reload tab first, then discard if needed
+      if (tab && tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) {
+        // Check again if tab is still inactive 
+        // (user might have clicked on it during loading)
+        if (!tab.active) {
+          await chrome.tabs.reload(tabId);
+
+          if (settings.useNativeDiscard) {
+            setTimeout(() => {
+              chrome.tabs.discard(tabId);
+            }, 1000);
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('[ZeroRAM Suspender] Failed to fix tab favicon:', error);
+    }
+    
+    // Schedule next tab processing with 1 second delay
+    this.timeoutId = setTimeout(() => {
+      this.processNext();
+    }, 1000);
+  }
+};
+
 // Alarm period (minutes)
 const ALARM_PERIOD_MINUTES = 1; // must be >=1 for chrome.alarms
 
@@ -169,6 +230,24 @@ async function checkTabs() {
   const autoSuspendTime = settings.autoSuspendMinutes * 60 * 1000;
   const tabs = await chrome.tabs.query({ discarded: false });
   
+  // Check for tab favicon (only when background processor is not running)
+  if (!fixFaviconProcessor.isRunning) {
+    fixFaviconTabs.clear();
+
+    const inactiveTabs = await chrome.tabs.query({active: false});
+    for (const tab of inactiveTabs) {
+      // Check if suspended tab has no favicon
+      if (tab.url.startsWith(chrome.runtime.getURL('suspended.html')) && !tab.favIconUrl) {
+        fixFaviconTabs.add(tab.id);
+      }
+    }
+
+    // Start fix favicon processor if we found any tabs with no favicon
+    if (fixFaviconTabs.size > 0) {
+      fixFaviconProcessor.start();
+    }
+  }
+
   // Get the focused window and active tab in focused window
   const windows = await chrome.windows.getAll();
   const focusedWindow = windows.find(w => w.focused);
@@ -301,6 +380,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       unsuspendingTabs.delete(tabId);
     }
     
+    // Remove from fix favicon tabs tracking when loaded
+    if (fixFaviconTabs.has(tabId)) {
+      fixFaviconTabs.delete(tabId);
+    }
+    
     // If tab was waiting for discard and suspended.html is now loaded, trigger discard
     if (pendingDiscardTabs.has(tabId) && tab.url && 
         tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) {
@@ -330,6 +414,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 // Clean up tracking when tabs are closed
 chrome.tabs.onRemoved.addListener((tabId) => {
   unsuspendingTabs.delete(tabId);
+  fixFaviconTabs.delete(tabId);
   
   // Clean up pending discard if tab is closed
   if (pendingDiscardTabs.has(tabId)) {
@@ -426,6 +511,16 @@ chrome.alarms.onAlarm.addListener(async ({ name }) => {
   } finally {
     running = false;
   }
+});
+
+// Handle service worker lifecycle - clean up processor on termination
+self.addEventListener('beforeunload', () => {
+  fixFaviconProcessor.stop();
+});
+
+// Handle service worker lifecycle - ensure processor continues on background events
+chrome.runtime.onSuspend?.addListener(() => {
+  fixFaviconProcessor.stop();
 });
 
 // Utility: re-discard suspended placeholder tabs that are no longer active
