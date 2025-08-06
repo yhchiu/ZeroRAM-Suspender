@@ -1,12 +1,144 @@
 [
 {
-  "sha": "8791dadf1db93690c4af68779cc7d08bba7fd63c",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8791dadf1db93690c4af68779cc7d08bba7fd63c",
+  "sha": "bac97e109dce6a414b5dd2e4ab0c0409a440fb0f",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/bac97e109dce6a414b5dd2e4ab0c0409a440fb0f",
+  "commit": {
+    "message": "Update version to 1.5.5",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-08-06T19:36:39+08:00"
+    }
+  }
+},
+{
+  "sha": "8ce962a9b56aa93a99b68f0d5ed060877d62d26c",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8ce962a9b56aa93a99b68f0d5ed060877d62d26c",
+  "commit": {
+    "message": "Add Suspended Tabs Viewer in options",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-08-06T19:30:58+08:00"
+    }
+  }
+},
+{
+  "sha": "b59358a3f58579b0b8723eadd76c13a14c39fa6e",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/b59358a3f58579b0b8723eadd76c13a14c39fa6e",
+  "commit": {
+    "message": "Fix missing favicons on suspended tabs after browser restart",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-08-06T17:25:25+08:00"
+    }
+  }
+},
+{
+  "sha": "b2002996e989db1bb1335fc1052a06fa4db75cea",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/b2002996e989db1bb1335fc1052a06fa4db75cea",
+  "commit": {
+    "message": "Add option to protect previously active tab from suspension when browser loses focus",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-08-06T14:15:22+08:00"
+    }
+  }
+},
+{
+  "sha": "5ea8e81e7fde72c2d77c981c85f4072f95c563ae",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/5ea8e81e7fde72c2d77c981c85f4072f95c563ae",
+  "commit": {
+    "message": "Fix tabs being suspended too quickly after becoming inactive",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-08-05T14:16:07+08:00"
+    }
+  }
+},
+{
+  "sha": "9ae993eb09916e70c55e0d6abfa751f2b688b39e",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/9ae993eb09916e70c55e0d6abfa751f2b688b39e",
+  "commit": {
+    "message": "Fix recently unsuspended tabs being re-suspended",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-08-05T14:15:18+08:00"
+    }
+  }
+},
+{
+  "sha": "dfee3351c23c0b05925e35ee099816169aa085b8",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/dfee3351c23c0b05925e35ee099816169aa085b8",
+  "commit": {
+    "message": "Fix active tabs in background windows never auto-suspending",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-08-05T11:13:50+08:00"
+    }
+  }
+},
+{
+  "sha": "00f6bf2eb8ed3deabdfdbbc64d7ebbd6d509d63d",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/00f6bf2eb8ed3deabdfdbbc64d7ebbd6d509d63d",
+  "commit": {
+    "message": "Add dark mode for suspended page",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-08-05T10:58:59+08:00"
+    }
+  }
+},
+{
+  "sha": "5b612579d65abfd76ff9ca682ee19c4588f03820",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/5b612579d65abfd76ff9ca682ee19c4588f03820",
+  "commit": {
+    "message": "Add link to Chrome Web Store at the top of README.md for easy installation.",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-27T11:56:27+08:00"
+    }
+  }
+},
+{
+  "sha": "d88d6de02838d637e8301303210f1f889a451617",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/d88d6de02838d637e8301303210f1f889a451617",
+  "commit": {
+    "message": "Add Rate us on Chrome Web Store in options.html",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-26T21:17:06+08:00"
+    }
+  }
+},
+{
+  "sha": "716780bd395a07dde2dcacd08c0049e389519bdc",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/716780bd395a07dde2dcacd08c0049e389519bdc",
+  "commit": {
+    "message": "Update README.md",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-26T21:00:18+08:00"
+    }
+  }
+},
+{
+  "sha": "c7ed8bd14f97d7e8c8f5e335aeeaccf71f5b8651",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/c7ed8bd14f97d7e8c8f5e335aeeaccf71f5b8651",
+  "commit": {
+    "message": "Update minimum Chrome version requirement to 88 in manifest.json",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-06-23T17:16:35+08:00"
+    }
+  }
+},
+{
+  "sha": "bd15fafccb23c662cece49bd9e1d5371136d957a",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/bd15fafccb23c662cece49bd9e1d5371136d957a",
   "commit": {
     "message": "Update version to 1.5.2",
     "author": {
       "name": "Arthur Chiu",
-      "date": "2025-06-23T01:11:20+08:00"
+      "date": "2025-06-23T09:20:32+08:00"
     }
   }
 },
