@@ -109,6 +109,8 @@ function initNavigation() {
         resetMigrationState();
       }
       
+
+      
       // Auto-reload whitelist when switching to whitelist section
       if (sectionId === 'whitelist') {
         loadWhitelist(false);
@@ -134,8 +136,13 @@ function initNavigation() {
         resetSettingsPreviews();
       }
       
+      // Reset suspended tabs info when switching to tab list section
+      if (sectionId === 'tabviewer') {
+        resetSuspendedTabsInfo();
+      }
+      
       // Show/hide save button based on section
-      if (sectionId === 'about' || sectionId === 'migration' || sectionId === 'changelog' || sectionId === 'shortcuts' || sectionId === 'session' || sectionId === 'settings') {
+      if (sectionId === 'about' || sectionId === 'migration' || sectionId === 'changelog' || sectionId === 'shortcuts' || sectionId === 'session' || sectionId === 'settings' || sectionId === 'tabviewer') {
         actionBar.style.display = 'none';
       } else {
         actionBar.style.display = 'flex';
@@ -271,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Check initial active section and hide save button if needed
   const initialActiveSection = getCurrentActiveSection();
   const actionBar = document.querySelector('.action-bar');
-  if (initialActiveSection === 'about' || initialActiveSection === 'migration' || initialActiveSection === 'changelog' || initialActiveSection === 'shortcuts' || initialActiveSection === 'session' || initialActiveSection === 'settings') {
+  if (initialActiveSection === 'about' || initialActiveSection === 'migration' || initialActiveSection === 'changelog' || initialActiveSection === 'shortcuts' || initialActiveSection === 'session' || initialActiveSection === 'settings' || initialActiveSection === 'tabviewer') {
     actionBar.style.display = 'none';
   }
   
@@ -291,6 +298,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const refreshWhitelistBtn = document.getElementById('refreshWhitelistBtn');
   if (refreshWhitelistBtn) {
     refreshWhitelistBtn.addEventListener('click', loadWhitelist);
+  }
+  
+  // Add show suspended tabs button event listener
+  const showSuspendedTabsBtn = document.getElementById('showSuspendedTabsBtn');
+  if (showSuspendedTabsBtn) {
+    showSuspendedTabsBtn.addEventListener('click', showSuspendedTabs);
   }
 });
 
@@ -2355,4 +2368,291 @@ function resetSettingsPreviews() {
   }
 }
 
-/* ---------- End Settings Management Functions ---------- */ 
+/* ---------- End Settings Management Functions ---------- */
+
+/* ---------- Suspended Tabs Information Functions ---------- */
+
+// Reset suspended tabs information display
+function resetSuspendedTabsInfo() {
+  const suspendedTabsInfo = document.getElementById('suspendedTabsInfo');
+  const suspendedTabsCount = document.getElementById('suspendedTabsCount');
+  const suspendedTabsList = document.getElementById('suspendedTabsList');
+  const showSuspendedTabsBtn = document.getElementById('showSuspendedTabsBtn');
+  
+  // Hide the info section
+  if (suspendedTabsInfo) {
+    suspendedTabsInfo.style.display = 'none';
+  }
+  
+  // Clear content
+  if (suspendedTabsCount) {
+    suspendedTabsCount.textContent = '';
+  }
+  
+  if (suspendedTabsList) {
+    suspendedTabsList.innerHTML = '';
+  }
+  
+  // Reset button state
+  if (showSuspendedTabsBtn) {
+    showSuspendedTabsBtn.disabled = false;
+    showSuspendedTabsBtn.style.opacity = '1';
+    showSuspendedTabsBtn.innerHTML = '<span>📊</span><span data-i18n="showSuspendedTabs">Show Suspended Tabs</span>';
+  }
+}
+
+// Show information about suspended tabs
+async function showSuspendedTabs() {
+  const showSuspendedTabsBtn = document.getElementById('showSuspendedTabsBtn');
+  const suspendedTabsInfo = document.getElementById('suspendedTabsInfo');
+  const suspendedTabsCount = document.getElementById('suspendedTabsCount');
+  const suspendedTabsList = document.getElementById('suspendedTabsList');
+  
+  try {
+    // Disable button and show loading
+    showSuspendedTabsBtn.disabled = true;
+    showSuspendedTabsBtn.style.opacity = '0.6';
+    showSuspendedTabsBtn.innerHTML = '<span>⏳</span><span data-i18n="loading">Loading...</span>';
+    
+    showNotice(getMessage('scanningSuspendedTabs') || 'Scanning for suspended tabs...', 'info', 2000);
+    
+    // Query all tabs from our extension (suspended tabs)
+    const allTabs = await chrome.tabs.query({});
+    const suspendedPrefix = chrome.runtime.getURL('suspended.html');
+    
+    // Filter to get only our suspended tabs
+    const suspendedTabs = allTabs.filter(tab => 
+      tab.url && tab.url.startsWith(suspendedPrefix)
+    );
+    
+    // Count how many are discarded
+    const discardedCount = suspendedTabs.filter(tab => tab.discarded).length;
+    const totalCount = suspendedTabs.length;
+    
+    // Update count display
+    let countText;
+    if (totalCount === 0) {
+      countText = getMessage('noSuspendedTabs') || 'No suspended tabs found';
+    } else {
+      const baseText = (getMessage('suspendedTabsFound') || 'Found %d suspended tabs').replace('%d', totalCount);
+      if (discardedCount > 0) {
+        const discardedText = (getMessage('discardedTabsCount') || '(%d discarded)').replace('%d', discardedCount);
+        countText = `${baseText} ${discardedText}`;
+      } else {
+        countText = baseText;
+      }
+    }
+    
+    suspendedTabsCount.textContent = countText;
+    suspendedTabsCount.style.color = totalCount > 0 ? '#27ae60' : '#666';
+    
+    // Display tabs list
+    if (totalCount > 0) {
+      displaySuspendedTabsList(suspendedTabs, suspendedTabsList);
+    } else {
+      suspendedTabsList.innerHTML = `
+        <div style="text-align: center; padding: 20px; color: #666;">
+          <span>😴</span>
+          <div style="margin-top: 8px;" data-i18n="noSuspendedTabsDesc">
+            No suspended tabs found. Suspended tabs are created when ZeroRAM Suspender puts tabs to sleep to save memory.
+          </div>
+        </div>
+      `;
+    }
+    
+    // Show the info section
+    suspendedTabsInfo.style.display = 'block';
+    
+    showNotice(getMessage('suspendedTabsLoaded') || `Suspended tabs information loaded (${totalCount} tabs)`, 'success', 3000);
+    
+  } catch (error) {
+    console.error('[ZeroRAM Suspender] Error loading suspended tabs:', error);
+    showNotice(getMessage('errorLoadingSuspendedTabs') || 'Error loading suspended tabs: ' + error.message, 'error', 4000);
+    
+    suspendedTabsCount.textContent = getMessage('errorOccurred') || 'An error occurred';
+    suspendedTabsCount.style.color = '#dc3545';
+    suspendedTabsList.innerHTML = `
+      <div style="text-align: center; padding: 20px; color: #dc3545;">
+        <span>❌</span>
+        <div style="margin-top: 8px;">${escapeHtml(error.message)}</div>
+      </div>
+    `;
+    suspendedTabsInfo.style.display = 'block';
+  } finally {
+    // Re-enable button
+    showSuspendedTabsBtn.disabled = false;
+    showSuspendedTabsBtn.style.opacity = '1';
+    showSuspendedTabsBtn.innerHTML = '<span>📊</span><span data-i18n="showSuspendedTabs">Show Suspended Tabs</span>';
+  }
+}
+
+// Display the list of suspended tabs
+function displaySuspendedTabsList(tabs, container) {
+  container.innerHTML = '';
+  
+  // Group tabs by window
+  const tabsByWindow = {};
+  
+  tabs.forEach(tab => {
+    if (!tabsByWindow[tab.windowId]) {
+      tabsByWindow[tab.windowId] = [];
+    }
+    tabsByWindow[tab.windowId].push(tab);
+  });
+  
+  // Display tabs grouped by window
+  Object.keys(tabsByWindow).forEach((windowId, windowIndex) => {
+    const windowTabs = tabsByWindow[windowId];
+    
+    // Window header
+    const windowHeader = document.createElement('div');
+    windowHeader.style.cssText = `
+      font-weight: 600;
+      color: #667eea;
+      margin-bottom: 12px;
+      margin-top: ${windowIndex > 0 ? '20px' : '0'};
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e1e5e9;
+    `;
+    windowHeader.innerHTML = `
+      <span data-i18n="window">Window</span> ${parseInt(windowId)} 
+      (${windowTabs.length} ${windowTabs.length === 1 ? (getMessage('tab') || 'tab') : (getMessage('tabs') || 'tabs')})
+    `;
+    container.appendChild(windowHeader);
+    
+    // Tabs in this window
+    windowTabs.forEach((tab, tabIndex) => {
+      const tabItem = document.createElement('div');
+      tabItem.style.cssText = `
+        display: flex;
+        align-items: center;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        background: white;
+        border-radius: 6px;
+        border: 1px solid #e1e5e9;
+        transition: all 0.2s ease;
+      `;
+      
+      tabItem.addEventListener('mouseenter', () => {
+        tabItem.style.backgroundColor = '#f8f9fa';
+        tabItem.style.borderColor = '#667eea';
+      });
+      
+      tabItem.addEventListener('mouseleave', () => {
+        tabItem.style.backgroundColor = 'white';
+        tabItem.style.borderColor = '#e1e5e9';
+      });
+      
+      // Parse suspended tab to get original info
+      let displayTitle = tab.title;
+      let displayUrl = tab.url;
+      
+      try {
+        const urlObj = new URL(tab.url);
+        const originalUrl = urlObj.searchParams.get('uri');
+        const originalTitle = urlObj.searchParams.get('ttl');
+        
+        if (originalUrl) {
+          displayUrl = originalUrl;
+          displayTitle = originalTitle || originalUrl;
+        }
+      } catch (error) {
+        console.warn('Failed to parse suspended tab URL:', error);
+      }
+      
+      // Create status badges
+      let statusBadges = `
+        <span style="background: #6c757d; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px;">
+          ${getMessage('suspended') || 'Suspended'}
+        </span>
+      `;
+      
+      if (tab.discarded) {
+        statusBadges += `
+          <span style="background: #ffc107; color: #333; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 4px;">
+            ${getMessage('discarded') || 'Discarded'}
+          </span>
+        `;
+      }
+      
+      tabItem.innerHTML = `
+        <div style="margin-right: 12px; color: #667eea; font-weight: 500; min-width: 20px;">
+          ${tabIndex + 1}.
+        </div>
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-weight: 500; color: #333; margin-bottom: 4px; display: flex; align-items: center;">
+            ${tab.favIconUrl ? `<img src="${escapeHtml(tab.favIconUrl)}" style="width: 16px; height: 16px; margin-right: 8px; flex-shrink: 0;" onerror="this.style.display='none'">` : ''}
+            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;" title="${escapeHtml(displayTitle)}">
+              ${escapeHtml(displayTitle)}
+            </span>
+            <div style="flex-shrink: 0; margin-left: 8px;">
+              ${statusBadges}
+            </div>
+          </div>
+          <div style="font-size: 12px; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(displayUrl)}">
+            ${escapeHtml(displayUrl)}
+          </div>
+          <div style="font-size: 10px; color: #999; margin-top: 2px;">
+            ${getMessage('tabId') || 'Tab ID'}: ${tab.id} | ${getMessage('windowId') || 'Window ID'}: ${tab.windowId}
+          </div>
+        </div>
+        <div style="margin-left: 12px;">
+          <button class="unsuspend-tab-btn" data-tab-id="${tab.id}" data-original-url="${escapeHtml(displayUrl)}" style="
+            background: #28a745; 
+            color: white; 
+            border: none; 
+            padding: 6px 12px; 
+            border-radius: 4px; 
+            font-size: 12px; 
+            cursor: pointer;
+            transition: all 0.2s ease;
+          " onmouseover="this.style.backgroundColor='#218838'" onmouseout="this.style.backgroundColor='#28a745'">
+            <span data-i18n="unsuspend">Unsuspend</span>
+          </button>
+        </div>
+      `;
+      
+      container.appendChild(tabItem);
+    });
+  });
+  
+  // Add event listeners for unsuspend buttons
+  container.querySelectorAll('.unsuspend-tab-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const tabId = parseInt(btn.getAttribute('data-tab-id'));
+      const originalUrl = btn.getAttribute('data-original-url');
+      
+      try {
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        btn.innerHTML = '<span data-i18n="unsuspending">Unsuspending...</span>';
+        
+        // Send message to background script to unsuspend the tab
+        await chrome.runtime.sendMessage({
+          command: 'unsuspendTab',
+          tabId: tabId,
+          originalUrl: originalUrl
+        });
+        
+        showNotice(getMessage('tabUnsuspended') || 'Tab unsuspended successfully', 'success', 2000);
+        
+        // Refresh the list after a short delay
+        setTimeout(() => {
+          showSuspendedTabs();
+        }, 1000);
+        
+      } catch (error) {
+        console.error('Failed to unsuspend tab:', error);
+        showNotice(getMessage('unsuspendFailed') || 'Failed to unsuspend tab: ' + error.message, 'error', 3000);
+        
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.innerHTML = '<span data-i18n="unsuspend">Unsuspend</span>';
+      }
+    });
+  });
+}
+
+/* ---------- End Suspended Tabs Information Functions ---------- */ 

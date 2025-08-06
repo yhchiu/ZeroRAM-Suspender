@@ -454,6 +454,12 @@
           </a>
         </li>
         <li class="nav-item">
+          <a href="#" class="nav-link" data-section="tabviewer">
+            <div class="nav-icon">📋</div>
+            <span data-i18n="tabViewer">Tab Viewer</span>
+          </a>
+        </li>
+        <li class="nav-item">
           <a href="#" class="nav-link" data-section="migration">
             <div class="nav-icon">🔄</div>
             <span data-i18n="tabMigration">Tab Migration</span>
@@ -846,6 +852,36 @@
                 <span>🔄</span>
                 <span data-i18n="refresh">Refresh</span>
               </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab Viewer Section -->
+      <section id="tabviewer" class="content-section">
+        <div class="section-header">
+          <h2 data-i18n="tabViewer">Tab Viewer</h2>
+          <p data-i18n="tabViewerDesc">View and manage all suspended tabs</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>😴</span>
+            <span data-i18n="suspendedTabsViewer">Suspended Tabs Viewer</span>
+          </div>
+          <div class="card-description" data-i18n="suspendedTabsViewerDesc">
+            View all suspended tabs across all windows and check their discard status
+          </div>
+          <div class="form-group">
+            <button id="showSuspendedTabsBtn" class="btn" style="background: #17a2b8; color: white; margin-bottom: 16px;">
+              <span>📊</span>
+              <span data-i18n="showSuspendedTabs">Show Suspended Tabs</span>
+            </button>
+            <div id="suspendedTabsInfo" style="display: none;">
+              <div style="margin-bottom: 8px; font-weight: 500;" data-i18n="suspendedTabsTitle">Suspended Tabs Information:</div>
+              <div id="suspendedTabsCount" style="margin-bottom: 12px; color: #667eea; font-weight: 500;"></div>
+              <div id="suspendedTabsList" style="max-height: 400px; overflow-y: auto; border: 1px solid #e1e5e9; border-radius: 8px; padding: 12px; background: #f9f9f9;">
+              </div>
             </div>
           </div>
         </div>
