@@ -6,6 +6,8 @@
   "neverSuspendAudio": { "message": "永不挂起正在播放音频的标签页" },
   "neverSuspendPinned": { "message": "永不挂起已固定的标签页" },
   "neverSuspendActive": { "message": "永不挂起各窗口中的活动标签页" },
+  "rememberLastActiveTab": { "message": "切换应用程序时记住最后活动标签页" },
+  "rememberLastActiveTabHelp": { "message": "当从浏览器切换到其他应用程序时，保护切换前的活动标签页不被挂起" },
   "nativeDiscardLabel": { "message": "使用原生丢弃（最节省内存）" },
   "whitelistTitle": { "message": "白名单" },
   "whitelistHelp": { "message": "符合以下网址或域名的标签页将不会被挂起。" },

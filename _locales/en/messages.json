@@ -6,6 +6,8 @@
   "neverSuspendAudio": { "message": "Never suspend tabs that are playing audio" },
   "neverSuspendPinned": { "message": "Never suspend pinned tabs" },
   "neverSuspendActive": { "message": "Never suspend active tab in each window" },
+  "rememberLastActiveTab": { "message": "Remember last active tab when switching to other apps" },
+  "rememberLastActiveTabHelp": { "message": "When switching from browser to other applications, protect the last active tab from being suspended" },
   "nativeDiscardLabel": { "message": "Use native discard (lowest memory)" },
   "whitelistTitle": { "message": "Whitelist" },
   "whitelistHelp": { "message": "Tabs whose URL or domain matches anything in the list will never be suspended." },

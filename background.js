@@ -10,10 +10,12 @@ const DEFAULT_SETTINGS = {
   neverSuspendAudio: true, // never suspend tabs playing audio
   neverSuspendPinned: true, // never suspend pinned tabs
   neverSuspendActive: false, // never suspend active tab in each window
+  rememberLastActiveTab: true, // remember last active tab when browser loses focus
 };
 
 const STORAGE_KEY = 'utsSettings';
 const TEMP_KEY = 'utsTempWhitelist';
+const LAST_ACTIVE_TAB_KEY = 'utsLastActiveTab';
 
 // In-memory cache for temporary whitelist
 let tempWhitelist = [];
@@ -26,6 +28,9 @@ let unsuspendingTabs = new Set();
 
 // Track tabs that are being suspended and waiting for discard
 let pendingDiscardTabs = new Map(); // tabId -> {settings, resolve}
+
+// Track last active tab for remembering when browser loses focus
+let lastActiveTabId = null;
 
 // Alarm period (minutes)
 const ALARM_PERIOD_MINUTES = 1; // must be >=1 for chrome.alarms
@@ -41,6 +46,17 @@ async function getSettings() {
 // Helper: save settings
 async function saveSettings(settings) {
   await chrome.storage.sync.set({ [STORAGE_KEY]: settings });
+}
+
+// Helper: save last active tab ID
+async function saveLastActiveTab() {
+  await chrome.storage.session.set({ [LAST_ACTIVE_TAB_KEY]: lastActiveTabId });
+}
+
+// Helper: load last active tab ID
+async function loadLastActiveTab() {
+  const { [LAST_ACTIVE_TAB_KEY]: saved } = await chrome.storage.session.get(LAST_ACTIVE_TAB_KEY);
+  lastActiveTabId = saved || null;
 }
 
 // Helper: internal URL check
@@ -162,6 +178,11 @@ async function checkTabs() {
     const activeTabs = await chrome.tabs.query({ windowId: focusedWindow.id, active: true });
     if (activeTabs.length > 0) {
       focusedWindowActiveTabId = activeTabs[0].id;
+      // Update last active tab when browser is focused
+      if (lastActiveTabId !== focusedWindowActiveTabId) {
+        lastActiveTabId = focusedWindowActiveTabId;
+        await saveLastActiveTab();
+      }
     }
   }
   
@@ -187,6 +208,12 @@ async function checkTabs() {
     
     if (settings.neverSuspendPinned && tab.pinned) {
       continue; // Skip pinned tabs
+    }
+    
+    // Check if this is the last remembered active tab when browser lost focus
+    // This should be checked first, regardless of current active state
+    if (settings.rememberLastActiveTab && tab.id === lastActiveTabId && !focusedWindow) {
+      continue;
     }
     
     // Handle active tab protection based on settings
@@ -238,6 +265,8 @@ chrome.runtime.onInstalled.addListener(async () => {
   await saveSettings(settings);
   const { [TEMP_KEY]: tmp = [] } = await chrome.storage.session.get(TEMP_KEY);
   tempWhitelist = tmp;
+  // Load last active tab ID
+  await loadLastActiveTab();
 });
 
 // Also load on service worker startup (cold start)
@@ -246,11 +275,18 @@ chrome.runtime.onInstalled.addListener(async () => {
   tempWhitelist = tmp;
   const { utsSeen = {} } = await chrome.storage.session.get('utsSeen');
   seenTimestamps = utsSeen;
+  // Load last active tab ID
+  await loadLastActiveTab();
 })();
 
-chrome.tabs.onActivated.addListener(activeInfo => {
+chrome.tabs.onActivated.addListener(async (activeInfo) => {
   seenTimestamps[activeInfo.tabId] = Date.now();
   saveSeenTimestamps();
+  // Update last active tab when user switches tabs
+  if (lastActiveTabId !== activeInfo.tabId) {
+    lastActiveTabId = activeInfo.tabId;
+    await saveLastActiveTab();
+  }
   // Attempt to re-discard any suspended placeholder tabs that are no longer active
   reDiscardInactiveSuspendedTabs();
 });
@@ -476,6 +512,11 @@ async function suspendOthersInAllWindows(currentTabId) {
     const activeTabs = await chrome.tabs.query({ windowId: focusedWindow.id, active: true });
     if (activeTabs.length > 0) {
       focusedWindowActiveTabId = activeTabs[0].id;
+      // Update last active tab when browser is focused
+      if (lastActiveTabId !== focusedWindowActiveTabId) {
+        lastActiveTabId = focusedWindowActiveTabId;
+        await saveLastActiveTab();
+      }
     }
   }
   
@@ -488,6 +529,12 @@ async function suspendOthersInAllWindows(currentTabId) {
       if (settings.neverSuspendAudio && tab.audible) continue;
       if (settings.neverSuspendPinned && tab.pinned) continue;
       if (!isWhitelisted(tab.url, settings)) {
+        // Check if this is the last remembered active tab when browser lost focus
+        // This should be checked first, regardless of current active state
+        if (settings.rememberLastActiveTab && tab.id === lastActiveTabId && !focusedWindow) {
+          continue;
+        }
+        
         // Handle active tab protection based on settings (same logic as checkTabs)
         if (tab.active) {
           if (settings.neverSuspendActive) {

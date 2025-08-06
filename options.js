@@ -3,7 +3,7 @@ const STORAGE_KEY = 'utsSettings';
 const CACHE_THEME_KEY = 'utsCacheThemeMode';
 
 // Initialize DOM elements after DOM is loaded
-let autoSuspendEl, discardEl, whitelistEl, neverSuspendAudioEl, neverSuspendPinnedEl, neverSuspendActiveEl, themeModeEl;
+let autoSuspendEl, discardEl, whitelistEl, neverSuspendAudioEl, neverSuspendPinnedEl, neverSuspendActiveEl, rememberLastActiveTabEl, themeModeEl;
 
 function initializeElements() {
   autoSuspendEl = document.getElementById('autoSuspend');
@@ -12,6 +12,7 @@ function initializeElements() {
   neverSuspendAudioEl = document.getElementById('neverSuspendAudio');
   neverSuspendPinnedEl = document.getElementById('neverSuspendPinned');
   neverSuspendActiveEl = document.getElementById('neverSuspendActive');
+  rememberLastActiveTabEl = document.getElementById('rememberLastActiveTab');
   themeModeEl = document.getElementById('themeMode');
 }
 
@@ -163,6 +164,7 @@ function load() {
     neverSuspendAudioEl.checked = cfg.neverSuspendAudio !== false; // default true
     neverSuspendPinnedEl.checked = cfg.neverSuspendPinned !== false; // default true
     neverSuspendActiveEl.checked = cfg.neverSuspendActive === true; // default false
+    rememberLastActiveTabEl.checked = cfg.rememberLastActiveTab !== false; // default true
     // Load theme settings with default to 'auto'
     themeModeEl.value = cfg.themeMode || 'auto'; // default to auto (follow system)
   });
@@ -202,6 +204,7 @@ function save() {
         updatedCfg.neverSuspendAudio = neverSuspendAudioEl.checked;
         updatedCfg.neverSuspendPinned = neverSuspendPinnedEl.checked;
         updatedCfg.neverSuspendActive = neverSuspendActiveEl.checked;
+        updatedCfg.rememberLastActiveTab = rememberLastActiveTabEl.checked;
         updatedCfg.themeMode = themeModeEl.value;
         break;
       case 'whitelist':
@@ -222,6 +225,7 @@ function save() {
           neverSuspendAudio: neverSuspendAudioEl.checked,
           neverSuspendPinned: neverSuspendPinnedEl.checked,
           neverSuspendActive: neverSuspendActiveEl.checked,
+          rememberLastActiveTab: rememberLastActiveTabEl.checked,
           themeMode: themeModeEl.value,
         };
     }
@@ -2022,6 +2026,7 @@ function getDefaultSettings() {
     neverSuspendAudio: true,
     neverSuspendPinned: true,
     neverSuspendActive: false,
+    rememberLastActiveTab: true,
     whitelist: [],
     themeMode: 'auto'
   };

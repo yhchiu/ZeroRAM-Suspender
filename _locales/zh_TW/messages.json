@@ -6,6 +6,8 @@
   "neverSuspendAudio": { "message": "永不休眠正在播放音訊的分頁" },
   "neverSuspendPinned": { "message": "永不休眠釘選的分頁" },
   "neverSuspendActive": { "message": "永不休眠各視窗中的作用中分頁" },
+  "rememberLastActiveTab": { "message": "切換應用程式時記住最後活動分頁" },
+  "rememberLastActiveTabHelp": { "message": "當從瀏覽器切換到其他應用程式時，保護切換前的活動分頁不被休眠" },
   "nativeDiscardLabel": { "message": "使用原生丟棄（最省記憶體）" },
   "whitelistTitle": { "message": "白名單" },
   "whitelistHelp": { "message": "符合下列網址或網域的分頁將不會被休眠。" },
