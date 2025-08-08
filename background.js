@@ -11,6 +11,10 @@ const DEFAULT_SETTINGS = {
   neverSuspendPinned: true, // never suspend pinned tabs
   neverSuspendActive: false, // never suspend active tab in each window
   rememberLastActiveTab: true, // remember last active tab when browser loses focus
+  // Favicon fix processor settings
+  fixFaviconEnabled: true, // enable suspended favicon fixing
+  fixFaviconBatchSize: 0, // 0 = unlimited per checkTabs batch
+  fixFaviconMaxRetries: 5, // max attempts per tab to avoid infinite reloads
 };
 
 const STORAGE_KEY = 'utsSettings';
@@ -37,6 +41,8 @@ let lastActiveTabId = null;
 
 // Track tabs with no favicon (normally caused by lazy loaded after browser restart)
 let fixFaviconTabs = new Set(); // tabId set for tabs with no favicon
+// Retry counts to prevent infinite attempts: Map<tabId, count>
+let fixFaviconRetryCounts = new Map();
 
 // Alarm period (minutes)
 const ALARM_PERIOD_MINUTES = 1; // must be >=1 for chrome.alarms
@@ -166,11 +172,16 @@ let fixFaviconProcessor = {
     fixFaviconTabs.delete(tabId);
     
     try {
+      const settings = await getSettingsCached();
+      if (!settings.fixFaviconEnabled) {
+        this.stop();
+        return;
+      }
+
       const tab = await chrome.tabs.get(tabId);
-      const settings = await getSettings();
       
       // Force reload tab first, then discard if needed
-      if (tab && tab.url.startsWith(SUSPENDED_PREFIX)) {
+      if (isSuspendedTab(tab)) {
         // Check again if tab is still inactive 
         // (user might have clicked on it during loading)
         if (!tab.active) {
@@ -186,6 +197,10 @@ let fixFaviconProcessor = {
     } catch (error) {
       console.warn('[ZeroRAM Suspender] Failed to fix tab favicon:', error);
     }
+    
+    // Increase retry count for this tab after an attempt
+    const currentRetries = fixFaviconRetryCounts.get(tabId) || 0;
+    fixFaviconRetryCounts.set(tabId, currentRetries + 1);
     
     // Schedule next tab processing with 1 second delay
     this.timeoutId = setTimeout(() => {
@@ -277,16 +292,27 @@ async function checkTabs() {
   if (!fixFaviconProcessor.isRunning) {
     fixFaviconTabs.clear();
 
-    // Check if suspended tab has no favicon
-    for (const tab of tabs) {
-      if (!tab.active && tab.url && tab.url.startsWith(SUSPENDED_PREFIX) && !tab.favIconUrl) {
-        fixFaviconTabs.add(tab.id);
+    if (settings.fixFaviconEnabled) {
+      const batchSize = Number(settings.fixFaviconBatchSize) || 0; // 0 = unlimited
+      let added = 0;
+      for (const tab of tabs) {
+        if (!tab.active && isSuspendedTab(tab) && !tab.favIconUrl) {
+          const retryCount = fixFaviconRetryCounts.get(tab.id) || 0;
+          if (settings.fixFaviconMaxRetries > 0 && retryCount >= settings.fixFaviconMaxRetries) {
+            continue; // reached retry limit
+          }
+          fixFaviconTabs.add(tab.id);
+          added++;
+          if (batchSize > 0 && added >= batchSize) break; // limit batch per checkTabs run
+        }
       }
-    }
 
-    // Start fix favicon processor if we found any tabs with no favicon
-    if (fixFaviconTabs.size > 0) {
-      fixFaviconProcessor.start();
+      if (fixFaviconTabs.size > 0) {
+        fixFaviconProcessor.start();
+      }
+    } else {
+      // Feature disabled: ensure processor is not running
+      fixFaviconProcessor.stop();
     }
   }
 
@@ -426,6 +452,12 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (fixFaviconTabs.has(tabId)) {
       fixFaviconTabs.delete(tabId);
     }
+    // If suspended tab now has a favicon, clear retry count
+    try {
+      if (isSuspendedTab(tab) && tab.favIconUrl) {
+        fixFaviconRetryCounts.delete(tabId);
+      }
+    } catch (_) {}
     
     // If tab was waiting for discard and suspended.html is now loaded, trigger discard
     if (pendingDiscardTabs.has(tabId) && isSuspendedTab(tab)) {
@@ -455,6 +487,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 chrome.tabs.onRemoved.addListener((tabId) => {
   unsuspendingTabs.delete(tabId);
   fixFaviconTabs.delete(tabId);
+  fixFaviconRetryCounts.delete(tabId);
+  fixFaviconRetryCounts.delete(tabId);
   
   // Clean up pending discard if tab is closed
   if (pendingDiscardTabs.has(tabId)) {

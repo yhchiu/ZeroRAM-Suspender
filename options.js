@@ -4,6 +4,7 @@ const CACHE_THEME_KEY = 'utsCacheThemeMode';
 
 // Initialize DOM elements after DOM is loaded
 let autoSuspendEl, discardEl, whitelistEl, neverSuspendAudioEl, neverSuspendPinnedEl, neverSuspendActiveEl, rememberLastActiveTabEl, themeModeEl;
+let fixFaviconEnabledEl, fixFaviconBatchSizeEl, fixFaviconMaxRetriesEl;
 
 function initializeElements() {
   autoSuspendEl = document.getElementById('autoSuspend');
@@ -14,6 +15,9 @@ function initializeElements() {
   neverSuspendActiveEl = document.getElementById('neverSuspendActive');
   rememberLastActiveTabEl = document.getElementById('rememberLastActiveTab');
   themeModeEl = document.getElementById('themeMode');
+  fixFaviconEnabledEl = document.getElementById('fixFaviconEnabled');
+  fixFaviconBatchSizeEl = document.getElementById('fixFaviconBatchSize');
+  fixFaviconMaxRetriesEl = document.getElementById('fixFaviconMaxRetries');
 }
 
 /* ---------- Overlay Notice mechanism ---------- */
@@ -174,6 +178,10 @@ function load() {
     rememberLastActiveTabEl.checked = cfg.rememberLastActiveTab !== false; // default true
     // Load theme settings with default to 'auto'
     themeModeEl.value = cfg.themeMode || 'auto'; // default to auto (follow system)
+    // Favicon fix settings
+    fixFaviconEnabledEl.checked = cfg.fixFaviconEnabled !== false; // default true
+    fixFaviconBatchSizeEl.value = (typeof cfg.fixFaviconBatchSize === 'number' ? cfg.fixFaviconBatchSize : 0);
+    fixFaviconMaxRetriesEl.value = (typeof cfg.fixFaviconMaxRetries === 'number' ? cfg.fixFaviconMaxRetries : 5);
   });
 }
 
@@ -213,6 +221,9 @@ function save() {
         updatedCfg.neverSuspendActive = neverSuspendActiveEl.checked;
         updatedCfg.rememberLastActiveTab = rememberLastActiveTabEl.checked;
         updatedCfg.themeMode = themeModeEl.value;
+        updatedCfg.fixFaviconEnabled = fixFaviconEnabledEl.checked;
+        updatedCfg.fixFaviconBatchSize = parseInt(fixFaviconBatchSizeEl.value, 10) || 0;
+        updatedCfg.fixFaviconMaxRetries = parseInt(fixFaviconMaxRetriesEl.value, 10);
         break;
       case 'whitelist':
         updatedCfg.whitelist = whitelistEl.value.split(/\n/).map(s => s.trim()).filter(Boolean);
@@ -234,6 +245,9 @@ function save() {
           neverSuspendActive: neverSuspendActiveEl.checked,
           rememberLastActiveTab: rememberLastActiveTabEl.checked,
           themeMode: themeModeEl.value,
+          fixFaviconEnabled: fixFaviconEnabledEl.checked,
+          fixFaviconBatchSize: parseInt(fixFaviconBatchSizeEl.value, 10) || 0,
+          fixFaviconMaxRetries: parseInt(fixFaviconMaxRetriesEl.value, 10),
         };
     }
 
@@ -2041,7 +2055,10 @@ function getDefaultSettings() {
     neverSuspendActive: false,
     rememberLastActiveTab: true,
     whitelist: [],
-    themeMode: 'auto'
+    themeMode: 'auto',
+    fixFaviconEnabled: true,
+    fixFaviconBatchSize: 0,
+    fixFaviconMaxRetries: 5
   };
 }
 
@@ -2057,7 +2074,10 @@ async function getCurrentSettings() {
         neverSuspendPinned: cfg.neverSuspendPinned !== false,
         neverSuspendActive: cfg.neverSuspendActive === true,
         whitelist: cfg.whitelist || [],
-        themeMode: cfg.themeMode || 'auto'
+        themeMode: cfg.themeMode || 'auto',
+        fixFaviconEnabled: cfg.fixFaviconEnabled !== false,
+        fixFaviconBatchSize: typeof cfg.fixFaviconBatchSize === 'number' ? cfg.fixFaviconBatchSize : 0,
+        fixFaviconMaxRetries: typeof cfg.fixFaviconMaxRetries === 'number' ? cfg.fixFaviconMaxRetries : 5
       };
       resolve(settings);
     });
@@ -2253,7 +2273,10 @@ async function importSettings() {
       neverSuspendPinned: settingsData.neverSuspendPinned !== false,
       neverSuspendActive: settingsData.neverSuspendActive === true,
       whitelist: Array.isArray(settingsData.whitelist) ? settingsData.whitelist : [],
-      themeMode: settingsData.themeMode || 'auto'
+      themeMode: settingsData.themeMode || 'auto',
+      fixFaviconEnabled: settingsData.fixFaviconEnabled !== false,
+      fixFaviconBatchSize: typeof settingsData.fixFaviconBatchSize === 'number' ? settingsData.fixFaviconBatchSize : 0,
+      fixFaviconMaxRetries: typeof settingsData.fixFaviconMaxRetries === 'number' ? settingsData.fixFaviconMaxRetries : 5
     };
     
     // Save theme mode to localStorage for suspended page caching
