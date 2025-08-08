@@ -1,12 +1,56 @@
 [
 {
-  "sha": "bac97e109dce6a414b5dd2e4ab0c0409a440fb0f",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/bac97e109dce6a414b5dd2e4ab0c0409a440fb0f",
+  "sha": "c658006e7a47d1e9832c929d6ce5dea3d122ca1e",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/c658006e7a47d1e9832c929d6ce5dea3d122ca1e",
+  "commit": {
+    "message": "Update version to 1.5.6",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-08-08T20:28:11+08:00"
+    }
+  }
+},
+{
+  "sha": "a07982d8fdde8a0f7252b8198d6480296f3ebc6a",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/a07982d8fdde8a0f7252b8198d6480296f3ebc6a",
+  "commit": {
+    "message": "Add progress bar and Cancel button for Suspend All and Unsuspend All",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-08-08T20:27:00+08:00"
+    }
+  }
+},
+{
+  "sha": "ae0edac0908c9a93a29ae6b62de397921ccf7227",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/ae0edac0908c9a93a29ae6b62de397921ccf7227",
+  "commit": {
+    "message": "Add suspended favicon fix settings in options",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-08-08T18:58:03+08:00"
+    }
+  }
+},
+{
+  "sha": "2aaa805f61c62aa8eefeb38aaf2ab521eb896780",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/2aaa805f61c62aa8eefeb38aaf2ab521eb896780",
+  "commit": {
+    "message": "Improve background performance: debounce writes, throttle re-discard, cache settings",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-08-08T18:36:19+08:00"
+    }
+  }
+},
+{
+  "sha": "905d83c50e5abd2f8f73f3e99e7ea782adbb167c",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/905d83c50e5abd2f8f73f3e99e7ea782adbb167c",
   "commit": {
     "message": "Update version to 1.5.5",
     "author": {
       "name": "Arthur Chiu",
-      "date": "2025-08-06T19:36:39+08:00"
+      "date": "2025-08-06T19:50:26+08:00"
     }
   }
 },
