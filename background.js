@@ -17,6 +17,9 @@ const STORAGE_KEY = 'utsSettings';
 const TEMP_KEY = 'utsTempWhitelist';
 const LAST_ACTIVE_TAB_KEY = 'utsLastActiveTab';
 
+// Constant prefix for our suspended page URL to avoid repeated getURL calls
+const SUSPENDED_PREFIX = chrome.runtime.getURL('suspended.html');
+
 // In-memory cache for temporary whitelist
 let tempWhitelist = [];
 
@@ -35,64 +38,6 @@ let lastActiveTabId = null;
 // Track tabs with no favicon (normally caused by lazy loaded after browser restart)
 let fixFaviconTabs = new Set(); // tabId set for tabs with no favicon
 
-// Background process for fixing tab favicon
-let fixFaviconProcessor = {
-  isRunning: false,
-  timeoutId: null,
-  
-  start() {
-    if (this.isRunning || fixFaviconTabs.size === 0) return;
-    this.isRunning = true;
-    this.processNext();
-  },
-  
-  stop() {
-    this.isRunning = false;
-    if (this.timeoutId) {
-      clearTimeout(this.timeoutId);
-      this.timeoutId = null;
-    }
-  },
-  
-  async processNext() {
-    if (!this.isRunning || fixFaviconTabs.size === 0) {
-      this.isRunning = false;
-      return;
-    }
-    
-    // Get the first tab from the set
-    const tabId = fixFaviconTabs.values().next().value;
-    fixFaviconTabs.delete(tabId);
-    
-    try {
-      const tab = await chrome.tabs.get(tabId);
-      const settings = await getSettings();
-      
-      // Force reload tab first, then discard if needed
-      if (tab && tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) {
-        // Check again if tab is still inactive 
-        // (user might have clicked on it during loading)
-        if (!tab.active) {
-          await chrome.tabs.reload(tabId);
-
-          if (settings.useNativeDiscard) {
-            setTimeout(() => {
-              chrome.tabs.discard(tabId);
-            }, 1000);
-          }
-        }
-      }
-    } catch (error) {
-      console.warn('[ZeroRAM Suspender] Failed to fix tab favicon:', error);
-    }
-    
-    // Schedule next tab processing with 1 second delay
-    this.timeoutId = setTimeout(() => {
-      this.processNext();
-    }, 1000);
-  }
-};
-
 // Alarm period (minutes)
 const ALARM_PERIOD_MINUTES = 1; // must be >=1 for chrome.alarms
 
@@ -103,6 +48,28 @@ async function getSettings() {
   const { [STORAGE_KEY]: saved } = await chrome.storage.sync.get(STORAGE_KEY);
   return { ...DEFAULT_SETTINGS, ...(saved || {}) };
 }
+
+// Cached settings to reduce frequent storage reads
+let cachedSettings = null;
+let cachedAtMs = 0;
+const SETTINGS_CACHE_MS = 5000;
+
+async function getSettingsCached() {
+  const now = Date.now();
+  if (cachedSettings && (now - cachedAtMs) < SETTINGS_CACHE_MS) {
+    return cachedSettings;
+  }
+  cachedSettings = await getSettings();
+  cachedAtMs = now;
+  return cachedSettings;
+}
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'sync' && changes[STORAGE_KEY]) {
+    cachedSettings = { ...DEFAULT_SETTINGS, ...(changes[STORAGE_KEY].newValue || {}) };
+    cachedAtMs = Date.now();
+  }
+});
 
 // Helper: save settings
 async function saveSettings(settings) {
@@ -149,6 +116,83 @@ function isWhitelisted(url, settings) {
     return u.hostname === entry || u.hostname.endsWith('.' + entry);
   });
 }
+
+// Helper: is suspended tab
+function isSuspendedTab(tab) {
+  return tab && tab.url && tab.url.startsWith(SUSPENDED_PREFIX);
+}
+
+// Helper: parse original url from suspended tab
+function parseOriginalUrlFromSuspended(suspendedUrl) {
+  try {
+    if (!suspendedUrl || !suspendedUrl.startsWith(SUSPENDED_PREFIX)) {
+      return null;
+    }
+    const urlObj = new URL(suspendedUrl);
+    return urlObj.searchParams.get('uri');
+  } catch (error) {
+    console.warn('[ZeroRAM Suspender] Failed to parse suspended URL:', error);
+    return null;
+  }
+}
+
+// Background process for fixing tab favicon
+let fixFaviconProcessor = {
+  isRunning: false,
+  timeoutId: null,
+  
+  start() {
+    if (this.isRunning || fixFaviconTabs.size === 0) return;
+    this.isRunning = true;
+    this.processNext();
+  },
+  
+  stop() {
+    this.isRunning = false;
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
+    }
+  },
+  
+  async processNext() {
+    if (!this.isRunning || fixFaviconTabs.size === 0) {
+      this.isRunning = false;
+      return;
+    }
+    
+    // Get the first tab from the set
+    const tabId = fixFaviconTabs.values().next().value;
+    fixFaviconTabs.delete(tabId);
+    
+    try {
+      const tab = await chrome.tabs.get(tabId);
+      const settings = await getSettings();
+      
+      // Force reload tab first, then discard if needed
+      if (tab && tab.url.startsWith(SUSPENDED_PREFIX)) {
+        // Check again if tab is still inactive 
+        // (user might have clicked on it during loading)
+        if (!tab.active) {
+          await chrome.tabs.reload(tabId);
+
+          if (settings.useNativeDiscard) {
+            setTimeout(() => {
+              chrome.tabs.discard(tabId);
+            }, 1000);
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('[ZeroRAM Suspender] Failed to fix tab favicon:', error);
+    }
+    
+    // Schedule next tab processing with 1 second delay
+    this.timeoutId = setTimeout(() => {
+      this.processNext();
+    }, 1000);
+  }
+};
 
 // === Suspension Logic ===
 async function suspendTab(tab, settings) {
@@ -197,8 +241,7 @@ async function waitForTabLoaded(tabId, settings) {
 
     // Check if tab is already loaded (race condition handling)
     chrome.tabs.get(tabId).then(tab => {
-      if (tab && tab.status === 'complete' && 
-          tab.url && tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) {
+      if (isSuspendedTab(tab) && tab.status === 'complete') {
         // Tab is already loaded
         const pendingInfo = pendingDiscardTabs.get(tabId);
         if (pendingInfo) {
@@ -216,7 +259,7 @@ async function waitForTabLoaded(tabId, settings) {
 }
 
 async function suspendWithPlaceholder(tab) {
-  const suspendedUrl = chrome.runtime.getURL('suspended.html') +
+  const suspendedUrl = SUSPENDED_PREFIX +
     `?uri=${encodeURIComponent(tab.url)}&ttl=${encodeURIComponent(tab.title)}` +
     (tab.favIconUrl ? `&favicon=${encodeURIComponent(tab.favIconUrl)}` : '');
   await chrome.tabs.update(tab.id, { url: suspendedUrl });
@@ -224,20 +267,19 @@ async function suspendWithPlaceholder(tab) {
 
 // Timer to check for inactivity
 async function checkTabs() {
-  const settings = await getSettings();
+  const settings = await getSettingsCached();
   if (settings.autoSuspendMinutes === 0) return; // never auto suspend
 
   const autoSuspendTime = settings.autoSuspendMinutes * 60 * 1000;
-  const tabs = await chrome.tabs.query({ discarded: false });
+  const tabs = await chrome.tabs.query({});
   
   // Check for tab favicon (only when background processor is not running)
   if (!fixFaviconProcessor.isRunning) {
     fixFaviconTabs.clear();
 
-    const inactiveTabs = await chrome.tabs.query({active: false});
-    for (const tab of inactiveTabs) {
-      // Check if suspended tab has no favicon
-      if (tab.url.startsWith(chrome.runtime.getURL('suspended.html')) && !tab.favIconUrl) {
+    // Check if suspended tab has no favicon
+    for (const tab of tabs) {
+      if (!tab.active && tab.url && tab.url.startsWith(SUSPENDED_PREFIX) && !tab.favIconUrl) {
         fixFaviconTabs.add(tab.id);
       }
     }
@@ -268,8 +310,8 @@ async function checkTabs() {
   // This variable is no longer needed as we handle active tab protection in the main loop
   
   for (const tab of tabs) {
-    // Ignore placeholder or internal pages
-    if (tab.url.startsWith(chrome.runtime.getURL('suspended.html')) || isInternalUrl(tab.url)) {
+    // Ignore discarded, placeholder or internal pages
+    if (tab.discarded || isSuspendedTab(tab) || isInternalUrl(tab.url)) {
       continue;
     }
     
@@ -367,7 +409,7 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
     await saveLastActiveTab();
   }
   // Attempt to re-discard any suspended placeholder tabs that are no longer active
-  reDiscardInactiveSuspendedTabs();
+  scheduleReDiscard();
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
@@ -386,8 +428,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     }
     
     // If tab was waiting for discard and suspended.html is now loaded, trigger discard
-    if (pendingDiscardTabs.has(tabId) && tab.url && 
-        tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) {
+    if (pendingDiscardTabs.has(tabId) && isSuspendedTab(tab)) {
       const pendingInfo = pendingDiscardTabs.get(tabId);
       if (pendingInfo) {
         pendingInfo.resolve();
@@ -397,8 +438,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   
   // Track tabs that are being unsuspended (URL changed from suspended.html to original URL)
   if (changeInfo.url && unsuspendingTabs.has(tabId)) {
-    const suspendedPrefix = chrome.runtime.getURL('suspended.html');
-    if (!changeInfo.url.startsWith(suspendedPrefix)) {
+    if (!changeInfo.url.startsWith(SUSPENDED_PREFIX)) {
       // URL has changed from suspended.html to original URL, keep tracking until complete
     }
   }
@@ -407,7 +447,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     // Tab became inactive - update timestamp to track when it was last seen
     seenTimestamps[tabId] = Date.now();
     saveSeenTimestamps();
-    reDiscardInactiveSuspendedTabs();
+    scheduleReDiscard();
   }
 });
 
@@ -516,24 +556,25 @@ chrome.alarms.onAlarm.addListener(async ({ name }) => {
 // Handle service worker lifecycle - clean up processor on termination
 self.addEventListener('beforeunload', () => {
   fixFaviconProcessor.stop();
+  flushSeenTimestampsNow();
 });
 
 // Handle service worker lifecycle - ensure processor continues on background events
 chrome.runtime.onSuspend?.addListener(() => {
   fixFaviconProcessor.stop();
+  flushSeenTimestampsNow();
 });
 
 // Utility: re-discard suspended placeholder tabs that are no longer active
 async function reDiscardInactiveSuspendedTabs() {
-  const settings = await getSettings();
+  const settings = await getSettingsCached();
   if (!settings.useNativeDiscard) return;
-  const suspendedPrefix = chrome.runtime.getURL('suspended.html');
   const candidates = await chrome.tabs.query({ active: false, discarded: false });
   for (const t of candidates) {
     // Skip tabs that are currently being unsuspended
     if (unsuspendingTabs.has(t.id)) continue;
     
-    if (t.url && t.url.startsWith(suspendedPrefix)) {
+    if (isSuspendedTab(t)) {
       try {
         await chrome.tabs.discard(t.id);
       } catch (e) {
@@ -546,9 +587,8 @@ async function reDiscardInactiveSuspendedTabs() {
 // Unsuspend a single tab by tab ID
 async function unsuspendTabById(tabId) {
   const tab = await chrome.tabs.get(tabId);
-  if (tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) {
-    const urlParams = new URLSearchParams(tab.url.split('?')[1]);
-    const original = urlParams.get('uri');
+  if (isSuspendedTab(tab)) {
+    const original = parseOriginalUrlFromSuspended(tab.url);
     if (original) {
       unsuspendingTabs.add(tabId);
       // Update timestamp immediately to prevent re-suspension
@@ -580,7 +620,7 @@ async function suspendOthersInWindow(currentTabId) {
   for (const tab of tabs) {
     if (tab.id !== currentTabId && !tab.active && !isInternalUrl(tab.url)) {
       // Skip if tab is already suspended by our extension
-      if (tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) continue;
+      if (isSuspendedTab(tab)) continue;
       
       // Check suspension prevention settings
       if (settings.neverSuspendAudio && tab.audible) continue;
@@ -618,7 +658,7 @@ async function suspendOthersInAllWindows(currentTabId) {
   for (const tab of allTabs) {
     if (tab.id !== currentTabId && !isInternalUrl(tab.url)) {
       // Skip if tab is already suspended by our extension
-      if (tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) continue;
+      if (isSuspendedTab(tab)) continue;
       
       // Check suspension prevention settings
       if (settings.neverSuspendAudio && tab.audible) continue;
@@ -654,9 +694,8 @@ async function suspendOthersInAllWindows(currentTabId) {
 async function unsuspendAllTabs() {
   const tabs = await chrome.tabs.query({});
   for (const tab of tabs) {
-    if (tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) {
-      const urlParams = new URLSearchParams(tab.url.split('?')[1]);
-      const original = urlParams.get('uri');
+    if (isSuspendedTab(tab)) {
+      const original = parseOriginalUrlFromSuspended(tab.url);
       if (original) {
         unsuspendingTabs.add(tab.id);
         // Update timestamp immediately to prevent re-suspension
@@ -672,9 +711,8 @@ async function unsuspendAllTabs() {
 async function unsuspendAllTabsInWindow(windowId) {
   const tabs = await chrome.tabs.query({ windowId: windowId });
   for (const tab of tabs) {
-    if (tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) {
-      const urlParams = new URLSearchParams(tab.url.split('?')[1]);
-      const original = urlParams.get('uri');
+    if (isSuspendedTab(tab)) {
+      const original = parseOriginalUrlFromSuspended(tab.url);
       if (original) {
         unsuspendingTabs.add(tab.id);
         // Update timestamp immediately to prevent re-suspension
@@ -714,13 +752,13 @@ async function unsuspendSelectedTabs(tabIds) {
 
 // Toggle suspend/unsuspend for a single tab
 async function toggleTabSuspension(tab) {
-  if (tab.url.startsWith(chrome.runtime.getURL('suspended.html'))) {
+  if (isSuspendedTab(tab)) {
     // Unsuspend the tab
     return await unsuspendTabById(tab.id);
   } else {
     // Suspend the tab
     const settings = await getSettings();
-    if (!isInternalUrl(tab.url)) {
+    if (tab && tab.url && !isInternalUrl(tab.url)) {
       await suspendTab(tab, settings);
       return true;
     }
@@ -729,8 +767,48 @@ async function toggleTabSuspension(tab) {
 }
 
 // Helper to save seen timestamps (debounced via alarm interval)
+let seenSaveTimer = null;
+let seenSaveDirty = false;
+const SEEN_SAVE_DEBOUNCE_MS = 2000;
+
 function saveSeenTimestamps() {
-  chrome.storage.session.set({ utsSeen: seenTimestamps });
+  // Debounce session storage writes to reduce IO pressure
+  seenSaveDirty = true;
+  if (seenSaveTimer) return;
+  seenSaveTimer = setTimeout(() => {
+    if (seenSaveDirty) {
+      chrome.storage.session.set({ utsSeen: seenTimestamps });
+      seenSaveDirty = false;
+    }
+    seenSaveTimer = null;
+  }, SEEN_SAVE_DEBOUNCE_MS);
+}
+
+function flushSeenTimestampsNow() {
+  // Force flush pending seen timestamps write
+  if (seenSaveTimer) {
+    clearTimeout(seenSaveTimer);
+    seenSaveTimer = null;
+  }
+  if (seenSaveDirty) {
+    chrome.storage.session.set({ utsSeen: seenTimestamps });
+    seenSaveDirty = false;
+  }
+}
+
+// Throttle for re-discard routine to avoid excessive scans on rapid events
+let reDiscardScheduled = false;
+function scheduleReDiscard() {
+  if (reDiscardScheduled) return;
+  reDiscardScheduled = true;
+  setTimeout(async () => {
+    reDiscardScheduled = false;
+    try {
+      await reDiscardInactiveSuspendedTabs();
+    } catch (e) {
+      console.warn('Scheduled re-discard failed', e);
+    }
+  }, 500);
 }
 
 // Handle keyboard shortcuts from commands API
