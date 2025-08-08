@@ -236,5 +236,11 @@
   "tabId": { "message": "Tab ID" },
   "windowId": { "message": "Window ID" },
   "tab": { "message": "tab" },
-  "loading": { "message": "Loading..." }
+  "loading": { "message": "Loading..." },
+  "bulkProgress": { "message": "Bulk Progress" },
+  "suspendingAllTabs": { "message": "Suspending all tabs" },
+  "unsuspendingAllTabs": { "message": "Unsuspending all tabs" },
+  "bulkDone": { "message": "Done" },
+  "bulkCancel": { "message": "Cancel" },
+  "bulkCancelled": { "message": "Cancelled" }
 } 

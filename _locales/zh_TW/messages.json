@@ -236,5 +236,11 @@
   "tabId": { "message": "分頁 ID" },
   "windowId": { "message": "視窗 ID" },
   "tab": { "message": "分頁" },
-  "loading": { "message": "載入中..." }
+  "loading": { "message": "載入中..." },
+  "bulkProgress": { "message": "批次進度" },
+  "suspendingAllTabs": { "message": "正在休眠所有分頁" },
+  "unsuspendingAllTabs": { "message": "正在喚醒所有分頁" },
+  "bulkDone": { "message": "完成" },
+  "bulkCancel": { "message": "停止" },
+  "bulkCancelled": { "message": "已停止" }
 } 

@@ -63,6 +63,61 @@
   const bannerEl = document.getElementById('banner');
   const menuEl = document.getElementById('menu');
 
+  // Bulk progress UI elements
+  const bulkBox = document.getElementById('bulkProgress');
+  const bulkFill = document.getElementById('bulkProgressFill');
+  const bulkText = document.getElementById('bulkProgressText');
+  const bulkTitle = document.getElementById('bulkProgressTitle');
+  const bulkLabel = document.getElementById('bulkProgressLabel');
+  const bulkCancelBtn = document.getElementById('bulkCancelBtn');
+
+  // Connect a long-lived port for receiving background progress updates
+  const port = chrome.runtime.connect({ name: 'popup' });
+  port.onMessage.addListener((msg) => {
+    if (!msg || msg.type !== 'bulkProgress') return;
+    const { action, processed = 0, total = 0, done = false, cancelled = false } = msg;
+    if (!bulkBox) return;
+    bulkBox.style.display = 'block';
+
+    if (bulkTitle) {
+      if (action === 'unsuspendAll') {
+        bulkTitle.textContent = getMessage('unsuspendingAllTabs');
+      } else if (action === 'suspendAll') {
+        bulkTitle.textContent = getMessage('suspendingAllTabs');
+      } else {
+        bulkTitle.textContent = getMessage('bulkProgress');
+      }
+    }
+
+    const pct = total > 0 ? Math.floor((processed / total) * 100) : 0;
+    if (bulkFill) bulkFill.style.width = `${pct}%`;
+    if (bulkText) bulkText.textContent = `${processed}/${total}`;
+    if (bulkLabel) bulkLabel.textContent = `${pct}%`;
+
+    if (done) {
+      // Snap to 100% and briefly indicate completion
+      if (cancelled) {
+        if (bulkLabel) bulkLabel.textContent = getMessage('bulkCancelled');
+      } else {
+        if (bulkFill) bulkFill.style.width = '100%';
+        if (bulkText) bulkText.textContent = `${total}/${total}`;
+        if (bulkLabel) bulkLabel.textContent = '100%';
+        setTimeout(() => {
+          if (bulkLabel) bulkLabel.textContent = getMessage('bulkDone');
+        }, 100);
+      }
+      if (bulkCancelBtn) bulkCancelBtn.disabled = true;
+    }
+  });
+
+  // Allow cancel during bulk operations
+  if (bulkCancelBtn) {
+    bulkCancelBtn.addEventListener('click', async () => {
+      bulkCancelBtn.disabled = true;
+      await chrome.runtime.sendMessage({ command: 'cancelBulk' });
+    });
+  }
+
   // Check for multiple selected tabs
   const selectedTabs = await getSelectedTabs();
   const hasMultipleSelected = selectedTabs.length > 1;
@@ -144,7 +199,7 @@
     }
   }
 
-  function addItem(text, onClick, iconType = '') {
+  function addItem(text, onClick, iconType = '', closeOnClick = true) {
     const li = document.createElement('li');
     li.textContent = text;
     if (iconType) {
@@ -152,7 +207,9 @@
     }
     li.addEventListener('click', async () => {
       await onClick();
-      window.close();
+      if (closeOnClick) {
+        window.close();
+      }
     });
     menuEl.appendChild(li);
   }
@@ -207,14 +264,32 @@
     await chrome.runtime.sendMessage({ command: 'suspendOthers', tabId: tab.id });
   }, 'others');
   addItem(getMessage('suspendAllOthersAllWindows'), async () => {
-    await chrome.runtime.sendMessage({ command: 'suspendAllOthersAllWindows', tabId: tab.id });
-  }, 'others');
+    // Show progress early
+    if (bulkBox) {
+      bulkBox.style.display = 'block';
+      if (bulkTitle) bulkTitle.textContent = getMessage('suspendingAllTabs');
+      if (bulkFill) bulkFill.style.width = '0%';
+      if (bulkText) bulkText.textContent = '0/0';
+      if (bulkLabel) bulkLabel.textContent = '';
+      if (bulkCancelBtn) bulkCancelBtn.disabled = false;
+    }
+    await chrome.runtime.sendMessage({ command: 'suspendAllOthersAllWindows', tabId: tab.id, withProgress: true });
+  }, 'others', false);
   addItem(getMessage('unsuspendAllThisWindow'), async () => {
     await chrome.runtime.sendMessage({ command: 'unsuspendAllThisWindow', tabId: tab.id });
   }, 'wake');
   addItem(getMessage('unsuspendAll'), async () => {
-    await chrome.runtime.sendMessage({ command: 'unsuspendAll' });
-  }, 'wake');
+    // Show progress early
+    if (bulkBox) {
+      bulkBox.style.display = 'block';
+      if (bulkTitle) bulkTitle.textContent = getMessage('unsuspendingAllTabs');
+      if (bulkFill) bulkFill.style.width = '0%';
+      if (bulkText) bulkText.textContent = '0/0';
+      if (bulkLabel) bulkLabel.textContent = '';
+      if (bulkCancelBtn) bulkCancelBtn.disabled = false;
+    }
+    await chrome.runtime.sendMessage({ command: 'unsuspendAll', withProgress: true });
+  }, 'wake', false);
 
   menuEl.appendChild(document.createElement('hr'));
   addItem(getMessage('settingsMenu'), async () => {

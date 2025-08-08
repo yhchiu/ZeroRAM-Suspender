@@ -236,5 +236,11 @@
   "tabId": { "message": "标签页 ID" },
   "windowId": { "message": "窗口 ID" },
   "tab": { "message": "标签页" },
-  "loading": { "message": "加载中..." }
+  "loading": { "message": "加载中..." },
+  "bulkProgress": { "message": "批次进度" },
+  "suspendingAllTabs": { "message": "正在挂起所有标签页" },
+  "unsuspendingAllTabs": { "message": "正在唤醒所有标签页" },
+  "bulkDone": { "message": "完成" },
+  "bulkCancel": { "message": "停止" },
+  "bulkCancelled": { "message": "已停止" }
 }

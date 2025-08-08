@@ -49,6 +49,43 @@ const ALARM_PERIOD_MINUTES = 1; // must be >=1 for chrome.alarms
 
 let running = false;
 
+// Keep popup ports to stream bulk progress
+const popupPorts = new Set();
+
+chrome.runtime.onConnect.addListener((port) => {
+  if (port.name === 'popup') {
+    popupPorts.add(port);
+    port.onDisconnect.addListener(() => popupPorts.delete(port));
+  }
+});
+
+function postBulkProgress(payload) {
+  // payload: { action, processed, total, done? }
+  try {
+    for (const p of popupPorts) {
+      p.postMessage({ type: 'bulkProgress', ...payload });
+    }
+  } catch (_) {}
+}
+
+// Bulk cancel control
+let bulkCancelToken = { cancelled: false };
+function newCancelToken() {
+  bulkCancelToken = { cancelled: false };
+  return bulkCancelToken;
+}
+function cancelBulkNow() {
+  bulkCancelToken.cancelled = true;
+  // Fast-resolve any waits for discard so current iteration can exit sooner
+  try {
+    for (const [tabId, pendingInfo] of pendingDiscardTabs) {
+      if (pendingInfo && typeof pendingInfo.resolve === 'function') {
+        pendingInfo.resolve();
+      }
+    }
+  } catch (_) {}
+}
+
 // Helper: load settings
 async function getSettings() {
   const { [STORAGE_KEY]: saved } = await chrome.storage.sync.get(STORAGE_KEY);
@@ -520,7 +557,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       await suspendOthersInWindow(msg.tabId);
       sendResponse({ done: true });
     } else if (msg.command === 'unsuspendAll') {
-      await unsuspendAllTabs();
+      await unsuspendAllTabs(!!msg.withProgress);
       sendResponse({ done: true });
     } else if (msg.command === 'unsuspendAllThisWindow') {
       // Unsuspend all suspended tabs in current window only
@@ -553,7 +590,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       sendResponse({ done: true });
     } else if (msg.command === 'suspendAllOthersAllWindows') {
       // Suspend all other tabs across all windows (respects suspension prevention settings)
-      await suspendOthersInAllWindows(msg.tabId);
+      await suspendOthersInAllWindows(msg.tabId, !!msg.withProgress);
+      sendResponse({ done: true });
+    } else if (msg.command === 'cancelBulk') {
+      cancelBulkNow();
       sendResponse({ done: true });
     } else if (msg.command === 'startUnsuspending') {
       // Get the current tab ID from sender
@@ -667,7 +707,7 @@ async function suspendOthersInWindow(currentTabId) {
 }
 
 // Suspend other tabs in all windows
-async function suspendOthersInAllWindows(currentTabId) {
+async function suspendOthersInAllWindows(currentTabId, withProgress = false) {
   // Get all tabs, including discarded ones
   const allTabs = await chrome.tabs.query({});
   const settings = await getSettings();
@@ -689,56 +729,57 @@ async function suspendOthersInAllWindows(currentTabId) {
     }
   }
   
+  // Build target list first for accurate total
+  const targets = [];
   for (const tab of allTabs) {
-    if (tab.id !== currentTabId && !isInternalUrl(tab.url)) {
-      // Skip if tab is already suspended by our extension
-      if (isSuspendedTab(tab)) continue;
-      
-      // Check suspension prevention settings
-      if (settings.neverSuspendAudio && tab.audible) continue;
-      if (settings.neverSuspendPinned && tab.pinned) continue;
-      if (!isWhitelisted(tab.url, settings)) {
-        // Check if this is the last remembered active tab when browser lost focus
-        // This should be checked first, regardless of current active state
-        if (settings.rememberLastActiveTab && tab.id === lastActiveTabId && !focusedWindow) {
-          continue;
-        }
-        
-        // Handle active tab protection based on settings (same logic as checkTabs)
-        if (tab.active) {
-          if (settings.neverSuspendActive) {
-            // If neverSuspendActive is enabled, protect active tabs in all windows
-            continue;
-          } else {
-            // Default behavior: only protect active tab in the currently focused window
-            if (tab.id === focusedWindowActiveTabId) {
-              continue;
-            }
-            // Active tabs in non-focused windows can be suspended
-          }
-        }
-        
-        await suspendTab(tab, settings);
-      }
+    if (tab.id === currentTabId || isInternalUrl(tab.url)) continue;
+    if (isSuspendedTab(tab)) continue;
+    if (settings.neverSuspendAudio && tab.audible) continue;
+    if (settings.neverSuspendPinned && tab.pinned) continue;
+    if (isWhitelisted(tab.url, settings)) continue;
+
+    if (settings.rememberLastActiveTab && tab.id === lastActiveTabId && !focusedWindow) continue;
+    if (tab.active) {
+      if (settings.neverSuspendActive) continue;
+      if (tab.id === focusedWindowActiveTabId) continue;
     }
+    targets.push(tab);
   }
+
+  // Prepare cancel token
+  const cancelToken = newCancelToken();
+  const total = targets.length;
+  let processed = 0;
+  for (const tab of targets) {
+    if (cancelToken.cancelled) break;
+    await suspendTab(tab, settings);
+    processed += 1;
+    if (withProgress) postBulkProgress({ action: 'suspendAll', processed, total });
+  }
+  if (withProgress) postBulkProgress({ action: 'suspendAll', processed, total, done: true, cancelled: cancelToken.cancelled });
 }
 
 // Unsuspend all tabs in all windows
-async function unsuspendAllTabs() {
+async function unsuspendAllTabs(withProgress = false) {
   const tabs = await chrome.tabs.query({});
-  for (const tab of tabs) {
-    if (isSuspendedTab(tab)) {
-      const original = parseOriginalUrlFromSuspended(tab.url);
-      if (original) {
-        unsuspendingTabs.add(tab.id);
-        // Update timestamp immediately to prevent re-suspension
-        seenTimestamps[tab.id] = Date.now();
-        await chrome.tabs.update(tab.id, { url: original });
-      }
+  const targets = tabs.filter(t => isSuspendedTab(t));
+  const cancelToken = newCancelToken();
+  const total = targets.length;
+  let processed = 0;
+  for (const tab of targets) {
+    if (cancelToken.cancelled) break;
+    const original = parseOriginalUrlFromSuspended(tab.url);
+    if (original) {
+      unsuspendingTabs.add(tab.id);
+      // Update timestamp immediately to prevent re-suspension
+      seenTimestamps[tab.id] = Date.now();
+      await chrome.tabs.update(tab.id, { url: original });
     }
+    processed += 1;
+    if (withProgress) postBulkProgress({ action: 'unsuspendAll', processed, total });
   }
   saveSeenTimestamps();
+  if (withProgress) postBulkProgress({ action: 'unsuspendAll', processed, total, done: true, cancelled: cancelToken.cancelled });
 }
 
 // Unsuspend all tabs in a specific window
