@@ -39,6 +39,9 @@ let pendingDiscardTabs = new Map(); // tabId -> {settings, resolve}
 // Track last active tab for remembering when browser loses focus
 let lastActiveTabId = null;
 
+// Track last active tab per window to handle inactive tab timestamp updates
+let lastActiveTabPerWindow = new Map(); // windowId -> { tabId, timestamp }
+
 // Track tabs with no favicon (normally caused by lazy loaded after browser restart)
 let fixFaviconTabs = new Set(); // tabId set for tabs with no favicon
 // Retry counts to prevent infinite attempts: Map<tabId, count>
@@ -461,14 +464,46 @@ chrome.runtime.onInstalled.addListener(async () => {
   seenTimestamps = utsSeen;
   // Load last active tab ID
   await loadLastActiveTab();
+
+  // Initialize per-window active tab tracking
+  try {
+    const windows = await chrome.windows.getAll();
+    for (const window of windows) {
+      const activeTabs = await chrome.tabs.query({ windowId: window.id, active: true });
+      if (activeTabs.length > 0) {
+        const activeTab = activeTabs[0];
+        lastActiveTabPerWindow.set(window.id, {
+          tabId: activeTab.id,
+          timestamp: Date.now()
+        });
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to initialize per-window active tab tracking:', error);
+  }
 })();
 
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
-  seenTimestamps[activeInfo.tabId] = Date.now();
+  const now = Date.now();
+  const { tabId, windowId } = activeInfo;
+
+  // Handle the previously active tab in this window
+  const lastActiveInWindow = lastActiveTabPerWindow.get(windowId);
+  if (lastActiveInWindow && lastActiveInWindow.tabId !== tabId) {
+    // Update timestamp for the previously active tab to prevent immediate suspension
+    seenTimestamps[lastActiveInWindow.tabId] = now;
+  }
+
+  // Update timestamp for the newly activated tab
+  seenTimestamps[tabId] = now;
   saveSeenTimestamps();
+
+  // Track the new active tab for this window
+  lastActiveTabPerWindow.set(windowId, { tabId, timestamp: now });
+
   // Update last active tab when user switches tabs
-  if (lastActiveTabId !== activeInfo.tabId) {
-    lastActiveTabId = activeInfo.tabId;
+  if (lastActiveTabId !== tabId) {
+    lastActiveTabId = tabId;
     await saveLastActiveTab();
   }
   // Attempt to re-discard any suspended placeholder tabs that are no longer active
@@ -520,13 +555,39 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
 });
 
+// When a new tab is created (e.g., gesture/drag-to-search or open-in-new-tab),
+// proactively update the seen timestamp of the opener/previous active tab so it
+// won’t be considered idle immediately after focus shifts.
+chrome.tabs.onCreated.addListener(async (tab) => {
+  const now = Date.now();
+  try {
+    // 1) If Chrome provides an opener, stamp it as recently seen
+    if (typeof tab.openerTabId === 'number') {
+      seenTimestamps[tab.openerTabId] = now;
+      saveSeenTimestamps();
+    }
+
+    // 2) Fallback: use our lastActiveTabPerWindow to stamp the previously
+    //    active tab in this window. This helps when openerTabId is missing
+    //    but the new tab becomes active immediately (common in some gesture
+    //    extensions).
+    const lastActiveInWindow = lastActiveTabPerWindow.get(tab.windowId);
+    if (lastActiveInWindow && lastActiveInWindow.tabId !== tab.id) {
+      seenTimestamps[lastActiveInWindow.tabId] = now;
+      saveSeenTimestamps();
+    }
+  } catch (e) {
+    console.warn('onCreated handler failed:', e);
+  }
+});
+
 // Clean up tracking when tabs are closed
-chrome.tabs.onRemoved.addListener((tabId) => {
+chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
   unsuspendingTabs.delete(tabId);
   fixFaviconTabs.delete(tabId);
   fixFaviconRetryCounts.delete(tabId);
   fixFaviconRetryCounts.delete(tabId);
-  
+
   // Clean up pending discard if tab is closed
   if (pendingDiscardTabs.has(tabId)) {
     const pendingInfo = pendingDiscardTabs.get(tabId);
@@ -535,7 +596,14 @@ chrome.tabs.onRemoved.addListener((tabId) => {
     }
     pendingDiscardTabs.delete(tabId);
   }
-  
+
+  // Clean up per-window active tab tracking
+  const { windowId } = removeInfo;
+  const lastActiveInWindow = lastActiveTabPerWindow.get(windowId);
+  if (lastActiveInWindow && lastActiveInWindow.tabId === tabId) {
+    lastActiveTabPerWindow.delete(windowId);
+  }
+
   delete seenTimestamps[tabId];
   saveSeenTimestamps();
 });
