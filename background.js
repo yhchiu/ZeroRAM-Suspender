@@ -365,11 +365,6 @@ async function checkTabs() {
     const activeTabs = await chrome.tabs.query({ windowId: focusedWindow.id, active: true });
     if (activeTabs.length > 0) {
       focusedWindowActiveTabId = activeTabs[0].id;
-      // Update last active tab when browser is focused
-      if (lastActiveTabId !== focusedWindowActiveTabId) {
-        lastActiveTabId = focusedWindowActiveTabId;
-        await saveLastActiveTab();
-      }
     }
   }
   
@@ -468,6 +463,8 @@ chrome.runtime.onInstalled.addListener(async () => {
   // Initialize per-window active tab tracking
   try {
     const windows = await chrome.windows.getAll();
+    let focusedWindowActiveTabId = null;
+    const focusedWindow = windows.find(w => w.focused);
     for (const window of windows) {
       const activeTabs = await chrome.tabs.query({ windowId: window.id, active: true });
       if (activeTabs.length > 0) {
@@ -476,7 +473,15 @@ chrome.runtime.onInstalled.addListener(async () => {
           tabId: activeTab.id,
           timestamp: Date.now()
         });
+        if (focusedWindow && focusedWindow.id === window.id) {
+          focusedWindowActiveTabId = activeTab.id;
+        }
       }
+    }
+    // Initialize lastActiveTabId to current focused window's active tab (if available)
+    if (focusedWindowActiveTabId && lastActiveTabId !== focusedWindowActiveTabId) {
+      lastActiveTabId = focusedWindowActiveTabId;
+      await saveLastActiveTab();
     }
   } catch (error) {
     console.warn('Failed to initialize per-window active tab tracking:', error);
@@ -508,6 +513,27 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
   }
   // Attempt to re-discard any suspended placeholder tabs that are no longer active
   scheduleReDiscard();
+});
+
+// Track last active tab on focus changes to avoid periodic updates in checkTabs
+chrome.windows.onFocusChanged.addListener(async (windowId) => {
+  try {
+    if (windowId === chrome.windows.WINDOW_ID_NONE) {
+      // Browser lost focus: persist current lastActiveTabId for rememberLastActiveTab logic
+      await saveLastActiveTab();
+      return;
+    }
+    const activeTabs = await chrome.tabs.query({ windowId, active: true });
+    if (activeTabs.length > 0) {
+      const activeTabId = activeTabs[0].id;
+      if (lastActiveTabId !== activeTabId) {
+        lastActiveTabId = activeTabId;
+        await saveLastActiveTab();
+      }
+    }
+  } catch (e) {
+    console.warn('onFocusChanged handler failed:', e);
+  }
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
@@ -575,6 +601,16 @@ chrome.tabs.onCreated.addListener(async (tab) => {
     if (lastActiveInWindow && lastActiveInWindow.tabId !== tab.id) {
       seenTimestamps[lastActiveInWindow.tabId] = now;
       saveSeenTimestamps();
+    }
+
+    // If the newly created tab is already active, reflect it as the last active tab
+    if (tab.active) {
+      if (lastActiveTabId !== tab.id) {
+        lastActiveTabId = tab.id;
+        await saveLastActiveTab();
+      }
+      // Also record this activation in our per-window map
+      lastActiveTabPerWindow.set(tab.windowId, { tabId: tab.id, timestamp: now });
     }
   } catch (e) {
     console.warn('onCreated handler failed:', e);
