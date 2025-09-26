@@ -1,12 +1,45 @@
 [
 {
-  "sha": "c658006e7a47d1e9832c929d6ce5dea3d122ca1e",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/c658006e7a47d1e9832c929d6ce5dea3d122ca1e",
+  "sha": "29aba7342fc137e889c9095feaba6829ce2b2594",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/29aba7342fc137e889c9095feaba6829ce2b2594",
+  "commit": {
+    "message": " Update version to 1.5.7",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-09-26T19:26:54+08:00"
+    }
+  }
+},
+{
+  "sha": "a787a890a1682359b5f437f4230c7950b0c967f5",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/a787a890a1682359b5f437f4230c7950b0c967f5",
+  "commit": {
+    "message": "Improve rememberLastActiveTab using event-driven",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-09-26T19:26:05+08:00"
+    }
+  }
+},
+{
+  "sha": "6dfce91f3550c202d7df0e5ad016c4616fcac5d5",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/6dfce91f3550c202d7df0e5ad016c4616fcac5d5",
+  "commit": {
+    "message": "Fix immediate tab suspension after right-click/drag-to search or open-in-new-tab",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2025-09-26T11:50:01+08:00"
+    }
+  }
+},
+{
+  "sha": "6080edc277e79f8b80392c3c4551138867070f59",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/6080edc277e79f8b80392c3c4551138867070f59",
   "commit": {
     "message": "Update version to 1.5.6",
     "author": {
       "name": "Arthur Chiu",
-      "date": "2025-08-08T20:28:11+08:00"
+      "date": "2025-08-08T20:29:06+08:00"
     }
   }
 },
