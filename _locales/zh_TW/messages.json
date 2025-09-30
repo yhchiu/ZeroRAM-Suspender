@@ -176,7 +176,7 @@
   "importSettings": { "message": "匯入設定" },
   "importSettingsDesc": { "message": "匯入先前匯出的設定以還原您的配置" },
   "selectSettingsFile": { "message": "選擇設定檔案：" },
-  "importSettingsHelp": { "message": "從先前匯出的 JSON 檔案匯入設定。這將取代所有目前的設定。" },
+  "importSettingsHelp": { "message": "從先前匯出的 JSON 檔案匯入設定。這將取代所有目前的設定。注意：鍵盤快速鍵無法匯入，需要手動設定。" },
   "importPreviewTitle": { "message": "匯入預覽：" },
   "resetSettings": { "message": "重設設定" },
   "resetSettingsDesc": { "message": "將所有設定重設為預設值" },

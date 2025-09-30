@@ -2,6 +2,15 @@
 const STORAGE_KEY = 'utsSettings';
 const CACHE_THEME_KEY = 'utsCacheThemeMode';
 
+// Shared command description map for i18n lookups
+const COMMAND_DESCRIPTIONS = {
+  '01-toggle-suspend': { key: 'shortcutToggleSuspend', default: 'Suspend/Unsuspend current tab' },
+  '02-suspend-others-window': { key: 'suspendOthers', default: 'Suspend all other tabs (this window)' },
+  '03-suspend-others-all': { key: 'suspendAllOthersAllWindows', default: 'Suspend all other tabs (all windows)' },
+  '04-unsuspend-all-window': { key: 'unsuspendAllThisWindow', default: 'Unsuspend all tabs (this window)' },
+  '05-unsuspend-all': { key: 'unsuspendAll', default: 'Unsuspend all tabs (all windows)' }
+};
+
 // Initialize DOM elements after DOM is loaded
 let autoSuspendEl, discardEl, whitelistEl, neverSuspendAudioEl, neverSuspendPinnedEl, neverSuspendActiveEl, rememberLastActiveTabEl, themeModeEl;
 let fixFaviconEnabledEl, fixFaviconBatchSizeEl, fixFaviconMaxRetriesEl;
@@ -394,14 +403,8 @@ function displayKeyboardShortcuts(commands, container) {
     return;
   }
   
-  // Define command descriptions with i18n keys
-  const commandDescriptions = {
-    '01-toggle-suspend': { key: 'shortcutToggleSuspend', default: 'Suspend/Unsuspend current tab' },
-    '02-suspend-others-window': { key: 'suspendOthers', default: 'Suspend all other tabs (this window)' },
-    '03-suspend-others-all': { key: 'suspendAllOthersAllWindows', default: 'Suspend all other tabs (all windows)' },
-    '04-unsuspend-all-window': { key: 'unsuspendAllThisWindow', default: 'Unsuspend all tabs (this window)' },
-    '05-unsuspend-all': { key: 'unsuspendAll', default: 'Unsuspend all tabs (all windows)' }
-  };
+  // Use shared command description map for i18n
+  const commandDescriptions = COMMAND_DESCRIPTIONS;
   
   const html = filteredCommands.map(command => {
     const description = commandDescriptions[command.name];
@@ -2091,10 +2094,20 @@ async function exportSettings() {
     showNotice(getMessage('exportingSettings') || 'Exporting settings...', 'info', 2000);
     
     const settings = await getCurrentSettings();
+    // Include current keyboard shortcuts (read-only; Chrome does not allow setting them programmatically)
+    let shortcuts = [];
+    try {
+      const commands = await chrome.commands.getAll();
+      shortcuts = (commands || [])
+        .filter(c => !c.name.startsWith('_execute_'))
+        .filter(c => c.shortcut && c.shortcut.trim()) // only include assigned shortcuts
+        .map(c => ({ name: c.name, shortcut: c.shortcut }));
+    } catch (_) {}
     const exportData = {
       ...settings,
+      shortcuts,
       exportedAt: new Date().toISOString(),
-      exportedBy: 'ZeroRAM Suspender',
+      exportedBy: chrome.runtime.getManifest().name,
       version: chrome.runtime.getManifest().version
     };
     
@@ -2127,10 +2140,20 @@ async function previewSettings() {
     showNotice(getMessage('generatingPreview') || 'Generating preview...', 'info', 1000);
     
     const settings = await getCurrentSettings();
+    // Include current keyboard shortcuts in preview JSON
+    let shortcuts = [];
+    try {
+      const commands = await chrome.commands.getAll();
+      shortcuts = (commands || [])
+        .filter(c => !c.name.startsWith('_execute_'))
+        .filter(c => c.shortcut && c.shortcut.trim()) // only include assigned shortcuts
+        .map(c => ({ name: c.name, shortcut: c.shortcut }));
+    } catch (_) {}
     const exportData = {
       ...settings,
+      shortcuts,
       exportedAt: new Date().toISOString(),
-      exportedBy: 'ZeroRAM Suspender',
+      exportedBy: chrome.runtime.getManifest().name,
       version: chrome.runtime.getManifest().version
     };
     
@@ -2214,6 +2237,19 @@ async function previewImportSettings() {
     previewText += `• ${getMessage('rememberLastActiveTab') || 'Remember last active tab when browser loses focus'}: ${settingsData.rememberLastActiveTab !== false ? getMessage('enabled') || 'Enabled' : getMessage('disabled') || 'Disabled'}\n`;
     previewText += `• ${getMessage('themeSettings') || 'Theme'}: ${settingsData.themeMode || 'auto'} (${getMessage('theme' + (settingsData.themeMode || 'auto').charAt(0).toUpperCase() + (settingsData.themeMode || 'auto').slice(1)) || settingsData.themeMode || 'auto'})\n`;
     previewText += `• ${getMessage('whitelistTitle') || 'Whitelist'}: ${(settingsData.whitelist || []).length} ${getMessage('items') || 'items'}\n`;
+    if (Array.isArray(settingsData.shortcuts)) {
+      const count = settingsData.shortcuts.length;
+      previewText += `• ${getMessage('keyboardShortcuts') || 'Keyboard Shortcuts'}: ${count} ${getMessage('items') || 'items'}\n`;
+      if (count > 0) {
+        previewText += '\n' + (getMessage('keyboardShortcuts') || 'Keyboard Shortcuts') + ':\n';
+        settingsData.shortcuts.forEach((sc, index) => {
+          const key = sc.shortcut && sc.shortcut.trim() ? sc.shortcut : (getMessage('notAssigned') || 'Not assigned');
+          const desc = COMMAND_DESCRIPTIONS[sc.name];
+          const displayName = desc ? (getMessage(desc.key) || desc.default) : sc.name;
+          previewText += `  ${index + 1}. ${displayName} -> ${key}\n`;
+        });
+      }
+    }
     
     if (settingsData.whitelist && settingsData.whitelist.length > 0) {
       previewText += '\n' + (getMessage('whitelistItems') || 'Whitelist items') + ':\n';

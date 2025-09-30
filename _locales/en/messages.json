@@ -176,7 +176,7 @@
   "importSettings": { "message": "Import Settings" },
   "importSettingsDesc": { "message": "Import previously exported settings to restore your configuration" },
   "selectSettingsFile": { "message": "Select settings file:" },
-  "importSettingsHelp": { "message": "Import settings from a previously exported JSON file. This will replace all current settings." },
+  "importSettingsHelp": { "message": "Import settings from a previously exported JSON file. This will replace all current settings. Note: Keyboard shortcuts cannot be imported; please set them manually." },
   "importPreviewTitle": { "message": "Import Preview:" },
   "resetSettings": { "message": "Reset Settings" },
   "resetSettingsDesc": { "message": "Reset all settings to their default values" },
