@@ -1461,15 +1461,16 @@ function parseCommitMessage(message, commit) {
   const description = message.split('\n')[0].trim();
   const firstLine = description.toLowerCase();
   
-  // Determine change type based on first line of message
+  // Determine change type based on first word of message
   let type = 'changed';
-  if (firstLine.includes('add') || firstLine.includes('new') || firstLine.includes('implement')) {
+  const firstWord = firstLine.split(' ')[0];
+  if (firstWord === 'add' || firstWord === 'new' || firstWord === 'implement') {
     type = 'added';
-  } else if (firstLine.includes('fix') || firstLine.includes('repair')) {
+  } else if (firstWord === 'fix' || firstWord === 'repair') {
     type = 'fixed';
-  } else if (firstLine.includes('remove') || firstLine.includes('delete')) {
+  } else if (firstWord === 'remove' || firstWord === 'delete') {
     type = 'removed';
-  } else if (firstLine.includes('enhance') || firstLine.includes('improve')) {
+  } else if (firstWord === 'enhance' || firstWord === 'improve') {
     type = 'improved';
   }
   
