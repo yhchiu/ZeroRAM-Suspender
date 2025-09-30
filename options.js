@@ -2073,6 +2073,7 @@ async function getCurrentSettings() {
         neverSuspendAudio: cfg.neverSuspendAudio !== false,
         neverSuspendPinned: cfg.neverSuspendPinned !== false,
         neverSuspendActive: cfg.neverSuspendActive === true,
+        rememberLastActiveTab: cfg.rememberLastActiveTab !== false,
         whitelist: cfg.whitelist || [],
         themeMode: cfg.themeMode || 'auto',
         fixFaviconEnabled: cfg.fixFaviconEnabled !== false,
@@ -2210,6 +2211,7 @@ async function previewImportSettings() {
     previewText += `• ${getMessage('neverSuspendAudio') || 'Never suspend audio tabs'}: ${settingsData.neverSuspendAudio ? getMessage('enabled') || 'Enabled' : getMessage('disabled') || 'Disabled'}\n`;
     previewText += `• ${getMessage('neverSuspendPinned') || 'Never suspend pinned tabs'}: ${settingsData.neverSuspendPinned ? getMessage('enabled') || 'Enabled' : getMessage('disabled') || 'Disabled'}\n`;
     previewText += `• ${getMessage('neverSuspendActive') || 'Never suspend active tab'}: ${settingsData.neverSuspendActive ? getMessage('enabled') || 'Enabled' : getMessage('disabled') || 'Disabled'}\n`;
+    previewText += `• ${getMessage('rememberLastActiveTab') || 'Remember last active tab when browser loses focus'}: ${settingsData.rememberLastActiveTab !== false ? getMessage('enabled') || 'Enabled' : getMessage('disabled') || 'Disabled'}\n`;
     previewText += `• ${getMessage('themeSettings') || 'Theme'}: ${settingsData.themeMode || 'auto'} (${getMessage('theme' + (settingsData.themeMode || 'auto').charAt(0).toUpperCase() + (settingsData.themeMode || 'auto').slice(1)) || settingsData.themeMode || 'auto'})\n`;
     previewText += `• ${getMessage('whitelistTitle') || 'Whitelist'}: ${(settingsData.whitelist || []).length} ${getMessage('items') || 'items'}\n`;
     
@@ -2272,6 +2274,7 @@ async function importSettings() {
       neverSuspendAudio: settingsData.neverSuspendAudio !== false,
       neverSuspendPinned: settingsData.neverSuspendPinned !== false,
       neverSuspendActive: settingsData.neverSuspendActive === true,
+      rememberLastActiveTab: settingsData.rememberLastActiveTab !== false,
       whitelist: Array.isArray(settingsData.whitelist) ? settingsData.whitelist : [],
       themeMode: settingsData.themeMode || 'auto',
       fixFaviconEnabled: settingsData.fixFaviconEnabled !== false,
