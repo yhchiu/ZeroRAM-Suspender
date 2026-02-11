@@ -41,6 +41,8 @@ let lastActiveTabId = null;
 
 // Track last active tab per window to handle inactive tab timestamp updates
 let lastActiveTabPerWindow = new Map(); // windowId -> { tabId, timestamp }
+// Track focused window transitions so we can stamp the previous window's active tab
+let lastFocusedWindowId = chrome.windows.WINDOW_ID_NONE;
 
 // Track tabs with no favicon (normally caused by lazy loaded after browser restart)
 let fixFaviconTabs = new Set(); // tabId set for tabs with no favicon
@@ -180,6 +182,39 @@ function parseOriginalUrlFromSuspended(suspendedUrl) {
     console.warn('[ZeroRAM Suspender] Failed to parse suspended URL:', error);
     return null;
   }
+}
+
+// Stamp a tab as recently seen; returns true when a valid tabId is written
+function markTabSeen(tabId, timestamp) {
+  if (typeof tabId !== 'number') return false;
+  seenTimestamps[tabId] = timestamp;
+  return true;
+}
+
+// Mark the active tab in a specific window as recently seen.
+// Uses cached per-window active tab first; falls back to one window-scoped query.
+async function markWindowActiveTabSeen(windowId, timestamp) {
+  if (typeof windowId !== 'number' || windowId === chrome.windows.WINDOW_ID_NONE) {
+    return false;
+  }
+
+  const tracked = lastActiveTabPerWindow.get(windowId);
+  if (tracked && markTabSeen(tracked.tabId, timestamp)) {
+    return true;
+  }
+
+  try {
+    const activeTabs = await chrome.tabs.query({ windowId, active: true });
+    if (activeTabs.length > 0 && typeof activeTabs[0].id === 'number') {
+      const activeTabId = activeTabs[0].id;
+      lastActiveTabPerWindow.set(windowId, { tabId: activeTabId, timestamp });
+      return markTabSeen(activeTabId, timestamp);
+    }
+  } catch (_) {
+    // Window may be gone between focus events; ignore.
+  }
+
+  return false;
 }
 
 // Background process for fixing tab favicon
@@ -465,6 +500,10 @@ chrome.runtime.onInstalled.addListener(async () => {
     const windows = await chrome.windows.getAll();
     let focusedWindowActiveTabId = null;
     const focusedWindow = windows.find(w => w.focused);
+    // Keep startup init from overwriting a newer focus event.
+    if (lastFocusedWindowId === chrome.windows.WINDOW_ID_NONE) {
+      lastFocusedWindowId = focusedWindow ? focusedWindow.id : chrome.windows.WINDOW_ID_NONE;
+    }
     for (const window of windows) {
       const activeTabs = await chrome.tabs.query({ windowId: window.id, active: true });
       if (activeTabs.length > 0) {
@@ -517,20 +556,40 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
 
 // Track last active tab on focus changes to avoid periodic updates in checkTabs
 chrome.windows.onFocusChanged.addListener(async (windowId) => {
+  const now = Date.now();
+  const previousFocusedWindowId = lastFocusedWindowId;
+  // Update immediately to avoid races between rapid consecutive focus events.
+  lastFocusedWindowId = windowId;
+
   try {
+    let seenUpdated = false;
+
+    // Treat focus transition as inactivity for the previously focused window's active tab.
+    if (
+      previousFocusedWindowId !== chrome.windows.WINDOW_ID_NONE &&
+      previousFocusedWindowId !== windowId
+    ) {
+      seenUpdated = await markWindowActiveTabSeen(previousFocusedWindowId, now);
+    }
+
     if (windowId === chrome.windows.WINDOW_ID_NONE) {
       // Browser lost focus: persist current lastActiveTabId for rememberLastActiveTab logic
+      if (seenUpdated) saveSeenTimestamps();
       await saveLastActiveTab();
       return;
     }
     const activeTabs = await chrome.tabs.query({ windowId, active: true });
     if (activeTabs.length > 0) {
       const activeTabId = activeTabs[0].id;
-      if (lastActiveTabId !== activeTabId) {
+      // Keep per-window active tab tracking fresh even if onActivated doesn't fire on focus switch.
+      lastActiveTabPerWindow.set(windowId, { tabId: activeTabId, timestamp: now });
+      // Only update global focused-tab memory if this event is still current.
+      if (lastFocusedWindowId === windowId && lastActiveTabId !== activeTabId) {
         lastActiveTabId = activeTabId;
         await saveLastActiveTab();
       }
     }
+    if (seenUpdated) saveSeenTimestamps();
   } catch (e) {
     console.warn('onFocusChanged handler failed:', e);
   }
