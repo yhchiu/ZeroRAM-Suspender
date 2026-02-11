@@ -48,6 +48,9 @@ let lastFocusedWindowId = chrome.windows.WINDOW_ID_NONE;
 let fixFaviconTabs = new Set(); // tabId set for tabs with no favicon
 // Retry counts to prevent infinite attempts: Map<tabId, count>
 let fixFaviconRetryCounts = new Map();
+// Event-driven re-discard queue (avoids full inactive-tab scans on frequent events)
+let pendingReDiscardTabIds = new Set();
+let reDiscardRetryCounts = new Map(); // Map<tabId, count>
 
 // Alarm period (minutes)
 const ALARM_PERIOD_MINUTES = 1; // must be >=1 for chrome.alarms
@@ -530,12 +533,14 @@ chrome.runtime.onInstalled.addListener(async () => {
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
   const now = Date.now();
   const { tabId, windowId } = activeInfo;
+  let previousTabId = null;
 
   // Handle the previously active tab in this window
   const lastActiveInWindow = lastActiveTabPerWindow.get(windowId);
   if (lastActiveInWindow && lastActiveInWindow.tabId !== tabId) {
     // Update timestamp for the previously active tab to prevent immediate suspension
     seenTimestamps[lastActiveInWindow.tabId] = now;
+    previousTabId = lastActiveInWindow.tabId;
   }
 
   // Update timestamp for the newly activated tab
@@ -550,8 +555,10 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
     lastActiveTabId = tabId;
     await saveLastActiveTab();
   }
-  // Attempt to re-discard any suspended placeholder tabs that are no longer active
-  scheduleReDiscard();
+  // Attempt to re-discard only the tab that just became inactive in this window.
+  if (previousTabId !== null) {
+    scheduleReDiscard(previousTabId);
+  }
 });
 
 // Track last active tab on focus changes to avoid periodic updates in checkTabs
@@ -623,6 +630,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         pendingInfo.resolve();
       }
     }
+
+    // Queue this tab for targeted re-discard if it is a loaded suspended placeholder.
+    if (isSuspendedTab(tab) && !tab.active && !tab.discarded) {
+      scheduleReDiscard(tabId);
+    }
   }
   
   // Track tabs that are being unsuspended (URL changed from suspended.html to original URL)
@@ -636,7 +648,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     // Tab became inactive - update timestamp to track when it was last seen
     seenTimestamps[tabId] = Date.now();
     saveSeenTimestamps();
-    scheduleReDiscard();
+    scheduleReDiscard(tabId);
   }
 });
 
@@ -681,7 +693,8 @@ chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
   unsuspendingTabs.delete(tabId);
   fixFaviconTabs.delete(tabId);
   fixFaviconRetryCounts.delete(tabId);
-  fixFaviconRetryCounts.delete(tabId);
+  pendingReDiscardTabIds.delete(tabId);
+  reDiscardRetryCounts.delete(tabId);
 
   // Clean up pending discard if tab is closed
   if (pendingDiscardTabs.has(tabId)) {
@@ -802,21 +815,64 @@ chrome.runtime.onSuspend?.addListener(() => {
   flushSeenTimestampsNow();
 });
 
-// Utility: re-discard suspended placeholder tabs that are no longer active
-async function reDiscardInactiveSuspendedTabs() {
+// Utility: targeted re-discard for queued tab IDs (no full inactive-tab scan).
+// Batch size and retry limit reuse fixFavicon settings by request:
+// - fixFaviconBatchSize: max items per run (0 = unlimited)
+// - fixFaviconMaxRetries: discard failure retry cap (0 = unlimited)
+async function processQueuedReDiscardTabs() {
   const settings = await getSettingsCached();
-  if (!settings.useNativeDiscard) return;
-  const candidates = await chrome.tabs.query({ active: false, discarded: false });
-  for (const t of candidates) {
-    // Skip tabs that are currently being unsuspended
-    if (unsuspendingTabs.has(t.id)) continue;
-    
-    if (isSuspendedTab(t)) {
-      try {
-        await chrome.tabs.discard(t.id);
-      } catch (e) {
-        console.warn('Re-discard failed', e);
+  if (!settings.useNativeDiscard) {
+    pendingReDiscardTabIds.clear();
+    reDiscardRetryCounts.clear();
+    return;
+  }
+
+  const configuredBatchSize = Number(settings.fixFaviconBatchSize) || 0;
+  const batchSize = configuredBatchSize > 0
+    ? Math.max(1, Math.floor(configuredBatchSize))
+    : pendingReDiscardTabIds.size;
+  if (batchSize <= 0 || pendingReDiscardTabIds.size === 0) return;
+
+  const maxRetries = Number(settings.fixFaviconMaxRetries) || 0;
+  const candidates = Array.from(pendingReDiscardTabIds).slice(0, batchSize);
+  for (const tabId of candidates) {
+    pendingReDiscardTabIds.delete(tabId);
+
+    // Skip tabs that are currently being unsuspended.
+    if (unsuspendingTabs.has(tabId)) {
+      reDiscardRetryCounts.delete(tabId);
+      continue;
+    }
+
+    try {
+      const tab = await chrome.tabs.get(tabId);
+      if (!isSuspendedTab(tab) || tab.discarded) {
+        reDiscardRetryCounts.delete(tabId);
+        continue;
       }
+
+      // Active tabs cannot be discarded; wait for next inactivity event.
+      if (tab.active) {
+        reDiscardRetryCounts.delete(tabId);
+        continue;
+      }
+
+      await chrome.tabs.discard(tabId);
+      reDiscardRetryCounts.delete(tabId);
+    } catch (e) {
+      const message = String((e && e.message) || '');
+      if (message.includes('No tab with id') || message.includes('Invalid tab ID')) {
+        reDiscardRetryCounts.delete(tabId);
+        continue;
+      }
+
+      const nextRetry = (reDiscardRetryCounts.get(tabId) || 0) + 1;
+      if (maxRetries > 0 && nextRetry >= maxRetries) {
+        reDiscardRetryCounts.delete(tabId);
+        continue;
+      }
+      reDiscardRetryCounts.set(tabId, nextRetry);
+      pendingReDiscardTabIds.add(tabId);
     }
   }
 }
@@ -1034,19 +1090,38 @@ function flushSeenTimestampsNow() {
   }
 }
 
-// Throttle for re-discard routine to avoid excessive scans on rapid events
+// Throttle for re-discard routine to avoid excessive work on rapid events
 let reDiscardScheduled = false;
-function scheduleReDiscard() {
+let reDiscardRunning = false;
+function scheduleReDiscard(tabId = null, delayMs = 500) {
+  if (typeof tabId === 'number') {
+    pendingReDiscardTabIds.add(tabId);
+  }
+
   if (reDiscardScheduled) return;
   reDiscardScheduled = true;
   setTimeout(async () => {
     reDiscardScheduled = false;
+
+    if (reDiscardRunning) {
+      if (pendingReDiscardTabIds.size > 0) {
+        scheduleReDiscard(null, 250);
+      }
+      return;
+    }
+
+    reDiscardRunning = true;
     try {
-      await reDiscardInactiveSuspendedTabs();
+      await processQueuedReDiscardTabs();
     } catch (e) {
       console.warn('Scheduled re-discard failed', e);
+    } finally {
+      reDiscardRunning = false;
+      if (pendingReDiscardTabIds.size > 0) {
+        scheduleReDiscard(null, 500);
+      }
     }
-  }, 500);
+  }, delayMs);
 }
 
 // Handle keyboard shortcuts from commands API
