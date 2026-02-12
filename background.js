@@ -171,6 +171,16 @@ function isInternalUrl(url) {
   );
 }
 
+function isTabGoneError(error) {
+  const message = String((error && error.message) || error || '');
+  return message.includes('No tab with id') || message.includes('Invalid tab ID');
+}
+
+function logUnexpectedTabError(context, error) {
+  if (isTabGoneError(error)) return;
+  console.warn(`[ZeroRAM Suspender] ${context}:`, error);
+}
+
 function compileWhitelist(whitelist) {
   compiledWhitelistLooseUrlPrefixes = [];
   compiledWhitelistUrlPrefixesByHost = new Map();
@@ -363,13 +373,15 @@ let fixFaviconProcessor = {
 
           if (settings.useNativeDiscard) {
             setTimeout(() => {
-              chrome.tabs.discard(tabId);
+              chrome.tabs.discard(tabId).catch((error) => {
+                logUnexpectedTabError('Delayed discard for favicon fix failed', error);
+              });
             }, 1000);
           }
         }
       }
     } catch (error) {
-      console.warn('[ZeroRAM Suspender] Failed to fix tab favicon:', error);
+      logUnexpectedTabError('Failed to fix tab favicon', error);
     }
     
     // Increase retry count for this tab after an attempt
@@ -567,7 +579,12 @@ async function checkTabs() {
     }
 
     if (last < (Date.now() - autoSuspendTime)) {
-      await suspendTab(tab, settings);
+      try {
+        await suspendTab(tab, settings);
+      } catch (error) {
+        // Tabs can disappear between query and update/discard operations.
+        logUnexpectedTabError('Failed to suspend tab during checkTabs', error);
+      }
     }
   }
   // Persist any updates
@@ -814,65 +831,83 @@ chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
 
 // Receive commands from popup/options
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  const respond = (payload) => {
+    try {
+      sendResponse(payload);
+    } catch (_) {}
+  };
+
   (async () => {
-    if (msg.command === 'suspendTab') {
-      const tab = await chrome.tabs.get(msg.tabId);
-      const settings = await getSettings();
-      await suspendTab(tab, settings);
-      sendResponse({ done: true });
-    } else if (msg.command === 'unsuspendTab') {
-      // Start tracking this tab as being unsuspended
-      await unsuspendTabWithUrl(msg.tabId, msg.originalUrl);
-      sendResponse({ done: true });
-    } else if (msg.command === 'suspendOthers') {
-      // Suspend other tabs in current window only
-      await suspendOthersInWindow(msg.tabId);
-      sendResponse({ done: true });
-    } else if (msg.command === 'unsuspendAll') {
-      await unsuspendAllTabs(!!msg.withProgress);
-      sendResponse({ done: true });
-    } else if (msg.command === 'unsuspendAllThisWindow') {
-      // Unsuspend all suspended tabs in current window only
-      const currentTab = await chrome.tabs.get(msg.tabId);
-      await unsuspendAllTabsInWindow(currentTab.windowId);
-      sendResponse({ done: true });
-    } else if (msg.command === 'updateSettings') {
-      await saveSettings(msg.settings);
-      sendResponse({ done: true });
-    } else if (msg.command === 'toggleTempWhitelist') {
-      const url = msg.url;
-      if (tempWhitelist.has(url)) {
-        tempWhitelist.delete(url);
+    try {
+      if (msg.command === 'suspendTab') {
+        const tab = await chrome.tabs.get(msg.tabId);
+        const settings = await getSettings();
+        await suspendTab(tab, settings);
+        respond({ done: true });
+      } else if (msg.command === 'unsuspendTab') {
+        // Start tracking this tab as being unsuspended
+        await unsuspendTabWithUrl(msg.tabId, msg.originalUrl);
+        respond({ done: true });
+      } else if (msg.command === 'suspendOthers') {
+        // Suspend other tabs in current window only
+        await suspendOthersInWindow(msg.tabId);
+        respond({ done: true });
+      } else if (msg.command === 'unsuspendAll') {
+        await unsuspendAllTabs(!!msg.withProgress);
+        respond({ done: true });
+      } else if (msg.command === 'unsuspendAllThisWindow') {
+        // Unsuspend all suspended tabs in current window only
+        const currentTab = await chrome.tabs.get(msg.tabId);
+        await unsuspendAllTabsInWindow(currentTab.windowId);
+        respond({ done: true });
+      } else if (msg.command === 'updateSettings') {
+        await saveSettings(msg.settings);
+        respond({ done: true });
+      } else if (msg.command === 'toggleTempWhitelist') {
+        const url = msg.url;
+        if (tempWhitelist.has(url)) {
+          tempWhitelist.delete(url);
+        } else {
+          tempWhitelist.add(url);
+        }
+        await persistTempWhitelist();
+        respond({ whitelisted: tempWhitelist.has(url) });
+      } else if (msg.command === 'checkTempWhitelist') {
+        const whitelisted = tempWhitelist.has(msg.url);
+        respond({ whitelisted });
+      } else if (msg.command === 'suspendSelectedTabs') {
+        // Force suspend selected tabs (ignore whitelist but respect internal URLs)
+        await suspendSelectedTabs(msg.tabIds);
+        respond({ done: true });
+      } else if (msg.command === 'unsuspendSelectedTabs') {
+        // Force unsuspend selected tabs
+        await unsuspendSelectedTabs(msg.tabIds);
+        respond({ done: true });
+      } else if (msg.command === 'suspendAllOthersAllWindows') {
+        // Suspend all other tabs across all windows (respects suspension prevention settings)
+        await suspendOthersInAllWindows(msg.tabId, !!msg.withProgress);
+        respond({ done: true });
+      } else if (msg.command === 'cancelBulk') {
+        cancelBulkNow();
+        respond({ done: true });
+      } else if (msg.command === 'startUnsuspending') {
+        // Get the current tab ID from sender
+        const tabId = sender.tab ? sender.tab.id : msg.tabId;
+        if (tabId) {
+          unsuspendingTabs.add(tabId);
+        }
+        respond({ done: true });
       } else {
-        tempWhitelist.add(url);
+        respond({ done: false, error: 'Unknown command' });
       }
-      await persistTempWhitelist();
-      sendResponse({ whitelisted: tempWhitelist.has(url) });
-    } else if (msg.command === 'checkTempWhitelist') {
-      const whitelisted = tempWhitelist.has(msg.url);
-      sendResponse({ whitelisted });
-    } else if (msg.command === 'suspendSelectedTabs') {
-      // Force suspend selected tabs (ignore whitelist but respect internal URLs)
-      await suspendSelectedTabs(msg.tabIds);
-      sendResponse({ done: true });
-    } else if (msg.command === 'unsuspendSelectedTabs') {
-      // Force unsuspend selected tabs
-      await unsuspendSelectedTabs(msg.tabIds);
-      sendResponse({ done: true });
-    } else if (msg.command === 'suspendAllOthersAllWindows') {
-      // Suspend all other tabs across all windows (respects suspension prevention settings)
-      await suspendOthersInAllWindows(msg.tabId, !!msg.withProgress);
-      sendResponse({ done: true });
-    } else if (msg.command === 'cancelBulk') {
-      cancelBulkNow();
-      sendResponse({ done: true });
-    } else if (msg.command === 'startUnsuspending') {
-      // Get the current tab ID from sender
-      const tabId = sender.tab ? sender.tab.id : msg.tabId;
-      if (tabId) {
-        unsuspendingTabs.add(tabId);
-      }
-      sendResponse({ done: true });
+    } catch (error) {
+      logUnexpectedTabError(`Message command failed (${msg && msg.command})`, error);
+      respond({
+        done: false,
+        error: isTabGoneError(error)
+          ? 'Tab no longer exists'
+          : String((error && error.message) || error || 'Unknown error')
+      });
     }
   })();
   // indicate async
@@ -893,6 +928,8 @@ chrome.alarms.onAlarm.addListener(async ({ name }) => {
   running = true;
   try {
     await checkTabs();
+  } catch (error) {
+    logUnexpectedTabError('Auto check failed', error);
   } finally {
     running = false;
   }
