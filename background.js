@@ -25,7 +25,7 @@ const LAST_ACTIVE_TAB_KEY = 'utsLastActiveTab';
 const SUSPENDED_PREFIX = chrome.runtime.getURL('suspended.html');
 
 // In-memory cache for temporary whitelist
-let tempWhitelist = [];
+let tempWhitelist = new Set();
 
 // Map<tabId, lastSeenTimestamp> persisted across restarts
 let seenTimestamps = {};
@@ -104,6 +104,11 @@ async function getSettings() {
 let cachedSettings = null;
 let cachedAtMs = 0;
 const SETTINGS_CACHE_MS = 5000;
+// Compiled whitelist cache to avoid O(tabs * whitelist) string scans
+let compiledWhitelistSource = null; // points to settings.whitelist array reference
+let compiledWhitelistLooseUrlPrefixes = []; // url prefixes that fail host bucketing
+let compiledWhitelistUrlPrefixesByHost = new Map(); // hostname -> string[]
+let compiledWhitelistDomains = new Set();
 
 async function getSettingsCached() {
   const now = Date.now();
@@ -119,12 +124,27 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'sync' && changes[STORAGE_KEY]) {
     cachedSettings = { ...DEFAULT_SETTINGS, ...(changes[STORAGE_KEY].newValue || {}) };
     cachedAtMs = Date.now();
+    // Invalidate compiled whitelist cache when settings change.
+    compiledWhitelistSource = null;
   }
 });
 
 // Helper: save settings
 async function saveSettings(settings) {
   await chrome.storage.sync.set({ [STORAGE_KEY]: settings });
+}
+
+function setTempWhitelistFromStorageValue(value) {
+  if (!Array.isArray(value)) {
+    tempWhitelist = new Set();
+    return;
+  }
+  const cleaned = value.filter(v => typeof v === 'string' && v.length > 0);
+  tempWhitelist = new Set(cleaned);
+}
+
+async function persistTempWhitelist() {
+  await chrome.storage.session.set({ [TEMP_KEY]: Array.from(tempWhitelist) });
 }
 
 // Helper: save last active tab ID
@@ -151,21 +171,97 @@ function isInternalUrl(url) {
   );
 }
 
+function compileWhitelist(whitelist) {
+  compiledWhitelistLooseUrlPrefixes = [];
+  compiledWhitelistUrlPrefixesByHost = new Map();
+  compiledWhitelistDomains = new Set();
+  compiledWhitelistSource = whitelist;
+
+  if (!Array.isArray(whitelist) || whitelist.length === 0) return;
+
+  for (const rawEntry of whitelist) {
+    if (typeof rawEntry !== 'string') continue;
+    const entry = rawEntry.trim();
+    if (!entry) continue;
+
+    if (entry.startsWith('http')) {
+      // Keep exact prefix semantics for full URL entries.
+      // Bucket by hostname so matching does not scan all URL prefixes.
+      try {
+        const parsed = new URL(entry);
+        const host = (parsed.hostname || '').toLowerCase();
+        if (host) {
+          const arr = compiledWhitelistUrlPrefixesByHost.get(host);
+          if (arr) {
+            arr.push(entry);
+          } else {
+            compiledWhitelistUrlPrefixesByHost.set(host, [entry]);
+          }
+        } else {
+          compiledWhitelistLooseUrlPrefixes.push(entry);
+        }
+      } catch (_) {
+        // Keep behavior for non-standard but still string-prefix entries.
+        compiledWhitelistLooseUrlPrefixes.push(entry);
+      }
+    } else {
+      // Domain matcher uses normalized lowercase host segments.
+      compiledWhitelistDomains.add(entry.toLowerCase());
+    }
+  }
+}
+
+function ensureCompiledWhitelist(settings) {
+  const whitelist = Array.isArray(settings.whitelist) ? settings.whitelist : [];
+  if (compiledWhitelistSource !== whitelist) {
+    compileWhitelist(whitelist);
+  }
+}
+
+function isHostnameWhitelisted(hostname) {
+  if (!hostname || compiledWhitelistDomains.size === 0) return false;
+  let current = hostname.toLowerCase();
+  while (current) {
+    if (compiledWhitelistDomains.has(current)) return true;
+    const dot = current.indexOf('.');
+    if (dot === -1) break;
+    current = current.slice(dot + 1);
+  }
+  return false;
+}
+
 // Helper: whitelist check
 function isWhitelisted(url, settings) {
   if (!url) return false;
   if (isInternalUrl(url)) return true; // never suspend internal pages
-  if (tempWhitelist.includes(url)) return true; // temporary whitelist (exact url)
+  if (tempWhitelist.has(url)) return true; // temporary whitelist (exact url)
 
-  const u = new URL(url);
-  return settings.whitelist.some(entry => {
-    if (!entry) return false;
-    if (entry.startsWith('http')) {
-      return url.startsWith(entry);
+  ensureCompiledWhitelist(settings);
+
+  for (const prefix of compiledWhitelistLooseUrlPrefixes) {
+    if (url.startsWith(prefix)) return true;
+  }
+
+  if (
+    compiledWhitelistDomains.size === 0 &&
+    compiledWhitelistUrlPrefixesByHost.size === 0
+  ) {
+    return false;
+  }
+
+  try {
+    const u = new URL(url);
+    const host = (u.hostname || '').toLowerCase();
+    const hostPrefixes = compiledWhitelistUrlPrefixesByHost.get(host);
+    if (hostPrefixes) {
+      for (const prefix of hostPrefixes) {
+        if (url.startsWith(prefix)) return true;
+      }
     }
-    // treat as domain
-    return u.hostname === entry || u.hostname.endsWith('.' + entry);
-  });
+    return isHostnameWhitelisted(u.hostname);
+  } catch (_) {
+    return false;
+  }
 }
 
 // Helper: is suspended tab
@@ -484,7 +580,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   const settings = await getSettings();
   await saveSettings(settings);
   const { [TEMP_KEY]: tmp = [] } = await chrome.storage.session.get(TEMP_KEY);
-  tempWhitelist = tmp;
+  setTempWhitelistFromStorageValue(tmp);
   // Load last active tab ID
   await loadLastActiveTab();
 });
@@ -492,7 +588,7 @@ chrome.runtime.onInstalled.addListener(async () => {
 // Also load on service worker startup (cold start)
 (async () => {
   const { [TEMP_KEY]: tmp = [] } = await chrome.storage.session.get(TEMP_KEY);
-  tempWhitelist = tmp;
+  setTempWhitelistFromStorageValue(tmp);
   const { utsSeen = {} } = await chrome.storage.session.get('utsSeen');
   seenTimestamps = utsSeen;
   // Load last active tab ID
@@ -745,16 +841,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       sendResponse({ done: true });
     } else if (msg.command === 'toggleTempWhitelist') {
       const url = msg.url;
-      const idx = tempWhitelist.indexOf(url);
-      if (idx === -1) {
-        tempWhitelist.push(url);
+      if (tempWhitelist.has(url)) {
+        tempWhitelist.delete(url);
       } else {
-        tempWhitelist.splice(idx, 1);
+        tempWhitelist.add(url);
       }
-      await chrome.storage.session.set({ [TEMP_KEY]: tempWhitelist });
-      sendResponse({ whitelisted: tempWhitelist.includes(url) });
+      await persistTempWhitelist();
+      sendResponse({ whitelisted: tempWhitelist.has(url) });
     } else if (msg.command === 'checkTempWhitelist') {
-      const whitelisted = tempWhitelist.includes(msg.url);
+      const whitelisted = tempWhitelist.has(msg.url);
       sendResponse({ whitelisted });
     } else if (msg.command === 'suspendSelectedTabs') {
       // Force suspend selected tabs (ignore whitelist but respect internal URLs)
