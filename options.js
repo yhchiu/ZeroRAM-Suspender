@@ -999,7 +999,7 @@ function displayExtensionTabs(tabs, container) {
              style="margin-right: 12px; width: 16px; height: 16px;">
       <div style="flex: 1; min-width: 0;">
         <div style="font-weight: 500; color: #333; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center;">
-          ${tabData.favIconUrl ? `<img src="${escapeHtml(tabData.favIconUrl)}" style="width: 16px; height: 16px; margin-right: 8px; flex-shrink: 0;" onerror="this.style.display='none'">` : ''}${escapeHtml(tabData.title)}${variantBadge}
+          ${tabData.favIconUrl ? `<img class="migration-tab-favicon-img" src="${escapeHtml(tabData.favIconUrl)}" style="width: 16px; height: 16px; margin-right: 8px; flex-shrink: 0;">` : ''}${escapeHtml(tabData.title)}${variantBadge}
         </div>
         <div style="font-size: 12px; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
           ${escapeHtml(tabData.originalUrl)}
@@ -1009,6 +1009,13 @@ function displayExtensionTabs(tabs, container) {
         </div>
       </div>
     `;
+
+    const faviconImg = tabItem.querySelector('.migration-tab-favicon-img');
+    if (faviconImg) {
+      faviconImg.addEventListener('error', () => {
+        faviconImg.style.display = 'none';
+      }, { once: true });
+    }
     
     container.appendChild(tabItem);
   });
@@ -2645,7 +2652,7 @@ function displaySuspendedTabsList(tabs, container) {
         </div>
         <div style="flex: 1; min-width: 0;">
           <div style="font-weight: 500; color: #333; margin-bottom: 4px; display: flex; align-items: center;">
-            ${tab.favIconUrl ? `<img src="${escapeHtml(tab.favIconUrl)}" style="width: 16px; height: 16px; margin-right: 8px; flex-shrink: 0;" onerror="this.style.display='none'">` : ''}
+            ${tab.favIconUrl ? `<img class="suspended-tab-favicon-img" src="${escapeHtml(tab.favIconUrl)}" style="width: 16px; height: 16px; margin-right: 8px; flex-shrink: 0;">` : ''}
             <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;" title="${escapeHtml(displayTitle)}">
               ${escapeHtml(displayTitle)}
             </span>
@@ -2670,11 +2677,18 @@ function displaySuspendedTabsList(tabs, container) {
             font-size: 12px; 
             cursor: pointer;
             transition: all 0.2s ease;
-          " onmouseover="this.style.backgroundColor='#218838'" onmouseout="this.style.backgroundColor='#28a745'">
+          ">
             <span data-i18n="unsuspend">Unsuspend</span>
           </button>
         </div>
       `;
+
+      const faviconImg = tabItem.querySelector('.suspended-tab-favicon-img');
+      if (faviconImg) {
+        faviconImg.addEventListener('error', () => {
+          faviconImg.style.display = 'none';
+        }, { once: true });
+      }
       
       container.appendChild(tabItem);
     });
@@ -2682,6 +2696,13 @@ function displaySuspendedTabsList(tabs, container) {
   
   // Add event listeners for unsuspend buttons
   container.querySelectorAll('.unsuspend-tab-btn').forEach(btn => {
+    btn.addEventListener('mouseenter', () => {
+      btn.style.backgroundColor = '#218838';
+    });
+    btn.addEventListener('mouseleave', () => {
+      btn.style.backgroundColor = '#28a745';
+    });
+
     btn.addEventListener('click', async (e) => {
       e.preventDefault();
       const tabId = parseInt(btn.getAttribute('data-tab-id'));
