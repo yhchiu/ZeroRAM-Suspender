@@ -1,12 +1,89 @@
 [
 {
-  "sha": "fcd8c5fb15d234533f5602938788d765fb952fb3",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/fcd8c5fb15d234533f5602938788d765fb952fb3",
+  "sha": "abfc81fbf3ba9fb5c5a038ba0a2a4e6216ef112f",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/abfc81fbf3ba9fb5c5a038ba0a2a4e6216ef112f",
+  "commit": {
+    "message": "Update version to 1.6.0",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-02-12T17:19:42+08:00"
+    }
+  }
+},
+{
+  "sha": "0e1f5dc537dc7304073911b87c514c22f0a989e2",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/0e1f5dc537dc7304073911b87c514c22f0a989e2",
+  "commit": {
+    "message": "Fix uncaught \"No tab with id\" promise errors",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-02-12T17:18:25+08:00"
+    }
+  }
+},
+{
+  "sha": "a9d055e6ec5cc6e7e2d0a19b6f96d7feb9f86337",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/a9d055e6ec5cc6e7e2d0a19b6f96d7feb9f86337",
+  "commit": {
+    "message": "Improve Suspended Tabs Viewer performance for large tab counts",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-02-12T17:00:37+08:00"
+    }
+  }
+},
+{
+  "sha": "2ac2f0e8fb69acbdce5d164f0b5b178a50517ceb",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/2ac2f0e8fb69acbdce5d164f0b5b178a50517ceb",
+  "commit": {
+    "message": "Fix inline event handlers blocked by CSP in options page",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-02-12T14:05:29+08:00"
+    }
+  }
+},
+{
+  "sha": "f6c6d2cc5979538596ab4b40daef26b6ac79edfe",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/f6c6d2cc5979538596ab4b40daef26b6ac79edfe",
+  "commit": {
+    "message": "Improve whitelist matching performance for large tab counts and large whitelist lists",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-02-12T12:28:30+08:00"
+    }
+  }
+},
+{
+  "sha": "89cdcd6dcd7f348a8dcf21af1394b55ca90e212e",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/89cdcd6dcd7f348a8dcf21af1394b55ca90e212e",
+  "commit": {
+    "message": "Improve re-discard performance to be event-driven and queue-based",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-02-11T22:33:18+08:00"
+    }
+  }
+},
+{
+  "sha": "16a5833eff214cda23881a4e139d20abffd935db",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/16a5833eff214cda23881a4e139d20abffd935db",
+  "commit": {
+    "message": "Fix background-window active tabs from being suspended too soon after window focus changes",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-02-11T21:36:37+08:00"
+    }
+  }
+},
+{
+  "sha": "7b5696825630d2801ee11e2fde7e2fcf87c8df1a",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/7b5696825630d2801ee11e2fde7e2fcf87c8df1a",
   "commit": {
     "message": "Update version to 1.5.8",
     "author": {
       "name": "Arthur Chiu",
-      "date": "2025-09-30T17:52:15+08:00"
+      "date": "2025-09-30T17:52:33+08:00"
     }
   }
 },
