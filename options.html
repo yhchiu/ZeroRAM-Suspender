@@ -262,6 +262,195 @@
       text-align: left;
     }
 
+    /* Suspended Tabs Viewer */
+    .suspended-tabs-list {
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #e1e5e9;
+      border-radius: 8px;
+      padding: 12px;
+      background: #f9f9f9;
+      contain: content;
+    }
+
+    .suspended-window-section + .suspended-window-section {
+      margin-top: 20px;
+    }
+
+    .suspended-window-header {
+      font-weight: 600;
+      color: #667eea;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e1e5e9;
+    }
+
+    .suspended-tab-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      background: #fff;
+      border-radius: 6px;
+      border: 1px solid #e1e5e9;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .suspended-tab-item:hover {
+      background-color: #f8f9fa;
+      border-color: #667eea;
+    }
+
+    .suspended-tab-index {
+      margin-right: 12px;
+      color: #667eea;
+      font-weight: 500;
+      min-width: 20px;
+      flex-shrink: 0;
+    }
+
+    .suspended-tab-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .suspended-tab-title-line {
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .suspended-tab-favicon-img {
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+
+    .suspended-tab-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .suspended-tab-badges {
+      flex-shrink: 0;
+      margin-left: 8px;
+      display: inline-flex;
+      gap: 4px;
+    }
+
+    .suspended-tab-badge {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+    }
+
+    .suspended-tab-badge-suspended {
+      background: #6c757d;
+      color: #fff;
+    }
+
+    .suspended-tab-badge-discarded {
+      background: #ffc107;
+      color: #333;
+    }
+
+    .suspended-tab-badge-not-suspended {
+      background: #17a2b8;
+      color: #fff;
+    }
+
+    .suspended-tab-url {
+      font-size: 12px;
+      color: #666;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .suspended-tab-meta {
+      font-size: 10px;
+      color: #999;
+      margin-top: 2px;
+    }
+
+    .suspended-tab-actions {
+      margin-left: 12px;
+      flex-shrink: 0;
+    }
+
+    .unsuspend-tab-btn {
+      background: #28a745;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background-color 0.2s ease, opacity 0.2s ease;
+    }
+
+    .unsuspend-tab-btn:hover:not(:disabled) {
+      background-color: #218838;
+    }
+
+    .unsuspend-tab-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .suspended-tabs-empty-state {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+
+    .suspended-tabs-empty-icon {
+      font-size: 18px;
+    }
+
+    .suspended-tabs-empty-desc {
+      margin-top: 8px;
+    }
+
+    .viewer-filter-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .viewer-filter-label {
+      margin: 0;
+      font-size: 13px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .viewer-filter-select {
+      min-width: 260px;
+      max-width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #d7dce0;
+      border-radius: 6px;
+      background: #fff;
+      color: #333;
+      font-size: 13px;
+    }
+
+    .viewer-filter-select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.12);
+    }
+
     /* Action Bar */
     .action-bar {
       position: sticky;
@@ -905,7 +1094,18 @@
           <div class="card-description" data-i18n="suspendedTabsViewerDesc">
             View all suspended tabs across all windows and check their discard status
           </div>
+          <div class="help-text" style="margin-top: 0; margin-bottom: 12px;" data-i18n="suspendedTabsDiscardsHint">
+            You can also check discard details in chrome://discards.
+          </div>
           <div class="form-group">
+            <div class="viewer-filter-row">
+              <label class="viewer-filter-label" for="suspendedTabsFilter" data-i18n="tabViewerFilterLabel">Filter:</label>
+              <select id="suspendedTabsFilter" class="viewer-filter-select">
+                <option value="suspended-all" data-i18n="tabViewerFilterSuspendedAll">All suspended tabs</option>
+                <option value="suspended-undiscarded" data-i18n="tabViewerFilterSuspendedUndiscarded">Suspended but not discarded</option>
+                <option value="not-suspended" data-i18n="tabViewerFilterNotSuspended">Not suspended</option>
+              </select>
+            </div>
             <button id="showSuspendedTabsBtn" class="btn" style="background: #17a2b8; color: white; margin-bottom: 16px;">
               <span>📊</span>
               <span data-i18n="showSuspendedTabs">Show Suspended Tabs</span>
@@ -913,7 +1113,7 @@
             <div id="suspendedTabsInfo" style="display: none;">
               <div style="margin-bottom: 8px; font-weight: 500;" data-i18n="suspendedTabsTitle">Suspended Tabs Information:</div>
               <div id="suspendedTabsCount" style="margin-bottom: 12px; color: #667eea; font-weight: 500;"></div>
-              <div id="suspendedTabsList" style="max-height: 400px; overflow-y: auto; border: 1px solid #e1e5e9; border-radius: 8px; padding: 12px; background: #f9f9f9;">
+              <div id="suspendedTabsList" class="suspended-tabs-list">
               </div>
             </div>
           </div>
@@ -1199,4 +1399,4 @@
   <script src="i18n.js"></script>
   <script src="options.js"></script>
 </body>
-</html> 
+</html>

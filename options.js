@@ -11,6 +11,24 @@ const COMMAND_DESCRIPTIONS = {
   '05-unsuspend-all': { key: 'unsuspendAll', default: 'Unsuspend all tabs (all windows)' }
 };
 
+const SUSPENDED_TABS_RENDER_BATCH_SIZE = 120;
+const TAB_VIEWER_FILTER_SUSPENDED_ALL = 'suspended-all';
+const TAB_VIEWER_FILTER_SUSPENDED_UNDISCARDED = 'suspended-undiscarded';
+const TAB_VIEWER_FILTER_NOT_SUSPENDED = 'not-suspended';
+const suspendedTabsViewerState = {
+  renderToken: 0,
+  eventsBound: false,
+  stats: {
+    totalTabs: 0,
+    suspendedCount: 0,
+    discardedCount: 0,
+    undiscardedSuspendedCount: 0,
+    unsuspendedCount: 0,
+    matchedCount: 0,
+    filterMode: TAB_VIEWER_FILTER_SUSPENDED_ALL
+  }
+};
+
 // Initialize DOM elements after DOM is loaded
 let autoSuspendEl, discardEl, whitelistEl, neverSuspendAudioEl, neverSuspendPinnedEl, neverSuspendActiveEl, rememberLastActiveTabEl, themeModeEl;
 let fixFaviconEnabledEl, fixFaviconBatchSizeEl, fixFaviconMaxRetriesEl;
@@ -328,6 +346,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (showSuspendedTabsBtn) {
     showSuspendedTabsBtn.addEventListener('click', showSuspendedTabs);
   }
+
+  initSuspendedTabsViewerEvents();
 });
 
 // Attach save button event listener
@@ -2442,33 +2462,533 @@ function resetSettingsPreviews() {
 
 /* ---------- Suspended Tabs Information Functions ---------- */
 
+function getSelectedTabViewerFilter() {
+  const filterEl = document.getElementById('suspendedTabsFilter');
+  const value = filterEl ? filterEl.value : TAB_VIEWER_FILTER_SUSPENDED_ALL;
+
+  if (value === TAB_VIEWER_FILTER_SUSPENDED_UNDISCARDED || value === TAB_VIEWER_FILTER_NOT_SUSPENDED) {
+    return value;
+  }
+
+  return TAB_VIEWER_FILTER_SUSPENDED_ALL;
+}
+
+function isTabViewerInfoVisible() {
+  const suspendedTabsInfo = document.getElementById('suspendedTabsInfo');
+  return Boolean(suspendedTabsInfo && suspendedTabsInfo.style.display !== 'none');
+}
+
+function handleSuspendedTabsFilterChange() {
+  if (!isTabViewerInfoVisible()) {
+    return;
+  }
+
+  showSuspendedTabs();
+}
+
+function initSuspendedTabsViewerEvents() {
+  if (suspendedTabsViewerState.eventsBound) {
+    return;
+  }
+
+  const suspendedTabsList = document.getElementById('suspendedTabsList');
+  if (!suspendedTabsList) {
+    return;
+  }
+
+  suspendedTabsList.addEventListener('click', handleSuspendedTabsListClick);
+  suspendedTabsList.addEventListener('error', handleSuspendedTabFaviconError, true);
+
+  const filterEl = document.getElementById('suspendedTabsFilter');
+  if (filterEl) {
+    filterEl.addEventListener('change', handleSuspendedTabsFilterChange);
+  }
+
+  suspendedTabsViewerState.eventsBound = true;
+}
+
+function setSuspendedTabsButtonState(button, isLoading) {
+  if (!button) {
+    return;
+  }
+
+  button.disabled = isLoading;
+  button.style.opacity = isLoading ? '0.6' : '1';
+
+  const icon = document.createElement('span');
+  icon.textContent = isLoading ? '\u23F3' : '\uD83D\uDCCA';
+
+  const label = document.createElement('span');
+  label.textContent = isLoading
+    ? (getMessage('loading') || 'Loading...')
+    : (getMessage('showSuspendedTabs') || 'Show Suspended Tabs');
+
+  button.replaceChildren(icon, label);
+}
+
+function shouldIncludeTabInView(isSuspended, isDiscarded, filterMode) {
+  if (filterMode === TAB_VIEWER_FILTER_SUSPENDED_UNDISCARDED) {
+    return isSuspended && !isDiscarded;
+  }
+
+  if (filterMode === TAB_VIEWER_FILTER_NOT_SUSPENDED) {
+    return !isSuspended;
+  }
+
+  return isSuspended;
+}
+
+function buildSuspendedTabsViewModel(allTabs, suspendedPrefix, filterMode) {
+  const tabsByWindow = new Map();
+  let suspendedCount = 0;
+  let discardedCount = 0;
+  let unsuspendedCount = 0;
+  let matchedCount = 0;
+
+  for (const tab of allTabs) {
+    const isSuspended = Boolean(tab.url && tab.url.startsWith(suspendedPrefix));
+    const isDiscarded = Boolean(tab.discarded);
+
+    if (isSuspended) {
+      suspendedCount += 1;
+      if (isDiscarded) {
+        discardedCount += 1;
+      }
+    } else {
+      unsuspendedCount += 1;
+    }
+
+    if (!shouldIncludeTabInView(isSuspended, isDiscarded, filterMode)) {
+      continue;
+    }
+
+    matchedCount += 1;
+
+    let displayUrl = tab.url || '';
+    let displayTitle = tab.title || displayUrl;
+
+    if (isSuspended) {
+      const parsed = parseSuspendedTab(tab.url || '');
+      if (parsed && parsed.url) {
+        displayUrl = parsed.url;
+        displayTitle = parsed.title || parsed.url;
+      }
+    }
+
+    if (!tabsByWindow.has(tab.windowId)) {
+      tabsByWindow.set(tab.windowId, []);
+    }
+
+    tabsByWindow.get(tab.windowId).push({
+      id: tab.id,
+      windowId: tab.windowId,
+      isSuspended: isSuspended,
+      discarded: isDiscarded,
+      favIconUrl: tab.favIconUrl || '',
+      displayTitle: displayTitle,
+      displayUrl: displayUrl
+    });
+  }
+
+  const windows = Array.from(tabsByWindow.entries())
+    .sort((a, b) => Number(a[0]) - Number(b[0]))
+    .map(([windowId, tabs]) => ({
+      windowId: Number(windowId),
+      tabs: tabs
+    }));
+
+  return {
+    filterMode: filterMode,
+    totalTabs: allTabs.length,
+    suspendedCount: suspendedCount,
+    discardedCount: discardedCount,
+    undiscardedSuspendedCount: Math.max(0, suspendedCount - discardedCount),
+    unsuspendedCount: unsuspendedCount,
+    matchedCount: matchedCount,
+    windows: windows
+  };
+}
+
+function getSuspendedTabsMessages() {
+  return {
+    window: getMessage('window') || 'Window',
+    tab: getMessage('tab') || 'tab',
+    tabs: getMessage('tabs') || 'tabs',
+    suspended: getMessage('suspended') || 'Suspended',
+    discarded: getMessage('discarded') || 'Discarded',
+    notSuspended: getMessage('notSuspended') || 'Not suspended',
+    tabId: getMessage('tabId') || 'Tab ID',
+    windowId: getMessage('windowId') || 'Window ID',
+    unsuspend: getMessage('unsuspend') || 'Unsuspend'
+  };
+}
+
+function buildSuspendedTabsCountText(stats) {
+  const totalTabsText = (getMessage('totalTabsCount') || 'Total tabs: %d')
+    .replace('%d', stats.totalTabs);
+
+  if (stats.filterMode === TAB_VIEWER_FILTER_SUSPENDED_UNDISCARDED) {
+    if (stats.matchedCount === 0) {
+      return `${getMessage('noTabsMatchFilter') || 'No tabs match the current filter'} | ${totalTabsText}`;
+    }
+
+    const text = (getMessage('suspendedUndiscardedTabsFound') || 'Found %d suspended but not discarded tabs')
+      .replace('%d', stats.matchedCount);
+    return `${text} | ${totalTabsText}`;
+  }
+
+  if (stats.filterMode === TAB_VIEWER_FILTER_NOT_SUSPENDED) {
+    if (stats.matchedCount === 0) {
+      return `${getMessage('noTabsMatchFilter') || 'No tabs match the current filter'} | ${totalTabsText}`;
+    }
+
+    const text = (getMessage('notSuspendedTabsFound') || 'Found %d not suspended tabs')
+      .replace('%d', stats.matchedCount);
+    return `${text} | ${totalTabsText}`;
+  }
+
+  if (stats.matchedCount === 0) {
+    return `${getMessage('noSuspendedTabs') || 'No suspended tabs found'} | ${totalTabsText}`;
+  }
+
+  const baseText = (getMessage('suspendedTabsFound') || 'Found %d suspended tabs')
+    .replace('%d', stats.matchedCount);
+
+  if (stats.discardedCount > 0) {
+    const discardedText = (getMessage('discardedTabsCount') || '(%d discarded)')
+      .replace('%d', stats.discardedCount);
+    return `${baseText} ${discardedText} | ${totalTabsText}`;
+  }
+
+  return `${baseText} | ${totalTabsText}`;
+}
+
+function updateSuspendedTabsCountDisplay() {
+  const suspendedTabsCount = document.getElementById('suspendedTabsCount');
+  if (!suspendedTabsCount) {
+    return;
+  }
+
+  suspendedTabsCount.textContent = buildSuspendedTabsCountText(suspendedTabsViewerState.stats);
+  suspendedTabsCount.style.color = suspendedTabsViewerState.stats.matchedCount > 0 ? '#27ae60' : '#666';
+}
+
+function createSuspendedWindowSection(windowData, messages) {
+  const section = document.createElement('div');
+  section.className = 'suspended-window-section';
+  section.dataset.windowId = String(windowData.windowId);
+
+  const header = document.createElement('div');
+  header.className = 'suspended-window-header';
+
+  const windowPrefix = document.createElement('span');
+  windowPrefix.textContent = `${messages.window} ${windowData.windowId} (`;
+
+  const count = document.createElement('span');
+  count.className = 'window-tab-count';
+  count.textContent = String(windowData.tabs.length);
+
+  const unit = document.createElement('span');
+  unit.className = 'window-tab-label';
+  unit.style.marginLeft = '4px';
+  unit.textContent = windowData.tabs.length === 1 ? messages.tab : messages.tabs;
+
+  const suffix = document.createElement('span');
+  suffix.textContent = ')';
+
+  header.append(windowPrefix, count, unit, suffix);
+
+  const body = document.createElement('div');
+  body.className = 'suspended-window-body';
+
+  section.append(header, body);
+
+  return {
+    section: section,
+    body: body
+  };
+}
+
+function createSuspendedTabItem(tab, tabIndex, messages) {
+  const tabItem = document.createElement('div');
+  tabItem.className = 'suspended-tab-item';
+  tabItem.dataset.tabId = String(tab.id);
+  tabItem.dataset.windowId = String(tab.windowId);
+  tabItem.dataset.discarded = tab.discarded ? '1' : '0';
+  tabItem.dataset.isSuspended = tab.isSuspended ? '1' : '0';
+
+  const escapedTitle = escapeHtml(tab.displayTitle);
+  const escapedUrl = escapeHtml(tab.displayUrl);
+  const escapedFavicon = tab.favIconUrl ? escapeHtml(tab.favIconUrl) : '';
+
+  let statusBadges;
+  if (tab.isSuspended) {
+    const discardedBadge = tab.discarded
+      ? `<span class="suspended-tab-badge suspended-tab-badge-discarded">${escapeHtml(messages.discarded)}</span>`
+      : '';
+
+    statusBadges = `
+      <span class="suspended-tab-badge suspended-tab-badge-suspended">${escapeHtml(messages.suspended)}</span>
+      ${discardedBadge}
+    `;
+  } else {
+    const discardedBadge = tab.discarded
+      ? `<span class="suspended-tab-badge suspended-tab-badge-discarded">${escapeHtml(messages.discarded)}</span>`
+      : '';
+
+    statusBadges = `
+      <span class="suspended-tab-badge suspended-tab-badge-not-suspended">${escapeHtml(messages.notSuspended)}</span>
+      ${discardedBadge}
+    `;
+  }
+
+  const actionsHtml = tab.isSuspended
+    ? `
+      <div class="suspended-tab-actions">
+        <button class="unsuspend-tab-btn" data-tab-id="${tab.id}" data-original-url="${escapedUrl}">
+          ${escapeHtml(messages.unsuspend)}
+        </button>
+      </div>
+    `
+    : '';
+
+  tabItem.innerHTML = `
+    <div class="suspended-tab-index">${tabIndex}.</div>
+    <div class="suspended-tab-main">
+      <div class="suspended-tab-title-line">
+        ${escapedFavicon ? `<img class="suspended-tab-favicon-img" src="${escapedFavicon}" loading="lazy">` : ''}
+        <span class="suspended-tab-title" title="${escapedTitle}">${escapedTitle}</span>
+        <div class="suspended-tab-badges">
+          ${statusBadges}
+        </div>
+      </div>
+      <div class="suspended-tab-url" title="${escapedUrl}">${escapedUrl}</div>
+      <div class="suspended-tab-meta">
+        ${escapeHtml(messages.tabId)}: ${tab.id} | ${escapeHtml(messages.windowId)}: ${tab.windowId}
+      </div>
+    </div>
+    ${actionsHtml}
+  `;
+
+  return tabItem;
+}
+
+function nextRenderFrame() {
+  return new Promise(resolve => {
+    requestAnimationFrame(() => resolve());
+  });
+}
+
+function renderNoSuspendedTabsState(container, filterMode) {
+  const isDefaultFilter = filterMode === TAB_VIEWER_FILTER_SUSPENDED_ALL;
+  const emptyDesc = isDefaultFilter
+    ? (getMessage('noSuspendedTabsDesc') || 'No suspended tabs found. Suspended tabs are created when ZeroRAM Suspender puts tabs to sleep to save memory.')
+    : (getMessage('noTabsMatchFilter') || 'No tabs match the current filter');
+
+  container.innerHTML = `
+    <div class="suspended-tabs-empty-state">
+      <span class="suspended-tabs-empty-icon">\uD83D\uDCA4</span>
+      <div class="suspended-tabs-empty-desc">${escapeHtml(emptyDesc)}</div>
+    </div>
+  `;
+}
+
+async function displaySuspendedTabsList(viewModel, container, renderToken) {
+  container.innerHTML = '';
+
+  if (viewModel.matchedCount === 0) {
+    renderNoSuspendedTabsState(container, viewModel.filterMode);
+    return;
+  }
+
+  const messages = getSuspendedTabsMessages();
+
+  for (const windowData of viewModel.windows) {
+    if (renderToken !== suspendedTabsViewerState.renderToken) {
+      return;
+    }
+
+    const windowSection = createSuspendedWindowSection(windowData, messages);
+    container.appendChild(windowSection.section);
+
+    for (let i = 0; i < windowData.tabs.length; i += SUSPENDED_TABS_RENDER_BATCH_SIZE) {
+      if (renderToken !== suspendedTabsViewerState.renderToken) {
+        return;
+      }
+
+      const end = Math.min(i + SUSPENDED_TABS_RENDER_BATCH_SIZE, windowData.tabs.length);
+      const fragment = document.createDocumentFragment();
+
+      for (let j = i; j < end; j++) {
+        fragment.appendChild(createSuspendedTabItem(windowData.tabs[j], j + 1, messages));
+      }
+
+      windowSection.body.appendChild(fragment);
+
+      if (end < windowData.tabs.length) {
+        await nextRenderFrame();
+      }
+    }
+
+    await nextRenderFrame();
+  }
+}
+
+function updateWindowHeaderCount(windowSection) {
+  const countElement = windowSection.querySelector('.window-tab-count');
+  const unitElement = windowSection.querySelector('.window-tab-label');
+  const rows = windowSection.querySelectorAll('.suspended-tab-item');
+
+  if (countElement) {
+    countElement.textContent = String(rows.length);
+  }
+
+  if (unitElement) {
+    unitElement.textContent = rows.length === 1
+      ? (getMessage('tab') || 'tab')
+      : (getMessage('tabs') || 'tabs');
+  }
+
+  rows.forEach((row, index) => {
+    const tabIndex = row.querySelector('.suspended-tab-index');
+    if (tabIndex) {
+      tabIndex.textContent = `${index + 1}.`;
+    }
+  });
+}
+
+function removeSuspendedTabRow(tabId) {
+  const suspendedTabsList = document.getElementById('suspendedTabsList');
+  if (!suspendedTabsList) {
+    return false;
+  }
+
+  const tabRow = suspendedTabsList.querySelector(`.suspended-tab-item[data-tab-id="${tabId}"]`);
+  if (!tabRow) {
+    return false;
+  }
+
+  if (tabRow.dataset.isSuspended !== '1') {
+    return false;
+  }
+
+  const windowSection = tabRow.closest('.suspended-window-section');
+  const wasDiscarded = tabRow.dataset.discarded === '1';
+  tabRow.remove();
+
+  suspendedTabsViewerState.stats.suspendedCount = Math.max(0, suspendedTabsViewerState.stats.suspendedCount - 1);
+  suspendedTabsViewerState.stats.unsuspendedCount += 1;
+  if (wasDiscarded) {
+    suspendedTabsViewerState.stats.discardedCount = Math.max(0, suspendedTabsViewerState.stats.discardedCount - 1);
+  } else {
+    suspendedTabsViewerState.stats.undiscardedSuspendedCount = Math.max(0, suspendedTabsViewerState.stats.undiscardedSuspendedCount - 1);
+  }
+  suspendedTabsViewerState.stats.matchedCount = Math.max(0, suspendedTabsViewerState.stats.matchedCount - 1);
+
+  updateSuspendedTabsCountDisplay();
+
+  if (windowSection) {
+    const remainingRows = windowSection.querySelectorAll('.suspended-tab-item').length;
+    if (remainingRows === 0) {
+      windowSection.remove();
+    } else {
+      updateWindowHeaderCount(windowSection);
+    }
+  }
+
+  if (suspendedTabsViewerState.stats.matchedCount === 0) {
+    renderNoSuspendedTabsState(suspendedTabsList, suspendedTabsViewerState.stats.filterMode);
+  }
+
+  return true;
+}
+
+async function unsuspendTabFromViewer(button, tabId, originalUrl) {
+  const unsuspendText = getMessage('unsuspend') || 'Unsuspend';
+  const unsuspendingText = getMessage('unsuspending') || 'Unsuspending...';
+
+  try {
+    button.disabled = true;
+    button.textContent = unsuspendingText;
+
+    await chrome.runtime.sendMessage({
+      command: 'unsuspendTab',
+      tabId: tabId,
+      originalUrl: originalUrl
+    });
+
+    showNotice(getMessage('tabUnsuspended') || 'Tab unsuspended successfully', 'success', 2000);
+
+    const removed = removeSuspendedTabRow(tabId);
+    if (!removed) {
+      await showSuspendedTabs();
+    }
+  } catch (error) {
+    console.error('Failed to unsuspend tab:', error);
+    showNotice(getMessage('unsuspendFailed') || 'Failed to unsuspend tab: ' + error.message, 'error', 3000);
+    button.disabled = false;
+    button.textContent = unsuspendText;
+  }
+}
+
+async function handleSuspendedTabsListClick(event) {
+  const button = event.target.closest('.unsuspend-tab-btn');
+  if (!button) {
+    return;
+  }
+
+  event.preventDefault();
+
+  if (button.disabled) {
+    return;
+  }
+
+  const tabId = Number.parseInt(button.getAttribute('data-tab-id'), 10);
+  if (!Number.isFinite(tabId)) {
+    return;
+  }
+
+  const originalUrl = button.getAttribute('data-original-url') || '';
+  await unsuspendTabFromViewer(button, tabId, originalUrl);
+}
+
+function handleSuspendedTabFaviconError(event) {
+  const target = event.target;
+  if (target && target.classList && target.classList.contains('suspended-tab-favicon-img')) {
+    target.style.display = 'none';
+  }
+}
+
 // Reset suspended tabs information display
 function resetSuspendedTabsInfo() {
   const suspendedTabsInfo = document.getElementById('suspendedTabsInfo');
   const suspendedTabsCount = document.getElementById('suspendedTabsCount');
   const suspendedTabsList = document.getElementById('suspendedTabsList');
   const showSuspendedTabsBtn = document.getElementById('showSuspendedTabsBtn');
-  
-  // Hide the info section
+
+  // Invalidate ongoing chunked rendering work.
+  suspendedTabsViewerState.renderToken += 1;
+  suspendedTabsViewerState.stats.totalTabs = 0;
+  suspendedTabsViewerState.stats.suspendedCount = 0;
+  suspendedTabsViewerState.stats.discardedCount = 0;
+  suspendedTabsViewerState.stats.undiscardedSuspendedCount = 0;
+  suspendedTabsViewerState.stats.unsuspendedCount = 0;
+  suspendedTabsViewerState.stats.matchedCount = 0;
+  suspendedTabsViewerState.stats.filterMode = getSelectedTabViewerFilter();
+
   if (suspendedTabsInfo) {
     suspendedTabsInfo.style.display = 'none';
   }
-  
-  // Clear content
+
   if (suspendedTabsCount) {
     suspendedTabsCount.textContent = '';
   }
-  
+
   if (suspendedTabsList) {
     suspendedTabsList.innerHTML = '';
   }
-  
-  // Reset button state
-  if (showSuspendedTabsBtn) {
-    showSuspendedTabsBtn.disabled = false;
-    showSuspendedTabsBtn.style.opacity = '1';
-    showSuspendedTabsBtn.innerHTML = '<span>📊</span><span data-i18n="showSuspendedTabs">Show Suspended Tabs</span>';
-  }
+
+  setSuspendedTabsButtonState(showSuspendedTabsBtn, false);
 }
 
 // Show information about suspended tabs
@@ -2477,266 +2997,62 @@ async function showSuspendedTabs() {
   const suspendedTabsInfo = document.getElementById('suspendedTabsInfo');
   const suspendedTabsCount = document.getElementById('suspendedTabsCount');
   const suspendedTabsList = document.getElementById('suspendedTabsList');
-  
+
+  if (!showSuspendedTabsBtn || !suspendedTabsInfo || !suspendedTabsCount || !suspendedTabsList) {
+    return;
+  }
+
+  const filterMode = getSelectedTabViewerFilter();
+  const renderToken = suspendedTabsViewerState.renderToken + 1;
+  suspendedTabsViewerState.renderToken = renderToken;
+
   try {
-    // Disable button and show loading
-    showSuspendedTabsBtn.disabled = true;
-    showSuspendedTabsBtn.style.opacity = '0.6';
-    showSuspendedTabsBtn.innerHTML = '<span>⏳</span><span data-i18n="loading">Loading...</span>';
-    
+    setSuspendedTabsButtonState(showSuspendedTabsBtn, true);
     showNotice(getMessage('scanningSuspendedTabs') || 'Scanning for suspended tabs...', 'info', 2000);
-    
-    // Query all tabs from our extension (suspended tabs)
+
     const allTabs = await chrome.tabs.query({});
+    if (renderToken !== suspendedTabsViewerState.renderToken) {
+      return;
+    }
+
     const suspendedPrefix = chrome.runtime.getURL('suspended.html');
-    
-    // Filter to get only our suspended tabs
-    const suspendedTabs = allTabs.filter(tab => 
-      tab.url && tab.url.startsWith(suspendedPrefix)
-    );
-    
-    // Count how many are discarded
-    const discardedCount = suspendedTabs.filter(tab => tab.discarded).length;
-    const totalCount = suspendedTabs.length;
-    
-    // Update count display
-    let countText;
-    if (totalCount === 0) {
-      countText = getMessage('noSuspendedTabs') || 'No suspended tabs found';
-    } else {
-      const baseText = (getMessage('suspendedTabsFound') || 'Found %d suspended tabs').replace('%d', totalCount);
-      if (discardedCount > 0) {
-        const discardedText = (getMessage('discardedTabsCount') || '(%d discarded)').replace('%d', discardedCount);
-        countText = `${baseText} ${discardedText}`;
-      } else {
-        countText = baseText;
-      }
-    }
-    
-    suspendedTabsCount.textContent = countText;
-    suspendedTabsCount.style.color = totalCount > 0 ? '#27ae60' : '#666';
-    
-    // Display tabs list
-    if (totalCount > 0) {
-      displaySuspendedTabsList(suspendedTabs, suspendedTabsList);
-    } else {
-      suspendedTabsList.innerHTML = `
-        <div style="text-align: center; padding: 20px; color: #666;">
-          <span>😴</span>
-          <div style="margin-top: 8px;" data-i18n="noSuspendedTabsDesc">
-            No suspended tabs found. Suspended tabs are created when ZeroRAM Suspender puts tabs to sleep to save memory.
-          </div>
-        </div>
-      `;
-    }
-    
-    // Show the info section
+    const viewModel = buildSuspendedTabsViewModel(allTabs, suspendedPrefix, filterMode);
+
+    suspendedTabsViewerState.stats.totalTabs = viewModel.totalTabs;
+    suspendedTabsViewerState.stats.suspendedCount = viewModel.suspendedCount;
+    suspendedTabsViewerState.stats.discardedCount = viewModel.discardedCount;
+    suspendedTabsViewerState.stats.undiscardedSuspendedCount = viewModel.undiscardedSuspendedCount;
+    suspendedTabsViewerState.stats.unsuspendedCount = viewModel.unsuspendedCount;
+    suspendedTabsViewerState.stats.matchedCount = viewModel.matchedCount;
+    suspendedTabsViewerState.stats.filterMode = viewModel.filterMode;
+
+    updateSuspendedTabsCountDisplay();
     suspendedTabsInfo.style.display = 'block';
-    
-    showNotice(getMessage('suspendedTabsLoaded') || `Suspended tabs information loaded (${totalCount} tabs)`, 'success', 3000);
-    
+
+    await displaySuspendedTabsList(viewModel, suspendedTabsList, renderToken);
+    if (renderToken !== suspendedTabsViewerState.renderToken) {
+      return;
+    }
+
+    const loadedText = getMessage('suspendedTabsLoaded') || 'Suspended tabs information loaded';
+    showNotice(`${loadedText} (${viewModel.matchedCount}/${viewModel.totalTabs})`, 'success', 3000);
   } catch (error) {
     console.error('[ZeroRAM Suspender] Error loading suspended tabs:', error);
     showNotice(getMessage('errorLoadingSuspendedTabs') || 'Error loading suspended tabs: ' + error.message, 'error', 4000);
-    
+
     suspendedTabsCount.textContent = getMessage('errorOccurred') || 'An error occurred';
     suspendedTabsCount.style.color = '#dc3545';
     suspendedTabsList.innerHTML = `
       <div style="text-align: center; padding: 20px; color: #dc3545;">
-        <span>❌</span>
         <div style="margin-top: 8px;">${escapeHtml(error.message)}</div>
       </div>
     `;
     suspendedTabsInfo.style.display = 'block';
   } finally {
-    // Re-enable button
-    showSuspendedTabsBtn.disabled = false;
-    showSuspendedTabsBtn.style.opacity = '1';
-    showSuspendedTabsBtn.innerHTML = '<span>📊</span><span data-i18n="showSuspendedTabs">Show Suspended Tabs</span>';
-  }
-}
-
-// Display the list of suspended tabs
-function displaySuspendedTabsList(tabs, container) {
-  container.innerHTML = '';
-  
-  // Group tabs by window
-  const tabsByWindow = {};
-  
-  tabs.forEach(tab => {
-    if (!tabsByWindow[tab.windowId]) {
-      tabsByWindow[tab.windowId] = [];
+    if (renderToken === suspendedTabsViewerState.renderToken) {
+      setSuspendedTabsButtonState(showSuspendedTabsBtn, false);
     }
-    tabsByWindow[tab.windowId].push(tab);
-  });
-  
-  // Display tabs grouped by window
-  Object.keys(tabsByWindow).forEach((windowId, windowIndex) => {
-    const windowTabs = tabsByWindow[windowId];
-    
-    // Window header
-    const windowHeader = document.createElement('div');
-    windowHeader.style.cssText = `
-      font-weight: 600;
-      color: #667eea;
-      margin-bottom: 12px;
-      margin-top: ${windowIndex > 0 ? '20px' : '0'};
-      padding-bottom: 8px;
-      border-bottom: 1px solid #e1e5e9;
-    `;
-    windowHeader.innerHTML = `
-      <span data-i18n="window">Window</span> ${parseInt(windowId)} 
-      (${windowTabs.length} ${windowTabs.length === 1 ? (getMessage('tab') || 'tab') : (getMessage('tabs') || 'tabs')})
-    `;
-    container.appendChild(windowHeader);
-    
-    // Tabs in this window
-    windowTabs.forEach((tab, tabIndex) => {
-      const tabItem = document.createElement('div');
-      tabItem.style.cssText = `
-        display: flex;
-        align-items: center;
-        padding: 10px 12px;
-        margin-bottom: 8px;
-        background: white;
-        border-radius: 6px;
-        border: 1px solid #e1e5e9;
-        transition: all 0.2s ease;
-      `;
-      
-      tabItem.addEventListener('mouseenter', () => {
-        tabItem.style.backgroundColor = '#f8f9fa';
-        tabItem.style.borderColor = '#667eea';
-      });
-      
-      tabItem.addEventListener('mouseleave', () => {
-        tabItem.style.backgroundColor = 'white';
-        tabItem.style.borderColor = '#e1e5e9';
-      });
-      
-      // Parse suspended tab to get original info
-      let displayTitle = tab.title;
-      let displayUrl = tab.url;
-      
-      try {
-        const urlObj = new URL(tab.url);
-        const originalUrl = urlObj.searchParams.get('uri');
-        const originalTitle = urlObj.searchParams.get('ttl');
-        
-        if (originalUrl) {
-          displayUrl = originalUrl;
-          displayTitle = originalTitle || originalUrl;
-        }
-      } catch (error) {
-        console.warn('Failed to parse suspended tab URL:', error);
-      }
-      
-      // Create status badges
-      let statusBadges = `
-        <span style="background: #6c757d; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px;">
-          ${getMessage('suspended') || 'Suspended'}
-        </span>
-      `;
-      
-      if (tab.discarded) {
-        statusBadges += `
-          <span style="background: #ffc107; color: #333; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 4px;">
-            ${getMessage('discarded') || 'Discarded'}
-          </span>
-        `;
-      }
-      
-      tabItem.innerHTML = `
-        <div style="margin-right: 12px; color: #667eea; font-weight: 500; min-width: 20px;">
-          ${tabIndex + 1}.
-        </div>
-        <div style="flex: 1; min-width: 0;">
-          <div style="font-weight: 500; color: #333; margin-bottom: 4px; display: flex; align-items: center;">
-            ${tab.favIconUrl ? `<img class="suspended-tab-favicon-img" src="${escapeHtml(tab.favIconUrl)}" style="width: 16px; height: 16px; margin-right: 8px; flex-shrink: 0;">` : ''}
-            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;" title="${escapeHtml(displayTitle)}">
-              ${escapeHtml(displayTitle)}
-            </span>
-            <div style="flex-shrink: 0; margin-left: 8px;">
-              ${statusBadges}
-            </div>
-          </div>
-          <div style="font-size: 12px; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(displayUrl)}">
-            ${escapeHtml(displayUrl)}
-          </div>
-          <div style="font-size: 10px; color: #999; margin-top: 2px;">
-            ${getMessage('tabId') || 'Tab ID'}: ${tab.id} | ${getMessage('windowId') || 'Window ID'}: ${tab.windowId}
-          </div>
-        </div>
-        <div style="margin-left: 12px;">
-          <button class="unsuspend-tab-btn" data-tab-id="${tab.id}" data-original-url="${escapeHtml(displayUrl)}" style="
-            background: #28a745; 
-            color: white; 
-            border: none; 
-            padding: 6px 12px; 
-            border-radius: 4px; 
-            font-size: 12px; 
-            cursor: pointer;
-            transition: all 0.2s ease;
-          ">
-            <span data-i18n="unsuspend">Unsuspend</span>
-          </button>
-        </div>
-      `;
-
-      const faviconImg = tabItem.querySelector('.suspended-tab-favicon-img');
-      if (faviconImg) {
-        faviconImg.addEventListener('error', () => {
-          faviconImg.style.display = 'none';
-        }, { once: true });
-      }
-      
-      container.appendChild(tabItem);
-    });
-  });
-  
-  // Add event listeners for unsuspend buttons
-  container.querySelectorAll('.unsuspend-tab-btn').forEach(btn => {
-    btn.addEventListener('mouseenter', () => {
-      btn.style.backgroundColor = '#218838';
-    });
-    btn.addEventListener('mouseleave', () => {
-      btn.style.backgroundColor = '#28a745';
-    });
-
-    btn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      const tabId = parseInt(btn.getAttribute('data-tab-id'));
-      const originalUrl = btn.getAttribute('data-original-url');
-      
-      try {
-        btn.disabled = true;
-        btn.style.opacity = '0.6';
-        btn.innerHTML = '<span data-i18n="unsuspending">Unsuspending...</span>';
-        
-        // Send message to background script to unsuspend the tab
-        await chrome.runtime.sendMessage({
-          command: 'unsuspendTab',
-          tabId: tabId,
-          originalUrl: originalUrl
-        });
-        
-        showNotice(getMessage('tabUnsuspended') || 'Tab unsuspended successfully', 'success', 2000);
-        
-        // Refresh the list after a short delay
-        setTimeout(() => {
-          showSuspendedTabs();
-        }, 1000);
-        
-      } catch (error) {
-        console.error('Failed to unsuspend tab:', error);
-        showNotice(getMessage('unsuspendFailed') || 'Failed to unsuspend tab: ' + error.message, 'error', 3000);
-        
-        btn.disabled = false;
-        btn.style.opacity = '1';
-        btn.innerHTML = '<span data-i18n="unsuspend">Unsuspend</span>';
-      }
-    });
-  });
+  }
 }
 
 /* ---------- End Suspended Tabs Information Functions ---------- */ 
