@@ -1,5 +1,9 @@
 // suspended.js - handle unsuspend
 (function() {
+  const STORAGE_KEY = 'utsSettings';
+  let clickAnywhereToUnsuspend = false;
+  let unsuspending = false;
+
   // Parse original URL from query
   const params = new URLSearchParams(location.search);
   const originalUrl = params.get('uri');
@@ -77,8 +81,32 @@
     urlEl.href = originalUrl;
   }
 
+  function setClickAnywhereInstruction() {
+    const instructionEl = document.querySelector('.instruction');
+    if (!instructionEl || !clickAnywhereToUnsuspend) return;
+
+    if (typeof getMessage !== 'undefined') {
+      instructionEl.textContent = getMessage('suspendedInstructionClickAnywhere') || 'Click anywhere or press Ctrl+Shift+Z to reload this tab.';
+    } else {
+      instructionEl.textContent = 'Click anywhere or press Ctrl+Shift+Z to reload this tab.';
+    }
+    instructionEl.setAttribute('data-i18n', 'suspendedInstructionClickAnywhere');
+  }
+
+  try {
+    chrome.storage.sync.get(STORAGE_KEY, data => {
+      const cfg = data[STORAGE_KEY] || {};
+      clickAnywhereToUnsuspend = cfg.clickAnywhereToUnsuspend === true;
+      document.body.classList.toggle('click-anywhere-unsuspend', clickAnywhereToUnsuspend);
+      setClickAnywhereInstruction();
+    });
+  } catch (e) {
+    console.warn('[ZeroRAM Suspender] Failed to load suspended page click settings:', e);
+  }
+
   function unsuspend() {
-    if (originalUrl) {
+    if (originalUrl && !unsuspending) {
+      unsuspending = true;
       // Update status to "Reloading" before redirecting
       const statusEl = document.querySelector('.status');
       if (statusEl) {
@@ -113,7 +141,8 @@
     }
   }
 
-  // Add click listener to the entire document, but exclude origSection
+  // Add click listener to the entire document. By default the original title/URL
+  // section remains selectable; the option below makes that area clickable too.
   document.addEventListener('mousedown', function(event) {
     var e = event || window.event;
     if (e.buttons !== 1) {
@@ -123,13 +152,28 @@
     const origSection = document.getElementById('origSection');
     
     // Check if the click target is within origSection
-    if (origSection && origSection.contains(event.target)) {
+    if (origSection && origSection.contains(event.target) && !clickAnywhereToUnsuspend) {
       return; // Don't unsuspend if clicking within origSection
+    }
+
+    // When the original URL is clicked in click-anywhere mode, keep it on the
+    // normal unsuspend path so the background script is notified.
+    if (origSection && origSection.contains(event.target)) {
+      event.preventDefault();
     }
     
     // Unsuspend for clicks anywhere else
     unsuspend();
   });
+
+  document.addEventListener('click', function(event) {
+    const origSection = document.getElementById('origSection');
+
+    if (clickAnywhereToUnsuspend && origSection && origSection.contains(event.target)) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }, true);
 
   // Keyboard shortcut handler for Ctrl+Shift+Z
   function handleKeydown(event) {
@@ -139,6 +183,6 @@
     }
   }
 
-  // Click anywhere (except origSection) or Ctrl+Shift+Z to unsuspend
+  // Click anywhere (except origSection by default) or Ctrl+Shift+Z to unsuspend
   document.addEventListener('keydown', handleKeydown);
-})(); 
+})();

@@ -1,5 +1,8 @@
 {
   "extName": { "message": "ZeroRAM Suspender" },
+  "clickAnywhereToUnsuspend": { "message": "點擊暫停頁任意位置即可喚醒" },
+  "clickAnywhereToUnsuspendHelp": { "message": "啟用後，點擊原始標題或網址也會重新載入暫停的分頁。" },
+  "suspendedInstructionClickAnywhere": { "message": "點擊任意位置或按 Ctrl+Shift+Z 即可重新載入此分頁。" },
   "titleOptions": { "message": "ZeroRAM Suspender – 設定" },
   "autoSuspendLabel": { "message": "閒置多久後自動休眠（分鐘）：" },
   "autoSuspendHelp": { "message": "設定 0 表示永不自動休眠。" },

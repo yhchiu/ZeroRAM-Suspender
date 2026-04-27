@@ -1,5 +1,8 @@
 {
   "extName": { "message": "ZeroRAM Suspender" },
+  "clickAnywhereToUnsuspend": { "message": "点击挂起页任意位置即可唤醒" },
+  "clickAnywhereToUnsuspendHelp": { "message": "启用后，点击原始标题或网址也会重新加载挂起的标签页。" },
+  "suspendedInstructionClickAnywhere": { "message": "点击任意位置或按 Ctrl+Shift+Z 即可重新加载此标签页。" },
   "titleOptions": { "message": "ZeroRAM Suspender – 设置" },
   "autoSuspendLabel": { "message": "空闲多久后自动挂起（分钟）：" },
   "autoSuspendHelp": { "message": "设置 0 表示永不自动挂起。" },

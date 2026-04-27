@@ -31,7 +31,7 @@ const suspendedTabsViewerState = {
 };
 
 // Initialize DOM elements after DOM is loaded
-let autoSuspendEl, discardEl, whitelistEl, neverSuspendAudioEl, neverSuspendPinnedEl, neverSuspendActiveEl, rememberLastActiveTabEl, themeModeEl;
+let autoSuspendEl, discardEl, whitelistEl, neverSuspendAudioEl, neverSuspendPinnedEl, neverSuspendActiveEl, rememberLastActiveTabEl, clickAnywhereToUnsuspendEl, themeModeEl;
 let fixFaviconEnabledEl, fixFaviconBatchSizeEl, fixFaviconMaxRetriesEl;
 
 function initializeElements() {
@@ -42,6 +42,7 @@ function initializeElements() {
   neverSuspendPinnedEl = document.getElementById('neverSuspendPinned');
   neverSuspendActiveEl = document.getElementById('neverSuspendActive');
   rememberLastActiveTabEl = document.getElementById('rememberLastActiveTab');
+  clickAnywhereToUnsuspendEl = document.getElementById('clickAnywhereToUnsuspend');
   themeModeEl = document.getElementById('themeMode');
   fixFaviconEnabledEl = document.getElementById('fixFaviconEnabled');
   fixFaviconBatchSizeEl = document.getElementById('fixFaviconBatchSize');
@@ -216,6 +217,7 @@ function load() {
     neverSuspendPinnedEl.checked = cfg.neverSuspendPinned !== false; // default true
     neverSuspendActiveEl.checked = cfg.neverSuspendActive === true; // default false
     rememberLastActiveTabEl.checked = cfg.rememberLastActiveTab !== false; // default true
+    clickAnywhereToUnsuspendEl.checked = cfg.clickAnywhereToUnsuspend === true; // default false
     // Load theme settings with default to 'auto'
     themeModeEl.value = normalizeThemeMode(cfg.themeMode); // default to auto (follow system)
     // Favicon fix settings
@@ -260,6 +262,7 @@ function save() {
         updatedCfg.neverSuspendPinned = neverSuspendPinnedEl.checked;
         updatedCfg.neverSuspendActive = neverSuspendActiveEl.checked;
         updatedCfg.rememberLastActiveTab = rememberLastActiveTabEl.checked;
+        updatedCfg.clickAnywhereToUnsuspend = clickAnywhereToUnsuspendEl.checked;
         updatedCfg.themeMode = normalizeThemeMode(themeModeEl.value);
         updatedCfg.fixFaviconEnabled = fixFaviconEnabledEl.checked;
         updatedCfg.fixFaviconBatchSize = parseInt(fixFaviconBatchSizeEl.value, 10) || 0;
@@ -284,6 +287,7 @@ function save() {
           neverSuspendPinned: neverSuspendPinnedEl.checked,
           neverSuspendActive: neverSuspendActiveEl.checked,
           rememberLastActiveTab: rememberLastActiveTabEl.checked,
+          clickAnywhereToUnsuspend: clickAnywhereToUnsuspendEl.checked,
           themeMode: normalizeThemeMode(themeModeEl.value),
           fixFaviconEnabled: fixFaviconEnabledEl.checked,
           fixFaviconBatchSize: parseInt(fixFaviconBatchSizeEl.value, 10) || 0,
@@ -2094,6 +2098,7 @@ function getDefaultSettings() {
     neverSuspendPinned: true,
     neverSuspendActive: false,
     rememberLastActiveTab: true,
+    clickAnywhereToUnsuspend: false,
     whitelist: [],
     themeMode: 'auto',
     fixFaviconEnabled: true,
@@ -2114,6 +2119,7 @@ async function getCurrentSettings() {
         neverSuspendPinned: cfg.neverSuspendPinned !== false,
         neverSuspendActive: cfg.neverSuspendActive === true,
         rememberLastActiveTab: cfg.rememberLastActiveTab !== false,
+        clickAnywhereToUnsuspend: cfg.clickAnywhereToUnsuspend === true,
         whitelist: cfg.whitelist || [],
         themeMode: normalizeThemeMode(cfg.themeMode),
         fixFaviconEnabled: cfg.fixFaviconEnabled !== false,
@@ -2274,6 +2280,7 @@ async function previewImportSettings() {
     previewText += `• ${getMessage('rememberLastActiveTab') || 'Remember last active tab when browser loses focus'}: ${settingsData.rememberLastActiveTab !== false ? getMessage('enabled') || 'Enabled' : getMessage('disabled') || 'Disabled'}\n`;
     previewText += `• ${getMessage('themeSettings') || 'Theme'}: ${settingsData.themeMode || 'auto'} (${getMessage('theme' + (settingsData.themeMode || 'auto').charAt(0).toUpperCase() + (settingsData.themeMode || 'auto').slice(1)) || settingsData.themeMode || 'auto'})\n`;
     previewText += `• ${getMessage('whitelistTitle') || 'Whitelist'}: ${(settingsData.whitelist || []).length} ${getMessage('items') || 'items'}\n`;
+    previewText += `• ${getMessage('clickAnywhereToUnsuspend') || 'Click anywhere on the suspended page to unsuspend'}: ${settingsData.clickAnywhereToUnsuspend === true ? getMessage('enabled') || 'Enabled' : getMessage('disabled') || 'Disabled'}\n`;
     if (Array.isArray(settingsData.shortcuts)) {
       const count = settingsData.shortcuts.length;
       previewText += `• ${getMessage('keyboardShortcuts') || 'Keyboard Shortcuts'}: ${count} ${getMessage('items') || 'items'}\n`;
@@ -2348,6 +2355,7 @@ async function importSettings() {
       neverSuspendPinned: settingsData.neverSuspendPinned !== false,
       neverSuspendActive: settingsData.neverSuspendActive === true,
       rememberLastActiveTab: settingsData.rememberLastActiveTab !== false,
+      clickAnywhereToUnsuspend: settingsData.clickAnywhereToUnsuspend === true,
       whitelist: Array.isArray(settingsData.whitelist) ? settingsData.whitelist : [],
       themeMode: normalizeThemeMode(settingsData.themeMode),
       fixFaviconEnabled: settingsData.fixFaviconEnabled !== false,

@@ -11,6 +11,7 @@ const DEFAULT_SETTINGS = {
   neverSuspendPinned: true, // never suspend pinned tabs
   neverSuspendActive: false, // never suspend active tab in each window
   rememberLastActiveTab: true, // remember last active tab when browser loses focus
+  clickAnywhereToUnsuspend: false, // allow clicking anywhere on the suspended page to unsuspend
   // Favicon fix processor settings
   fixFaviconEnabled: true, // enable suspended favicon fixing
   fixFaviconBatchSize: 0, // 0 = unlimited per checkTabs batch
