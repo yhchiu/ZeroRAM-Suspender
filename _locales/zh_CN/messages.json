@@ -1,5 +1,6 @@
 {
   "extName": { "message": "ZeroRAM Suspender" },
+  "audioTabProtected": { "message": "正在播放音频，已暂停自动挂起" },
   "clickAnywhereToUnsuspend": { "message": "点击挂起页任意位置即可唤醒" },
   "clickAnywhereToUnsuspendHelp": { "message": "启用后，点击原始标题或网址也会重新加载挂起的标签页。" },
   "suspendedInstructionClickAnywhere": { "message": "点击任意位置或按 Ctrl+Shift+Z 即可重新加载此标签页。" },

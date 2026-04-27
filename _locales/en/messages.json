@@ -23,6 +23,7 @@
   "tabReloading": { "message": "Reloading" },
   "autoSuspendDisabled": { "message": "Auto suspend disabled" },
   "autoSuspendPaused": { "message": "Auto suspend paused" },
+  "audioTabProtected": { "message": "Playing audio; auto suspend paused" },
   "tabWillSuspend": { "message": "Tab will suspend automatically." },
   "notNow": { "message": "Not now" },
   "allowSuspend": { "message": "Allow suspend" },

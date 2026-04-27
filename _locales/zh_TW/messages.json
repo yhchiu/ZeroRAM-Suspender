@@ -1,5 +1,6 @@
 {
   "extName": { "message": "ZeroRAM Suspender" },
+  "audioTabProtected": { "message": "正在播放音訊，已暫停自動休眠" },
   "clickAnywhereToUnsuspend": { "message": "點擊暫停頁任意位置即可喚醒" },
   "clickAnywhereToUnsuspendHelp": { "message": "啟用後，點擊原始標題或網址也會重新載入暫停的分頁。" },
   "suspendedInstructionClickAnywhere": { "message": "點擊任意位置或按 Ctrl+Shift+Z 即可重新載入此分頁。" },

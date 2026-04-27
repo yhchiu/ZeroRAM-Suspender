@@ -58,6 +58,7 @@
   const isPlaceholder = tab.url.startsWith(suspendedPrefix);
   const isInternal = isInternalUrl(tab.url);
   const isWhitelistedUrl = isWhitelisted(tab.url, settings);
+  const isAudioProtected = settings.neverSuspendAudio !== false && tab.audible === true;
   const matchedWhitelistEntry = getMatchedWhitelistEntry(tab.url, settings);
   const cannotSuspend = isInternal || isWhitelistedUrl;
   const bannerEl = document.getElementById('banner');
@@ -160,6 +161,11 @@
   } else {
     if (settings.autoSuspendMinutes === 0) {
       bannerTextEl.textContent = getMessage('autoSuspendDisabled');
+      bannerEl.classList.remove('blue');
+      bannerEl.classList.add('gray');
+      actionLink.style.display = 'none';
+    } else if (isAudioProtected) {
+      bannerTextEl.textContent = getMessage('audioTabProtected');
       bannerEl.classList.remove('blue');
       bannerEl.classList.add('gray');
       actionLink.style.display = 'none';
@@ -318,4 +324,4 @@
       await chrome.runtime.sendMessage({ command: 'updateSettings', settings: cfg });
     }
   }
-})(); 
+})();
