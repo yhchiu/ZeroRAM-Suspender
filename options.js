@@ -1,6 +1,7 @@
 // options.js - handle save/load settings with modern UI navigation
 const STORAGE_KEY = 'utsSettings';
 const CACHE_THEME_KEY = 'utsCacheThemeMode';
+const VALID_THEME_MODES = new Set(['auto', 'light', 'dark']);
 
 // Shared command description map for i18n lookups
 const COMMAND_DESCRIPTIONS = {
@@ -45,6 +46,18 @@ function initializeElements() {
   fixFaviconEnabledEl = document.getElementById('fixFaviconEnabled');
   fixFaviconBatchSizeEl = document.getElementById('fixFaviconBatchSize');
   fixFaviconMaxRetriesEl = document.getElementById('fixFaviconMaxRetries');
+}
+
+function normalizeThemeMode(themeMode) {
+  return VALID_THEME_MODES.has(themeMode) ? themeMode : 'auto';
+}
+
+function cacheThemeMode(themeMode) {
+  try {
+    localStorage.setItem(CACHE_THEME_KEY, normalizeThemeMode(themeMode));
+  } catch (e) {
+    console.warn('[ZeroRAM Suspender] Failed to cache theme in localStorage:', e);
+  }
 }
 
 /* ---------- Overlay Notice mechanism ---------- */
@@ -204,7 +217,7 @@ function load() {
     neverSuspendActiveEl.checked = cfg.neverSuspendActive === true; // default false
     rememberLastActiveTabEl.checked = cfg.rememberLastActiveTab !== false; // default true
     // Load theme settings with default to 'auto'
-    themeModeEl.value = cfg.themeMode || 'auto'; // default to auto (follow system)
+    themeModeEl.value = normalizeThemeMode(cfg.themeMode); // default to auto (follow system)
     // Favicon fix settings
     fixFaviconEnabledEl.checked = cfg.fixFaviconEnabled !== false; // default true
     fixFaviconBatchSizeEl.value = (typeof cfg.fixFaviconBatchSize === 'number' ? cfg.fixFaviconBatchSize : 0);
@@ -247,7 +260,7 @@ function save() {
         updatedCfg.neverSuspendPinned = neverSuspendPinnedEl.checked;
         updatedCfg.neverSuspendActive = neverSuspendActiveEl.checked;
         updatedCfg.rememberLastActiveTab = rememberLastActiveTabEl.checked;
-        updatedCfg.themeMode = themeModeEl.value;
+        updatedCfg.themeMode = normalizeThemeMode(themeModeEl.value);
         updatedCfg.fixFaviconEnabled = fixFaviconEnabledEl.checked;
         updatedCfg.fixFaviconBatchSize = parseInt(fixFaviconBatchSizeEl.value, 10) || 0;
         updatedCfg.fixFaviconMaxRetries = parseInt(fixFaviconMaxRetriesEl.value, 10);
@@ -271,19 +284,15 @@ function save() {
           neverSuspendPinned: neverSuspendPinnedEl.checked,
           neverSuspendActive: neverSuspendActiveEl.checked,
           rememberLastActiveTab: rememberLastActiveTabEl.checked,
-          themeMode: themeModeEl.value,
+          themeMode: normalizeThemeMode(themeModeEl.value),
           fixFaviconEnabled: fixFaviconEnabledEl.checked,
           fixFaviconBatchSize: parseInt(fixFaviconBatchSizeEl.value, 10) || 0,
           fixFaviconMaxRetries: parseInt(fixFaviconMaxRetriesEl.value, 10),
         };
     }
 
-    // Save theme mode to localStorage for suspended page caching
-    try {
-      localStorage.setItem(CACHE_THEME_KEY, updatedCfg.themeMode);
-    } catch (e) {
-      console.warn('[ZeroRAM Suspender] Failed to cache theme in localStorage:', e);
-    }
+    // Keep the suspended page cache valid even when saving non-theme sections.
+    cacheThemeMode(updatedCfg.themeMode);
 
     chrome.storage.sync.set({ [STORAGE_KEY]: updatedCfg }, () => {
       chrome.runtime.sendMessage({ command: 'updateSettings', settings: updatedCfg });
@@ -2106,7 +2115,7 @@ async function getCurrentSettings() {
         neverSuspendActive: cfg.neverSuspendActive === true,
         rememberLastActiveTab: cfg.rememberLastActiveTab !== false,
         whitelist: cfg.whitelist || [],
-        themeMode: cfg.themeMode || 'auto',
+        themeMode: normalizeThemeMode(cfg.themeMode),
         fixFaviconEnabled: cfg.fixFaviconEnabled !== false,
         fixFaviconBatchSize: typeof cfg.fixFaviconBatchSize === 'number' ? cfg.fixFaviconBatchSize : 0,
         fixFaviconMaxRetries: typeof cfg.fixFaviconMaxRetries === 'number' ? cfg.fixFaviconMaxRetries : 5
@@ -2340,18 +2349,14 @@ async function importSettings() {
       neverSuspendActive: settingsData.neverSuspendActive === true,
       rememberLastActiveTab: settingsData.rememberLastActiveTab !== false,
       whitelist: Array.isArray(settingsData.whitelist) ? settingsData.whitelist : [],
-      themeMode: settingsData.themeMode || 'auto',
+      themeMode: normalizeThemeMode(settingsData.themeMode),
       fixFaviconEnabled: settingsData.fixFaviconEnabled !== false,
       fixFaviconBatchSize: typeof settingsData.fixFaviconBatchSize === 'number' ? settingsData.fixFaviconBatchSize : 0,
       fixFaviconMaxRetries: typeof settingsData.fixFaviconMaxRetries === 'number' ? settingsData.fixFaviconMaxRetries : 5
     };
     
     // Save theme mode to localStorage for suspended page caching
-    try {
-      localStorage.setItem(CACHE_THEME_KEY, newSettings.themeMode);
-    } catch (e) {
-      console.warn('[ZeroRAM Suspender] Failed to cache theme in localStorage:', e);
-    }
+    cacheThemeMode(newSettings.themeMode);
 
     // Save to storage
     await new Promise((resolve, reject) => {

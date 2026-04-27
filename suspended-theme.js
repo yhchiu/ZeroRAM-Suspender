@@ -1,5 +1,13 @@
+const VALID_THEME_MODES = new Set(['auto', 'light', 'dark']);
+
+function normalizeThemeMode(themeMode) {
+    return VALID_THEME_MODES.has(themeMode) ? themeMode : null;
+}
+
 function applyTheme(themeMode) {
-    if (!themeMode || themeMode == 'auto') {
+    themeMode = normalizeThemeMode(themeMode) || 'auto';
+
+    if (themeMode === 'auto') {
         const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
         themeMode = isDarkMode ? 'dark' : 'light';
     }
@@ -22,7 +30,10 @@ function applyTheme(themeMode) {
     // Try to get theme from localStorage cache first
     let themeMode;
     try {
-        themeMode = localStorage.getItem(CACHE_THEME_KEY);
+        themeMode = normalizeThemeMode(localStorage.getItem(CACHE_THEME_KEY));
+        if (!themeMode) {
+            localStorage.removeItem(CACHE_THEME_KEY);
+        }
     } catch (e) {
         console.warn('[ZeroRAM Suspender] Failed to access localStorage:', e);
     }
@@ -35,7 +46,7 @@ function applyTheme(themeMode) {
         // No cache, load from chrome storage
         chrome.storage.sync.get(STORAGE_KEY, (data) => {
             const cfg = data[STORAGE_KEY] || {};
-            const syncedThemeMode = cfg.themeMode || 'auto';
+            const syncedThemeMode = normalizeThemeMode(cfg.themeMode) || 'auto';
 
             applyTheme(syncedThemeMode);
 
