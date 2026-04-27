@@ -2,7 +2,7 @@
   "name": "ZeroRAM Suspender",
   "description": "__MSG_extDescription__",
   "author": "Yu-Hsiung Chiu",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "manifest_version": 3,
   "minimum_chrome_version": "88",
   "default_locale": "en",

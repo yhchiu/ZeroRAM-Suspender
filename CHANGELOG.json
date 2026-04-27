@@ -1,12 +1,45 @@
 [
 {
-  "sha": "abfc81fbf3ba9fb5c5a038ba0a2a4e6216ef112f",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/abfc81fbf3ba9fb5c5a038ba0a2a4e6216ef112f",
+  "sha": "ea717fb9bfafa9fa9b7a0af394ebba89ccf3eed5",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/ea717fb9bfafa9fa9b7a0af394ebba89ccf3eed5",
+  "commit": {
+    "message": "Update version to 1.6.1",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-04-27T19:29:10+08:00"
+    }
+  }
+},
+{
+  "sha": "ab1563062802febff27a847ad7a3200b6c6badc2",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/ab1563062802febff27a847ad7a3200b6c6badc2",
+  "commit": {
+    "message": "Add option to click anywhere on suspended page to unsuspend",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-04-27T19:23:10+08:00"
+    }
+  }
+},
+{
+  "sha": "bb3e6b355862283a9ab388a86f158cdf5b72c9ce",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/bb3e6b355862283a9ab388a86f158cdf5b72c9ce",
+  "commit": {
+    "message": "Fix whitelist save corrupting cached theme mode",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-04-27T18:27:25+08:00"
+    }
+  }
+},
+{
+  "sha": "7bab387d25c3d4e5ba753f0dc22f50983de6fdcd",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/7bab387d25c3d4e5ba753f0dc22f50983de6fdcd",
   "commit": {
     "message": "Update version to 1.6.0",
     "author": {
       "name": "Arthur Chiu",
-      "date": "2026-02-12T17:19:42+08:00"
+      "date": "2026-02-12T17:20:25+08:00"
     }
   }
 },
