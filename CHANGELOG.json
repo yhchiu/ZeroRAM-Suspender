@@ -1,12 +1,45 @@
 [
 {
-  "sha": "ea717fb9bfafa9fa9b7a0af394ebba89ccf3eed5",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/ea717fb9bfafa9fa9b7a0af394ebba89ccf3eed5",
+  "sha": "324bdb5cf9e8af00ec8785e637665a36cd1f85cc",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/324bdb5cf9e8af00ec8785e637665a36cd1f85cc",
+  "commit": {
+    "message": "Update version to 1.6.2",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-05-14T17:00:42+08:00"
+    }
+  }
+},
+{
+  "sha": "7af0c7be95fb60cfbab3053b67e099d0df7d98f9",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/7af0c7be95fb60cfbab3053b67e099d0df7d98f9",
+  "commit": {
+    "message": "Fix favicon rendering issue on suspended tabs in newer Chrome versions",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-05-14T17:00:13+08:00"
+    }
+  }
+},
+{
+  "sha": "e3670b88f26857b01ac49d75f7d9a0fdc3d5196f",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/e3670b88f26857b01ac49d75f7d9a0fdc3d5196f",
+  "commit": {
+    "message": "Fix popup status for audio-protected tabs",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-04-27T19:59:03+08:00"
+    }
+  }
+},
+{
+  "sha": "e5b0bbb1a60600f9a9ee962a41bc982f210037fb",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/e5b0bbb1a60600f9a9ee962a41bc982f210037fb",
   "commit": {
     "message": "Update version to 1.6.1",
     "author": {
       "name": "Arthur Chiu",
-      "date": "2026-04-27T19:29:10+08:00"
+      "date": "2026-04-27T19:30:05+08:00"
     }
   }
 },
