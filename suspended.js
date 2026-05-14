@@ -37,42 +37,64 @@
     }
 
     const faviconUrl = getFaviconURL(pageUrl);
-    const img = new Image();
     
-    img.onload = function() {
-      // Create canvas
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      // Set canvas size to favicon size (usually 16x16 or 32x32)
-      canvas.width = 32;
-      canvas.height = 32;
-      
-      // Set global alpha for transparency
-      ctx.globalAlpha = 0.5; // 50% transparency
-      
-      // Draw the favicon
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      
-      // Convert canvas to data URL
-      const transparentFaviconUrl = canvas.toDataURL('image/png');
-      
-      // Set the transparent favicon
+    function setFavicon(url) {
       const link = document.createElement('link');
       link.rel = 'icon';
-      link.href = transparentFaviconUrl;
+      link.href = url;
       document.head.appendChild(link);
-    };
-    
-    img.onerror = function() {
-      // If loading fails, try to use the original page URL as fallback
-      const link = document.createElement('link');
-      link.rel = 'icon';
-      link.href = faviconUrl;
-      document.head.appendChild(link);
-    };
-    
-    img.src = faviconUrl;
+    }
+
+    // Try fetching the favicon as a Blob to avoid tainted canvas issues
+    fetch(faviconUrl)
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.blob();
+      })
+      .then(blob => {
+        const objectURL = URL.createObjectURL(blob);
+        const img = new Image();
+        
+        img.onload = function() {
+          try {
+            // Create canvas
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size to favicon size (usually 16x16 or 32x32)
+            canvas.width = 32;
+            canvas.height = 32;
+            
+            // Set global alpha for transparency
+            ctx.globalAlpha = 0.5; // 50% transparency
+            
+            // Draw the favicon
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
+            // Convert canvas to data URL
+            const transparentFaviconUrl = canvas.toDataURL('image/png');
+            
+            // Set the transparent favicon
+            setFavicon(transparentFaviconUrl);
+          } catch (e) {
+            console.warn('[ZeroRAM Suspender] Tainted canvas error, falling back to original favicon:', e);
+            setFavicon(faviconUrl);
+          } finally {
+            URL.revokeObjectURL(objectURL);
+          }
+        };
+        
+        img.onerror = function() {
+          setFavicon(faviconUrl);
+          URL.revokeObjectURL(objectURL);
+        };
+        
+        img.src = objectURL;
+      })
+      .catch(err => {
+        console.warn('[ZeroRAM Suspender] Failed to fetch favicon, falling back to original:', err);
+        setFavicon(faviconUrl);
+      });
   }
 
   const urlEl = document.getElementById('origUrl');
