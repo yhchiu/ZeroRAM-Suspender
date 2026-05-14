@@ -422,7 +422,10 @@ async function suspendTab(tab, settings) {
   }
 }
 
-// Wait for tab to finish loading the suspended.html page
+// Wait for tab to finish loading the suspended.html page, then wait for
+// Chrome to confirm a favIconUrl before discarding. This prevents the
+// browser process from freezing the renderer before it has registered
+// the favicon, which would cause the extension's default icon to show.
 async function waitForTabLoaded(tabId, settings) {
   return new Promise((resolve, reject) => {
     // Set up timeout as fallback (max 10 seconds)
@@ -431,9 +434,22 @@ async function waitForTabLoaded(tabId, settings) {
       resolve(); // Resolve anyway to prevent hanging
     }, 10000);
 
-    // Store the resolve function to be called when tab finishes loading
-    pendingDiscardTabs.set(tabId, { 
-      settings, 
+    // Helper: call resolve only when BOTH page is complete AND favicon is ready.
+    // Either condition arriving first will wait for the other.
+    // If favIconUrl is already populated when either flag flips, we resolve immediately.
+    function tryResolve(pendingInfo) {
+      if (pendingInfo.pageComplete && pendingInfo.faviconReady) {
+        pendingInfo.resolve();
+      }
+    }
+
+    // Store the state object; pageComplete is set by onUpdated,
+    // faviconReady is set by the 'faviconReady' message from suspended.js.
+    pendingDiscardTabs.set(tabId, {
+      settings,
+      pageComplete: false,
+      faviconReady: false,
+      tryResolve,
       resolve: () => {
         clearTimeout(timeout);
         pendingDiscardTabs.delete(tabId);
@@ -441,14 +457,16 @@ async function waitForTabLoaded(tabId, settings) {
       }
     });
 
-    // Check if tab is already loaded (race condition handling)
+    // Check if tab is already in a fully-ready state (race condition handling).
+    // Note: we do NOT check tab.favIconUrl here — for chrome-extension:// URLs,
+    // Chrome auto-populates favIconUrl from the manifest icons, which is NOT the
+    // correct site favicon that suspended.js generates asynchronously.
     chrome.tabs.get(tabId).then(tab => {
+      const pendingInfo = pendingDiscardTabs.get(tabId);
+      if (!pendingInfo) return;
       if (isSuspendedTab(tab) && tab.status === 'complete') {
-        // Tab is already loaded
-        const pendingInfo = pendingDiscardTabs.get(tabId);
-        if (pendingInfo) {
-          pendingInfo.resolve();
-        }
+        pendingInfo.pageComplete = true;
+        tryResolve(pendingInfo);
       }
     }).catch(() => {
       // Tab might have been closed, just resolve
@@ -737,11 +755,13 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       }
     } catch (_) {}
     
-    // If tab was waiting for discard and suspended.html is now loaded, trigger discard
+    // Page is fully loaded: mark pageComplete. Resolve only when favicon is
+    // also ready (signalled by the 'faviconReady' message from suspended.js).
     if (pendingDiscardTabs.has(tabId) && isSuspendedTab(tab)) {
       const pendingInfo = pendingDiscardTabs.get(tabId);
       if (pendingInfo) {
-        pendingInfo.resolve();
+        pendingInfo.pageComplete = true;
+        pendingInfo.tryResolve(pendingInfo);
       }
     }
 
@@ -758,6 +778,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     }
   }
   
+  // Note: changeInfo.favIconUrl is NOT used here for pending-discard logic.
+  // For chrome-extension:// pages, Chrome sets favIconUrl from the manifest
+  // icons, not from the <link rel="icon"> that suspended.js creates.
+  // The reliable signal is the 'faviconReady' message from suspended.js.
+
   if (changeInfo.active === false) {
     // Tab became inactive - update timestamp to track when it was last seen
     seenTimestamps[tabId] = Date.now();
@@ -890,6 +915,21 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         respond({ done: true });
       } else if (msg.command === 'cancelBulk') {
         cancelBulkNow();
+        respond({ done: true });
+      } else if (msg.command === 'faviconReady') {
+        // Sent by suspended.js after it has set the <link rel="icon"> in the DOM.
+        // We delay slightly to give Chrome's browser process time to propagate
+        // the favicon from the renderer before we discard.
+        const tabId = sender.tab ? sender.tab.id : null;
+        if (tabId && pendingDiscardTabs.has(tabId)) {
+          setTimeout(() => {
+            const pendingInfo = pendingDiscardTabs.get(tabId);
+            if (pendingInfo) {
+              pendingInfo.faviconReady = true;
+              pendingInfo.tryResolve(pendingInfo);
+            }
+          }, 200);
+        }
         respond({ done: true });
       } else if (msg.command === 'startUnsuspending') {
         // Get the current tab ID from sender

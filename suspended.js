@@ -43,6 +43,11 @@
       link.rel = 'icon';
       link.href = url;
       document.head.appendChild(link);
+      // Notify background script that favicon has been set in the DOM,
+      // so it can safely discard the tab without losing the icon.
+      try {
+        chrome.runtime.sendMessage({ command: 'faviconReady' });
+      } catch (_) {}
     }
 
     // Try fetching the favicon as a Blob to avoid tainted canvas issues
