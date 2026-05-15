@@ -159,6 +159,35 @@ async function loadLastActiveTab() {
   lastActiveTabId = saved || null;
 }
 
+const LAST_ACTIVE_PER_WINDOW_KEY = 'utsLastActiveTabPerWindow';
+
+// Persist lastActiveTabPerWindow to session storage and update in-memory map.
+function setLastActiveTabInWindow(windowId, data) {
+  lastActiveTabPerWindow.set(windowId, data);
+  chrome.storage.session.set({
+    [LAST_ACTIVE_PER_WINDOW_KEY]: Object.fromEntries(lastActiveTabPerWindow)
+  });
+}
+
+// Remove a window entry from lastActiveTabPerWindow and persist the change.
+function removeLastActiveTabInWindow(windowId) {
+  lastActiveTabPerWindow.delete(windowId);
+  chrome.storage.session.set({
+    [LAST_ACTIVE_PER_WINDOW_KEY]: Object.fromEntries(lastActiveTabPerWindow)
+  });
+}
+
+// Restore lastActiveTabPerWindow from session storage on cold start.
+async function loadLastActiveTabPerWindow() {
+  const { [LAST_ACTIVE_PER_WINDOW_KEY]: saved } =
+    await chrome.storage.session.get(LAST_ACTIVE_PER_WINDOW_KEY);
+  if (saved) {
+    lastActiveTabPerWindow = new Map(
+      Object.entries(saved).map(([k, v]) => [Number(k), v])
+    );
+  }
+}
+
 // Helper: internal URL check
 function isInternalUrl(url) {
   return (
@@ -317,7 +346,7 @@ async function markWindowActiveTabSeen(windowId, timestamp) {
     const activeTabs = await chrome.tabs.query({ windowId, active: true });
     if (activeTabs.length > 0 && typeof activeTabs[0].id === 'number') {
       const activeTabId = activeTabs[0].id;
-      lastActiveTabPerWindow.set(windowId, { tabId: activeTabId, timestamp });
+      setLastActiveTabInWindow(windowId, { tabId: activeTabId, timestamp });
       return markTabSeen(activeTabId, timestamp);
     }
   } catch (_) {
@@ -626,31 +655,61 @@ chrome.runtime.onInstalled.addListener(async () => {
   const { [TEMP_KEY]: tmp = [] } = await chrome.storage.session.get(TEMP_KEY);
   setTempWhitelistFromStorageValue(tmp);
   const { utsSeen = {} } = await chrome.storage.session.get('utsSeen');
-  seenTimestamps = utsSeen;
-  // Load last active tab ID
+  // Merge persisted timestamps instead of replacing the object.
+  // Event handlers (e.g. onActivated) may have already written fresh
+  // timestamps into seenTimestamps during the async gap above; a plain
+  // assignment would silently discard those writes.
+  for (const [key, value] of Object.entries(utsSeen)) {
+    if (!(key in seenTimestamps) || seenTimestamps[key] < value) {
+      seenTimestamps[key] = value;
+    }
+  }
+  // Load last active tab ID and per-window active tab map from session storage.
   await loadLastActiveTab();
+  await loadLastActiveTabPerWindow();
 
   // Initialize per-window active tab tracking
   try {
     const windows = await chrome.windows.getAll();
+    const currentWindowIds = new Set(windows.map(w => w.id));
+
+    // Remove entries for windows that no longer exist.
+    for (const winId of lastActiveTabPerWindow.keys()) {
+      if (!currentWindowIds.has(winId)) {
+        lastActiveTabPerWindow.delete(winId);
+      }
+    }
+
     let focusedWindowActiveTabId = null;
     const focusedWindow = windows.find(w => w.focused);
     // Keep startup init from overwriting a newer focus event.
     if (lastFocusedWindowId === chrome.windows.WINDOW_ID_NONE) {
       lastFocusedWindowId = focusedWindow ? focusedWindow.id : chrome.windows.WINDOW_ID_NONE;
     }
+    let needsSave = false;
     for (const window of windows) {
       const activeTabs = await chrome.tabs.query({ windowId: window.id, active: true });
       if (activeTabs.length > 0) {
         const activeTab = activeTabs[0];
-        lastActiveTabPerWindow.set(window.id, {
-          tabId: activeTab.id,
-          timestamp: Date.now()
-        });
+        // Only seed if not already restored from session storage;
+        // overwriting would discard the persisted previous-tab identity.
+        if (!lastActiveTabPerWindow.has(window.id)) {
+          lastActiveTabPerWindow.set(window.id, {
+            tabId: activeTab.id,
+            timestamp: Date.now()
+          });
+          needsSave = true;
+        }
         if (focusedWindow && focusedWindow.id === window.id) {
           focusedWindowActiveTabId = activeTab.id;
         }
       }
+    }
+    // Persist once if anything was added or stale entries removed.
+    if (needsSave || lastActiveTabPerWindow.size !== currentWindowIds.size) {
+      chrome.storage.session.set({
+        [LAST_ACTIVE_PER_WINDOW_KEY]: Object.fromEntries(lastActiveTabPerWindow)
+      });
     }
     // Initialize lastActiveTabId to current focused window's active tab (if available)
     if (focusedWindowActiveTabId && lastActiveTabId !== focusedWindowActiveTabId) {
@@ -679,8 +738,8 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
   seenTimestamps[tabId] = now;
   saveSeenTimestamps();
 
-  // Track the new active tab for this window
-  lastActiveTabPerWindow.set(windowId, { tabId, timestamp: now });
+  // Track the new active tab for this window (persisted to session storage).
+  setLastActiveTabInWindow(windowId, { tabId, timestamp: now });
 
   // Update last active tab when user switches tabs
   if (lastActiveTabId !== tabId) {
@@ -721,7 +780,7 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
     if (activeTabs.length > 0) {
       const activeTabId = activeTabs[0].id;
       // Keep per-window active tab tracking fresh even if onActivated doesn't fire on focus switch.
-      lastActiveTabPerWindow.set(windowId, { tabId: activeTabId, timestamp: now });
+      setLastActiveTabInWindow(windowId, { tabId: activeTabId, timestamp: now });
       // Only update global focused-tab memory if this event is still current.
       if (lastFocusedWindowId === windowId && lastActiveTabId !== activeTabId) {
         lastActiveTabId = activeTabId;
@@ -820,7 +879,7 @@ chrome.tabs.onCreated.addListener(async (tab) => {
         await saveLastActiveTab();
       }
       // Also record this activation in our per-window map
-      lastActiveTabPerWindow.set(tab.windowId, { tabId: tab.id, timestamp: now });
+      setLastActiveTabInWindow(tab.windowId, { tabId: tab.id, timestamp: now });
     }
   } catch (e) {
     console.warn('onCreated handler failed:', e);
@@ -848,7 +907,7 @@ chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
   const { windowId } = removeInfo;
   const lastActiveInWindow = lastActiveTabPerWindow.get(windowId);
   if (lastActiveInWindow && lastActiveInWindow.tabId === tabId) {
-    lastActiveTabPerWindow.delete(windowId);
+    removeLastActiveTabInWindow(windowId);
   }
 
   delete seenTimestamps[tabId];
