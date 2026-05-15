@@ -1,12 +1,45 @@
 [
 {
-  "sha": "324bdb5cf9e8af00ec8785e637665a36cd1f85cc",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/324bdb5cf9e8af00ec8785e637665a36cd1f85cc",
+  "sha": "f666df62e63a27b18b3d6b35b59ed676e6ba1d94",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/f666df62e63a27b18b3d6b35b59ed676e6ba1d94",
+  "commit": {
+    "message": "Update version to 1.6.3",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-05-15T09:54:43+08:00"
+    }
+  }
+},
+{
+  "sha": "76bd9ddefdef75b53d4f890d9d495bc22dd683d3",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/76bd9ddefdef75b53d4f890d9d495bc22dd683d3",
+  "commit": {
+    "message": "Fix premature suspension after tab switch when service worker restarts",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-05-15T09:16:28+08:00"
+    }
+  }
+},
+{
+  "sha": "e6cd75d23aa93ffcf9f0a73bd065cc9d81a9eb20",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/e6cd75d23aa93ffcf9f0a73bd065cc9d81a9eb20",
+  "commit": {
+    "message": "Fix suspended tab showing extension icon by waiting for suspended.js signal",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-05-14T22:45:07+08:00"
+    }
+  }
+},
+{
+  "sha": "67eddcab0c5c8995b837a6ab737d3f7689039fc8",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/67eddcab0c5c8995b837a6ab737d3f7689039fc8",
   "commit": {
     "message": "Update version to 1.6.2",
     "author": {
       "name": "Arthur Chiu",
-      "date": "2026-05-14T17:00:42+08:00"
+      "date": "2026-05-14T17:01:32+08:00"
     }
   }
 },
