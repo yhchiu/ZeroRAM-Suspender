@@ -2,6 +2,7 @@
 const STORAGE_KEY = 'utsSettings';
 const CACHE_THEME_KEY = 'utsCacheThemeMode';
 const VALID_THEME_MODES = new Set(['auto', 'light', 'dark']);
+const FAVICON_FIX_DEFAULT_BATCH_SIZE = 50;
 
 // Shared command description map for i18n lookups
 const COMMAND_DESCRIPTIONS = {
@@ -222,7 +223,7 @@ function load() {
     themeModeEl.value = normalizeThemeMode(cfg.themeMode); // default to auto (follow system)
     // Favicon fix settings
     fixFaviconEnabledEl.checked = cfg.fixFaviconEnabled !== false; // default true
-    fixFaviconBatchSizeEl.value = (typeof cfg.fixFaviconBatchSize === 'number' ? cfg.fixFaviconBatchSize : 0);
+    fixFaviconBatchSizeEl.value = (typeof cfg.fixFaviconBatchSize === 'number' ? cfg.fixFaviconBatchSize : FAVICON_FIX_DEFAULT_BATCH_SIZE);
     fixFaviconMaxRetriesEl.value = (typeof cfg.fixFaviconMaxRetries === 'number' ? cfg.fixFaviconMaxRetries : 5);
   });
 }
@@ -2102,7 +2103,7 @@ function getDefaultSettings() {
     whitelist: [],
     themeMode: 'auto',
     fixFaviconEnabled: true,
-    fixFaviconBatchSize: 0,
+    fixFaviconBatchSize: FAVICON_FIX_DEFAULT_BATCH_SIZE,
     fixFaviconMaxRetries: 5
   };
 }
@@ -2123,7 +2124,7 @@ async function getCurrentSettings() {
         whitelist: cfg.whitelist || [],
         themeMode: normalizeThemeMode(cfg.themeMode),
         fixFaviconEnabled: cfg.fixFaviconEnabled !== false,
-        fixFaviconBatchSize: typeof cfg.fixFaviconBatchSize === 'number' ? cfg.fixFaviconBatchSize : 0,
+        fixFaviconBatchSize: typeof cfg.fixFaviconBatchSize === 'number' ? cfg.fixFaviconBatchSize : FAVICON_FIX_DEFAULT_BATCH_SIZE,
         fixFaviconMaxRetries: typeof cfg.fixFaviconMaxRetries === 'number' ? cfg.fixFaviconMaxRetries : 5
       };
       resolve(settings);
@@ -2359,7 +2360,7 @@ async function importSettings() {
       whitelist: Array.isArray(settingsData.whitelist) ? settingsData.whitelist : [],
       themeMode: normalizeThemeMode(settingsData.themeMode),
       fixFaviconEnabled: settingsData.fixFaviconEnabled !== false,
-      fixFaviconBatchSize: typeof settingsData.fixFaviconBatchSize === 'number' ? settingsData.fixFaviconBatchSize : 0,
+      fixFaviconBatchSize: typeof settingsData.fixFaviconBatchSize === 'number' ? settingsData.fixFaviconBatchSize : FAVICON_FIX_DEFAULT_BATCH_SIZE,
       fixFaviconMaxRetries: typeof settingsData.fixFaviconMaxRetries === 'number' ? settingsData.fixFaviconMaxRetries : 5
     };
     

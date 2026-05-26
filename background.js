@@ -3,6 +3,8 @@
 // Handles automatic suspension and user commands.
 
 // ==== Storage Keys ====
+const FAVICON_FIX_DEFAULT_BATCH_SIZE = 50;
+
 const DEFAULT_SETTINGS = {
   autoSuspendMinutes: 30, // 0 = never
   useNativeDiscard: true, // true = chrome.tabs.discard, false = placeholder page
@@ -14,7 +16,7 @@ const DEFAULT_SETTINGS = {
   clickAnywhereToUnsuspend: false, // allow clicking anywhere on the suspended page to unsuspend
   // Favicon fix processor settings
   fixFaviconEnabled: true, // enable suspended favicon fixing
-  fixFaviconBatchSize: 0, // 0 = unlimited per checkTabs batch
+  fixFaviconBatchSize: FAVICON_FIX_DEFAULT_BATCH_SIZE, // 0 = unlimited per checkTabs batch
   fixFaviconMaxRetries: 5, // max attempts per tab to avoid infinite reloads
 };
 
@@ -27,7 +29,7 @@ const SUSPENDED_PREFIX = chrome.runtime.getURL('suspended.html');
 const DISCARD_READY_TIMEOUT_MS = 10000;
 const FAVICON_PROPAGATION_DELAY_MS = 200;
 const EXTENSION_DEFAULT_FAVICON_URLS = new Set(
-  getExtensionIconPaths().map(path => normalizeFaviconUrl(chrome.runtime.getURL(path)))
+  getExtensionIconPaths().map(path => chrome.runtime.getURL(path))
 );
 
 // In-memory cache for temporary whitelist
@@ -329,21 +331,23 @@ function getExtensionIconPaths() {
   return Array.from(paths);
 }
 
-function normalizeFaviconUrl(url) {
+function stripFaviconUrlSuffix(url) {
   if (!url) return '';
-  try {
-    const parsed = new URL(url);
-    parsed.hash = '';
-    parsed.search = '';
-    return parsed.toString();
-  } catch (_) {
-    return String(url);
+  const text = String(url);
+  const queryIndex = text.indexOf('?');
+  const hashIndex = text.indexOf('#');
+  let cutIndex = -1;
+  if (queryIndex !== -1) cutIndex = queryIndex;
+  if (hashIndex !== -1 && (cutIndex === -1 || hashIndex < cutIndex)) {
+    cutIndex = hashIndex;
   }
+  return cutIndex === -1 ? text : text.slice(0, cutIndex);
 }
 
 function isExtensionDefaultFaviconUrl(favIconUrl) {
   if (!favIconUrl) return false;
-  return EXTENSION_DEFAULT_FAVICON_URLS.has(normalizeFaviconUrl(favIconUrl));
+  if (EXTENSION_DEFAULT_FAVICON_URLS.has(favIconUrl)) return true;
+  return EXTENSION_DEFAULT_FAVICON_URLS.has(stripFaviconUrlSuffix(favIconUrl));
 }
 
 function hasUsableSuspendedFavicon(tab) {
