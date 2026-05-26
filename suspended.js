@@ -23,11 +23,11 @@
     existingLinks.forEach(link => link.remove());
     
     // Create transparent version of favicon using page URL
-    createTransparentFavicon(originalUrl);
+    createTransparentFavicon(originalUrl, favicon);
   }
   
   // Function to create a transparent version of the favicon using Chrome Extension favicon API
-  function createTransparentFavicon(pageUrl) {
+  function createTransparentFavicon(pageUrl, fallbackFaviconUrl) {
     // Construct favicon URL using Chrome Extension favicon API
     function getFaviconURL(url) {
       const faviconUrl = new URL(chrome.runtime.getURL("/_favicon/"));
@@ -48,6 +48,10 @@
       try {
         chrome.runtime.sendMessage({ command: 'faviconReady' });
       } catch (_) {}
+    }
+
+    function setFallbackFavicon() {
+      setFavicon(fallbackFaviconUrl || faviconUrl);
     }
 
     // Try fetching the favicon as a Blob to avoid tainted canvas issues
@@ -83,14 +87,14 @@
             setFavicon(transparentFaviconUrl);
           } catch (e) {
             console.warn('[ZeroRAM Suspender] Tainted canvas error, falling back to original favicon:', e);
-            setFavicon(faviconUrl);
+            setFallbackFavicon();
           } finally {
             URL.revokeObjectURL(objectURL);
           }
         };
         
         img.onerror = function() {
-          setFavicon(faviconUrl);
+          setFallbackFavicon();
           URL.revokeObjectURL(objectURL);
         };
         
@@ -98,7 +102,7 @@
       })
       .catch(err => {
         console.warn('[ZeroRAM Suspender] Failed to fetch favicon, falling back to original:', err);
-        setFavicon(faviconUrl);
+        setFallbackFavicon();
       });
   }
 

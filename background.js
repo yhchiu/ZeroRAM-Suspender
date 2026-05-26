@@ -24,6 +24,11 @@ const LAST_ACTIVE_TAB_KEY = 'utsLastActiveTab';
 
 // Constant prefix for our suspended page URL to avoid repeated getURL calls
 const SUSPENDED_PREFIX = chrome.runtime.getURL('suspended.html');
+const DISCARD_READY_TIMEOUT_MS = 10000;
+const FAVICON_PROPAGATION_DELAY_MS = 200;
+const EXTENSION_DEFAULT_FAVICON_URLS = new Set(
+  getExtensionIconPaths().map(path => normalizeFaviconUrl(chrome.runtime.getURL(path)))
+);
 
 // In-memory cache for temporary whitelist
 let tempWhitelist = new Set();
@@ -35,7 +40,8 @@ let seenTimestamps = {};
 let unsuspendingTabs = new Set();
 
 // Track tabs that are being suspended and waiting for discard
-let pendingDiscardTabs = new Map(); // tabId -> {settings, resolve}
+let pendingDiscardTabs = new Map(); // tabId -> pending favicon/page readiness state
+let suspendedFaviconReadyTabs = new Set(); // tab IDs whose suspended favicon is ready
 
 // Track last active tab for remembering when browser loses focus
 let lastActiveTabId = null;
@@ -309,6 +315,50 @@ function isSuspendedTab(tab) {
   return tab && tab.url && tab.url.startsWith(SUSPENDED_PREFIX);
 }
 
+function getExtensionIconPaths() {
+  const manifest = chrome.runtime.getManifest();
+  const paths = new Set();
+  for (const iconSet of [manifest.icons, manifest.action && manifest.action.default_icon]) {
+    if (!iconSet || typeof iconSet !== 'object') continue;
+    for (const path of Object.values(iconSet)) {
+      if (typeof path === 'string' && path) {
+        paths.add(path);
+      }
+    }
+  }
+  return Array.from(paths);
+}
+
+function normalizeFaviconUrl(url) {
+  if (!url) return '';
+  try {
+    const parsed = new URL(url);
+    parsed.hash = '';
+    parsed.search = '';
+    return parsed.toString();
+  } catch (_) {
+    return String(url);
+  }
+}
+
+function isExtensionDefaultFaviconUrl(favIconUrl) {
+  if (!favIconUrl) return false;
+  return EXTENSION_DEFAULT_FAVICON_URLS.has(normalizeFaviconUrl(favIconUrl));
+}
+
+function hasUsableSuspendedFavicon(tab) {
+  return Boolean(tab && tab.favIconUrl && !isExtensionDefaultFaviconUrl(tab.favIconUrl));
+}
+
+function needsSuspendedFaviconFix(tab) {
+  return Boolean(
+    tab &&
+    !tab.active &&
+    isSuspendedTab(tab) &&
+    (!tab.favIconUrl || isExtensionDefaultFaviconUrl(tab.favIconUrl))
+  );
+}
+
 // Helper: parse original url from suspended tab
 function parseOriginalUrlFromSuspended(suspendedUrl) {
   try {
@@ -384,6 +434,7 @@ let fixFaviconProcessor = {
     // Get the first tab from the set
     const tabId = fixFaviconTabs.values().next().value;
     fixFaviconTabs.delete(tabId);
+    let attemptedReload = false;
     
     try {
       const settings = await getSettingsCached();
@@ -399,24 +450,28 @@ let fixFaviconProcessor = {
         // Check again if tab is still inactive 
         // (user might have clicked on it during loading)
         if (!tab.active) {
+          attemptedReload = true;
+          if (settings.useNativeDiscard) {
+            beginSuspendedReadyWait(tabId);
+          }
           await chrome.tabs.reload(tabId);
 
           if (settings.useNativeDiscard) {
-            setTimeout(() => {
-              chrome.tabs.discard(tabId).catch((error) => {
-                logUnexpectedTabError('Delayed discard for favicon fix failed', error);
-              });
-            }, 1000);
+            await discardSuspendedTabWhenReady(tabId, 'Favicon fix discard');
           }
         }
       }
     } catch (error) {
+      if (attemptedReload) {
+        cancelPendingDiscardWait(tabId);
+      }
       logUnexpectedTabError('Failed to fix tab favicon', error);
     }
     
-    // Increase retry count for this tab after an attempt
-    const currentRetries = fixFaviconRetryCounts.get(tabId) || 0;
-    fixFaviconRetryCounts.set(tabId, currentRetries + 1);
+    if (attemptedReload && !suspendedFaviconReadyTabs.has(tabId)) {
+      const currentRetries = fixFaviconRetryCounts.get(tabId) || 0;
+      fixFaviconRetryCounts.set(tabId, currentRetries + 1);
+    }
     
     // Schedule next tab processing with 1 second delay
     this.timeoutId = setTimeout(() => {
@@ -429,82 +484,141 @@ let fixFaviconProcessor = {
 async function suspendTab(tab, settings) {
   if (isInternalUrl(tab.url)) return; // skip internal pages
 
+  const shouldDiscard = settings.useNativeDiscard && !tab.active;
+  if (shouldDiscard) {
+    beginSuspendedReadyWait(tab.id);
+  }
+
   // Always switch to lightweight placeholder first
-  await suspendWithPlaceholder(tab);
+  try {
+    await suspendWithPlaceholder(tab);
+  } catch (error) {
+    if (shouldDiscard) {
+      cancelPendingDiscardWait(tab.id);
+    }
+    throw error;
+  }
 
   // If user enables native discard and tab is NOT active, discard after placeholder is loaded
-  if (settings.useNativeDiscard && !tab.active) {
-    try {
-      // Wait for the suspended.html page to fully load before discarding
-      await waitForTabLoaded(tab.id, settings);
-      
-      // Check again if tab is still inactive before discarding
-      // (user might have clicked on it during loading)
-      const currentTab = await chrome.tabs.get(tab.id);
-      if (!currentTab.active) {
-        await chrome.tabs.discard(tab.id);
-      }
-    } catch (e) {
-      // Discard may fail for active tab or if tab was closed; ignore gracefully
-      console.warn('Discard failed (may be active tab or tab closed)', e);
-    }
+  if (shouldDiscard) {
+    await discardSuspendedTabWhenReady(tab.id, 'Discard after suspend');
   }
 }
 
 // Wait for tab to finish loading the suspended.html page, then wait for
-// Chrome to confirm a favIconUrl before discarding. This prevents the
+// suspended.js to signal favicon readiness before discarding. This prevents the
 // browser process from freezing the renderer before it has registered
 // the favicon, which would cause the extension's default icon to show.
-async function waitForTabLoaded(tabId, settings) {
-  return new Promise((resolve, reject) => {
-    // Set up timeout as fallback (max 10 seconds)
-    const timeout = setTimeout(() => {
-      pendingDiscardTabs.delete(tabId);
-      resolve(); // Resolve anyway to prevent hanging
-    }, 10000);
+function beginSuspendedReadyWait(tabId, resetReady = true) {
+  if (resetReady) {
+    suspendedFaviconReadyTabs.delete(tabId);
+  }
 
-    // Helper: call resolve only when BOTH page is complete AND favicon is ready.
-    // Either condition arriving first will wait for the other.
-    // If favIconUrl is already populated when either flag flips, we resolve immediately.
-    function tryResolve(pendingInfo) {
-      if (pendingInfo.pageComplete && pendingInfo.faviconReady) {
-        pendingInfo.resolve();
-      }
-    }
-
-    // Store the state object; pageComplete is set by onUpdated,
-    // faviconReady is set by the 'faviconReady' message from suspended.js.
-    pendingDiscardTabs.set(tabId, {
-      settings,
+  let pendingInfo = pendingDiscardTabs.get(tabId);
+  if (pendingInfo) {
+    clearTimeout(pendingInfo.timeoutId);
+    pendingInfo.pageComplete = false;
+    pendingInfo.faviconReady = false;
+    pendingInfo.timedOut = false;
+  } else {
+    pendingInfo = {
       pageComplete: false,
       faviconReady: false,
-      tryResolve,
-      resolve: () => {
-        clearTimeout(timeout);
+      timedOut: false,
+      generation: 0,
+      timeoutId: null,
+      promise: null,
+      tryResolve() {
+        if (this.pageComplete && this.faviconReady) {
+          this.resolve({ timedOut: false });
+        }
+      },
+      resolve(result = { timedOut: false }) {
+        clearTimeout(this.timeoutId);
         pendingDiscardTabs.delete(tabId);
-        resolve();
+        this._resolve(result);
       }
+    };
+    pendingInfo.promise = new Promise(resolve => {
+      pendingInfo._resolve = resolve;
     });
+    pendingDiscardTabs.set(tabId, pendingInfo);
+  }
 
-    // Check if tab is already in a fully-ready state (race condition handling).
-    // Note: we do NOT check tab.favIconUrl here — for chrome-extension:// URLs,
-    // Chrome auto-populates favIconUrl from the manifest icons, which is NOT the
-    // correct site favicon that suspended.js generates asynchronously.
-    chrome.tabs.get(tabId).then(tab => {
-      const pendingInfo = pendingDiscardTabs.get(tabId);
-      if (!pendingInfo) return;
-      if (isSuspendedTab(tab) && tab.status === 'complete') {
-        pendingInfo.pageComplete = true;
-        tryResolve(pendingInfo);
+  pendingInfo.generation += 1;
+  const generation = pendingInfo.generation;
+  pendingInfo.timeoutId = setTimeout(() => {
+    pendingInfo.timedOut = true;
+    pendingInfo.resolve({ timedOut: true });
+  }, DISCARD_READY_TIMEOUT_MS);
+
+  chrome.tabs.get(tabId).then(tab => {
+    const currentPendingInfo = pendingDiscardTabs.get(tabId);
+    if (
+      !currentPendingInfo ||
+      currentPendingInfo !== pendingInfo ||
+      currentPendingInfo.generation !== generation
+    ) {
+      return;
+    }
+    if (isSuspendedTab(tab) && tab.status === 'complete') {
+      currentPendingInfo.pageComplete = true;
+      if (suspendedFaviconReadyTabs.has(tabId) || hasUsableSuspendedFavicon(tab)) {
+        currentPendingInfo.faviconReady = true;
+        suspendedFaviconReadyTabs.add(tabId);
       }
-    }).catch(() => {
-      // Tab might have been closed, just resolve
-      const pendingInfo = pendingDiscardTabs.get(tabId);
-      if (pendingInfo) {
-        pendingInfo.resolve();
-      }
-    });
+      currentPendingInfo.tryResolve();
+    }
+  }).catch(() => {
+    const currentPendingInfo = pendingDiscardTabs.get(tabId);
+    if (
+      currentPendingInfo &&
+      currentPendingInfo === pendingInfo &&
+      currentPendingInfo.generation === generation
+    ) {
+      currentPendingInfo.resolve({ tabGone: true });
+    }
   });
+
+  return pendingInfo.promise;
+}
+
+async function waitForTabLoaded(tabId, resetReady = false) {
+  const pendingInfo = pendingDiscardTabs.get(tabId);
+  return pendingInfo ? pendingInfo.promise : beginSuspendedReadyWait(tabId, resetReady);
+}
+
+function cancelPendingDiscardWait(tabId) {
+  const pendingInfo = pendingDiscardTabs.get(tabId);
+  if (pendingInfo) {
+    pendingInfo.resolve({ cancelled: true });
+  }
+}
+
+function markSuspendedFaviconReady(tabId) {
+  if (typeof tabId !== 'number') return;
+  suspendedFaviconReadyTabs.add(tabId);
+  fixFaviconRetryCounts.delete(tabId);
+  const pendingInfo = pendingDiscardTabs.get(tabId);
+  if (pendingInfo) {
+    pendingInfo.faviconReady = true;
+    pendingInfo.tryResolve();
+  }
+}
+
+async function discardSuspendedTabWhenReady(tabId, context) {
+  try {
+    await waitForTabLoaded(tabId);
+    const currentTab = await chrome.tabs.get(tabId);
+    if (!isSuspendedTab(currentTab) || currentTab.active || currentTab.discarded) {
+      return false;
+    }
+    await chrome.tabs.discard(tabId);
+    return true;
+  } catch (error) {
+    logUnexpectedTabError(`${context} failed`, error);
+    return false;
+  }
 }
 
 async function suspendWithPlaceholder(tab) {
@@ -530,7 +644,7 @@ async function checkTabs() {
       const batchSize = Number(settings.fixFaviconBatchSize) || 0; // 0 = unlimited
       let added = 0;
       for (const tab of tabs) {
-        if (!tab.active && isSuspendedTab(tab) && !tab.favIconUrl) {
+        if (needsSuspendedFaviconFix(tab)) {
           const retryCount = fixFaviconRetryCounts.get(tab.id) || 0;
           if (settings.fixFaviconMaxRetries > 0 && retryCount >= settings.fixFaviconMaxRetries) {
             continue; // reached retry limit
@@ -794,6 +908,15 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.url) {
+    if (changeInfo.url.startsWith(SUSPENDED_PREFIX)) {
+      suspendedFaviconReadyTabs.delete(tabId);
+    } else {
+      suspendedFaviconReadyTabs.delete(tabId);
+      cancelPendingDiscardWait(tabId);
+    }
+  }
+
   if (changeInfo.status === 'complete') {
     seenTimestamps[tabId] = Date.now();
     saveSeenTimestamps();
@@ -807,25 +930,26 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (fixFaviconTabs.has(tabId)) {
       fixFaviconTabs.delete(tabId);
     }
-    // If suspended tab now has a favicon, clear retry count
-    try {
-      if (isSuspendedTab(tab) && tab.favIconUrl) {
-        fixFaviconRetryCounts.delete(tabId);
-      }
-    } catch (_) {}
+    const suspended = isSuspendedTab(tab);
+    if (suspended && hasUsableSuspendedFavicon(tab)) {
+      suspendedFaviconReadyTabs.add(tabId);
+      fixFaviconRetryCounts.delete(tabId);
+    }
     
     // Page is fully loaded: mark pageComplete. Resolve only when favicon is
     // also ready (signalled by the 'faviconReady' message from suspended.js).
-    if (pendingDiscardTabs.has(tabId) && isSuspendedTab(tab)) {
-      const pendingInfo = pendingDiscardTabs.get(tabId);
-      if (pendingInfo) {
-        pendingInfo.pageComplete = true;
-        pendingInfo.tryResolve(pendingInfo);
+    const pendingInfo = pendingDiscardTabs.get(tabId);
+    if (pendingInfo && suspended) {
+      pendingInfo.pageComplete = true;
+      if (suspendedFaviconReadyTabs.has(tabId) || hasUsableSuspendedFavicon(tab)) {
+        pendingInfo.faviconReady = true;
+        suspendedFaviconReadyTabs.add(tabId);
       }
+      pendingInfo.tryResolve();
     }
 
     // Queue this tab for targeted re-discard if it is a loaded suspended placeholder.
-    if (isSuspendedTab(tab) && !tab.active && !tab.discarded) {
+    if (!pendingInfo && suspended && !tab.active && !tab.discarded) {
       scheduleReDiscard(tabId);
     }
   }
@@ -838,15 +962,17 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
   
   // Note: changeInfo.favIconUrl is NOT used here for pending-discard logic.
-  // For chrome-extension:// pages, Chrome sets favIconUrl from the manifest
-  // icons, not from the <link rel="icon"> that suspended.js creates.
-  // The reliable signal is the 'faviconReady' message from suspended.js.
+  // For chrome-extension:// pages, Chrome can report manifest icons; those are
+  // ignored unless suspended.js signals readiness or tab.favIconUrl is not a
+  // known extension default icon.
 
   if (changeInfo.active === false) {
     // Tab became inactive - update timestamp to track when it was last seen
     seenTimestamps[tabId] = Date.now();
     saveSeenTimestamps();
-    scheduleReDiscard(tabId);
+    if (!pendingDiscardTabs.has(tabId)) {
+      scheduleReDiscard(tabId);
+    }
   }
 });
 
@@ -891,17 +1017,12 @@ chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
   unsuspendingTabs.delete(tabId);
   fixFaviconTabs.delete(tabId);
   fixFaviconRetryCounts.delete(tabId);
+  suspendedFaviconReadyTabs.delete(tabId);
   pendingReDiscardTabIds.delete(tabId);
   reDiscardRetryCounts.delete(tabId);
 
   // Clean up pending discard if tab is closed
-  if (pendingDiscardTabs.has(tabId)) {
-    const pendingInfo = pendingDiscardTabs.get(tabId);
-    if (pendingInfo) {
-      pendingInfo.resolve(); // Resolve to prevent hanging promises
-    }
-    pendingDiscardTabs.delete(tabId);
-  }
+  cancelPendingDiscardWait(tabId);
 
   // Clean up per-window active tab tracking
   const { windowId } = removeInfo;
@@ -980,14 +1101,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         // We delay slightly to give Chrome's browser process time to propagate
         // the favicon from the renderer before we discard.
         const tabId = sender.tab ? sender.tab.id : null;
-        if (tabId && pendingDiscardTabs.has(tabId)) {
+        if (typeof tabId === 'number') {
           setTimeout(() => {
-            const pendingInfo = pendingDiscardTabs.get(tabId);
-            if (pendingInfo) {
-              pendingInfo.faviconReady = true;
-              pendingInfo.tryResolve(pendingInfo);
-            }
-          }, 200);
+            markSuspendedFaviconReady(tabId);
+          }, FAVICON_PROPAGATION_DELAY_MS);
         }
         respond({ done: true });
       } else if (msg.command === 'startUnsuspending') {
@@ -1076,6 +1193,12 @@ async function processQueuedReDiscardTabs() {
       continue;
     }
 
+    // The primary suspend/favicon-fix path owns the discard once it is waiting.
+    if (pendingDiscardTabs.has(tabId)) {
+      reDiscardRetryCounts.delete(tabId);
+      continue;
+    }
+
     try {
       const tab = await chrome.tabs.get(tabId);
       if (!isSuspendedTab(tab) || tab.discarded) {
@@ -1089,8 +1212,22 @@ async function processQueuedReDiscardTabs() {
         continue;
       }
 
-      await chrome.tabs.discard(tabId);
-      reDiscardRetryCounts.delete(tabId);
+      if (await discardSuspendedTabWhenReady(tabId, 'Scheduled re-discard')) {
+        reDiscardRetryCounts.delete(tabId);
+      } else {
+        const latestTab = await chrome.tabs.get(tabId).catch(() => null);
+        if (!latestTab || !isSuspendedTab(latestTab) || latestTab.discarded || latestTab.active) {
+          reDiscardRetryCounts.delete(tabId);
+          continue;
+        }
+        const nextRetry = (reDiscardRetryCounts.get(tabId) || 0) + 1;
+        if (maxRetries > 0 && nextRetry >= maxRetries) {
+          reDiscardRetryCounts.delete(tabId);
+        } else {
+          reDiscardRetryCounts.set(tabId, nextRetry);
+          pendingReDiscardTabIds.add(tabId);
+        }
+      }
     } catch (e) {
       const message = String((e && e.message) || '');
       if (message.includes('No tab with id') || message.includes('Invalid tab ID')) {
