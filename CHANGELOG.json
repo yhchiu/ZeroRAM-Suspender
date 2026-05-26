@@ -1,12 +1,45 @@
 [
 {
-  "sha": "f666df62e63a27b18b3d6b35b59ed676e6ba1d94",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/f666df62e63a27b18b3d6b35b59ed676e6ba1d94",
+  "sha": "c009caa52d84467072e4167332e926866fa3c9a7",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/c009caa52d84467072e4167332e926866fa3c9a7",
+  "commit": {
+    "message": "Update version to 1.6.5",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-05-27T01:22:53+08:00"
+    }
+  }
+},
+{
+  "sha": "0ab3be3887060c40df5cec6b8e7b3b221a963020",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/0ab3be3887060c40df5cec6b8e7b3b221a963020",
+  "commit": {
+    "message": "perf: limit favicon repair batch size",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-05-26T20:16:03+08:00"
+    }
+  }
+},
+{
+  "sha": "b002fe91cacb6bfb7747760d8f18efcead523c11",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/b002fe91cacb6bfb7747760d8f18efcead523c11",
+  "commit": {
+    "message": "Fix suspended tab showing extension icon for all discard paths",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-05-26T16:58:58+08:00"
+    }
+  }
+},
+{
+  "sha": "2a6e09fd952afc0d9b9c113ba13832c09bbb21ce",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/2a6e09fd952afc0d9b9c113ba13832c09bbb21ce",
   "commit": {
     "message": "Update version to 1.6.3",
     "author": {
       "name": "Arthur Chiu",
-      "date": "2026-05-15T09:54:43+08:00"
+      "date": "2026-05-15T09:55:30+08:00"
     }
   }
 },
