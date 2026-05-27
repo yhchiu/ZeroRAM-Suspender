@@ -1416,7 +1416,7 @@ function parseCommitsToChangelog(commits) {
   
   // Check if there's an explicit 1.0.0 version update
   const hasExplicitV100 = commits.some(commit => 
-    commit.commit.message.includes('Update version to 1.0.0')
+    /(?:Update version to|chore:\s*update version to)\s*1\.0\.0/i.test(commit.commit.message)
   );
   
   for (const commit of commits) {
@@ -1424,7 +1424,7 @@ function parseCommitsToChangelog(commits) {
     const date = new Date(commit.commit.author.date);
     
     // Check if this is a version update commit
-    const versionMatch = message.match(/Update version to ([\d.]+)/);
+    const versionMatch = message.match(/(?:Update version to|chore:\s*update version to)\s*([\d.]+)/i);
     
     // Check if this is the initial commit (should be 1.0.0)
     const isInitialCommit = message === 'Initial commit';
@@ -1499,30 +1499,69 @@ function parseCommitsToChangelog(commits) {
 // Parse individual commit message to extract meaningful changes
 function parseCommitMessage(message, commit) {
   // Skip version update commits and merge commits
-  if (message.includes('Update version to') || message.startsWith('Merge ')) {
+  if (message.includes('Update version to') || 
+      /chore:\s*update version to/i.test(message) || 
+      message.startsWith('Merge ')) {
     return null;
   }
   
   // Clean up the message and get first line only
   const description = message.split('\n')[0].trim();
-  const firstLine = description.toLowerCase();
   
-  // Determine change type based on first word of message
   let type = 'changed';
-  const firstWord = firstLine.split(' ')[0];
-  if (firstWord === 'add' || firstWord === 'new' || firstWord === 'implement') {
-    type = 'added';
-  } else if (firstWord === 'fix' || firstWord === 'repair') {
-    type = 'fixed';
-  } else if (firstWord === 'remove' || firstWord === 'delete') {
-    type = 'removed';
-  } else if (firstWord === 'enhance' || firstWord === 'improve') {
-    type = 'improved';
+  let finalDescription = description;
+  
+  const ccMatch = description.match(/^([a-zA-Z0-9_-]+)(?:\(([^)]+)\))?:\s*(.+)$/);
+  if (ccMatch) {
+    const ccType = ccMatch[1].toLowerCase();
+    const ccScope = ccMatch[2];
+    const ccSubject = ccMatch[3].trim();
+    
+    // Capitalize the first letter of the subject
+    const capitalizedSubject = ccSubject.charAt(0).toUpperCase() + ccSubject.slice(1);
+
+    // Add scope in brackets if present
+    finalDescription = ccScope ? `[${ccScope}] ${capitalizedSubject}` : capitalizedSubject;
+    
+    if (ccType === 'feat') {
+      type = 'added';
+    } else if (ccType === 'fix') {
+      type = 'fixed';
+    } else if (ccType === 'perf') {
+      type = 'improved';
+    } else if (ccType === 'revert') {
+      type = 'removed';
+    } else {
+      // Determine type based on first word of the subject
+      const firstWord = ccSubject.toLowerCase().split(' ')[0];
+      if (firstWord === 'add' || firstWord === 'new' || firstWord === 'implement') {
+        type = 'added';
+      } else if (firstWord === 'fix' || firstWord === 'repair') {
+        type = 'fixed';
+      } else if (firstWord === 'remove' || firstWord === 'delete') {
+        type = 'removed';
+      } else if (firstWord === 'enhance' || firstWord === 'improve') {
+        type = 'improved';
+      }
+    }
+  } else {
+    // Non-Conventional Commit
+    const firstLine = description.toLowerCase();
+    const firstWord = firstLine.split(' ')[0];
+    if (firstWord === 'add' || firstWord === 'new' || firstWord === 'implement') {
+      type = 'added';
+    } else if (firstWord === 'fix' || firstWord === 'repair') {
+      type = 'fixed';
+    } else if (firstWord === 'remove' || firstWord === 'delete') {
+      type = 'removed';
+    } else if (firstWord === 'enhance' || firstWord === 'improve') {
+      type = 'improved';
+    }
   }
   
   return {
     type: type,
-    description: description,
+    description: finalDescription,
     sha: commit.sha.substring(0, 7),
     url: commit.html_url
   };
