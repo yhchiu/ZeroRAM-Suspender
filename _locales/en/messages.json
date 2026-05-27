@@ -775,5 +775,17 @@
   },
   "bulkCancelled": {
     "message": "Cancelled"
+  },
+  "bulkConcurrencyTitle": {
+    "message": "Bulk Suspension Concurrency"
+  },
+  "bulkConcurrencyDesc": {
+    "message": "Control the speed and performance of suspending multiple tabs at once"
+  },
+  "suspendBatchConcurrencyLabel": {
+    "message": "Batch concurrency limit (recommended: 5):"
+  },
+  "suspendBatchConcurrencyHelp": {
+    "message": "How many tabs to suspend in parallel when performing bulk operations (like 'Suspend Others' or 'Suspend All'). Higher values are faster but consume more CPU/memory temporarily."
   }
 }

@@ -18,6 +18,7 @@ const DEFAULT_SETTINGS = {
   fixFaviconEnabled: true, // enable suspended favicon fixing
   fixFaviconBatchSize: FAVICON_FIX_DEFAULT_BATCH_SIZE, // 0 = unlimited per checkTabs batch
   fixFaviconMaxRetries: 5, // max attempts per tab to avoid infinite reloads
+  suspendBatchConcurrency: 5, // batch concurrency limit for bulk operations
 };
 
 const STORAGE_KEY = 'utsSettings';
@@ -28,7 +29,6 @@ const LAST_ACTIVE_TAB_KEY = 'utsLastActiveTab';
 const SUSPENDED_PREFIX = chrome.runtime.getURL('suspended.html');
 const DISCARD_READY_TIMEOUT_MS = 10000;
 const FAVICON_PROPAGATION_DELAY_MS = 200;
-const SUSPEND_BATCH_CONCURRENCY = 5;
 const EXTENSION_DEFAULT_FAVICON_URLS = new Set(
   getExtensionIconPaths().map(path => chrome.runtime.getURL(path))
 );
@@ -1312,8 +1312,9 @@ async function suspendOthersInWindow(currentTabId) {
   }
 
   // Process in concurrent batches
-  for (let i = 0; i < targets.length; i += SUSPEND_BATCH_CONCURRENCY) {
-    const batch = targets.slice(i, i + SUSPEND_BATCH_CONCURRENCY);
+  const concurrency = settings.suspendBatchConcurrency || 5;
+  for (let i = 0; i < targets.length; i += concurrency) {
+    const batch = targets.slice(i, i + concurrency);
     await Promise.allSettled(batch.map(tab => suspendTab(tab, settings)));
   }
 }
@@ -1364,9 +1365,10 @@ async function suspendOthersInAllWindows(currentTabId, withProgress = false) {
   let processed = 0;
 
   // Process in concurrent batches
-  for (let i = 0; i < targets.length; i += SUSPEND_BATCH_CONCURRENCY) {
+  const concurrency = settings.suspendBatchConcurrency || 5;
+  for (let i = 0; i < targets.length; i += concurrency) {
     if (cancelToken.cancelled) break;
-    const batch = targets.slice(i, i + SUSPEND_BATCH_CONCURRENCY);
+    const batch = targets.slice(i, i + concurrency);
     await Promise.allSettled(batch.map(tab =>
       suspendTab(tab, settings).finally(() => {
         processed += 1;
@@ -1435,8 +1437,9 @@ async function suspendSelectedTabs(tabIds) {
   }
 
   // Process in concurrent batches
-  for (let i = 0; i < targets.length; i += SUSPEND_BATCH_CONCURRENCY) {
-    const batch = targets.slice(i, i + SUSPEND_BATCH_CONCURRENCY);
+  const concurrency = settings.suspendBatchConcurrency || 5;
+  for (let i = 0; i < targets.length; i += concurrency) {
+    const batch = targets.slice(i, i + concurrency);
     await Promise.allSettled(batch.map(tab => suspendTab(tab, settings)));
   }
 }

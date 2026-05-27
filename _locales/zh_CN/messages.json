@@ -775,5 +775,17 @@
   },
   "bulkCancelled": {
     "message": "已停止"
+  },
+  "bulkConcurrencyTitle": {
+    "message": "批量挂起并发设置"
+  },
+  "bulkConcurrencyDesc": {
+    "message": "控制同时挂起多个标签页时的处理速度与性能"
+  },
+  "suspendBatchConcurrencyLabel": {
+    "message": "批次挂起并发限制（建议值：5）："
+  },
+  "suspendBatchConcurrencyHelp": {
+    "message": "执行批量操作（例如「挂起其他标签页」或「挂起所有标签页」）时，同时挂起的标签页数量。设置越高速度越快，但会短暂消耗更多 CPU 与内存。"
   }
 }

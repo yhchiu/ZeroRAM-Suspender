@@ -33,7 +33,7 @@ const suspendedTabsViewerState = {
 
 // Initialize DOM elements after DOM is loaded
 let autoSuspendEl, discardEl, whitelistEl, neverSuspendAudioEl, neverSuspendPinnedEl, neverSuspendActiveEl, rememberLastActiveTabEl, clickAnywhereToUnsuspendEl, themeModeEl;
-let fixFaviconEnabledEl, fixFaviconBatchSizeEl, fixFaviconMaxRetriesEl;
+let fixFaviconEnabledEl, fixFaviconBatchSizeEl, fixFaviconMaxRetriesEl, suspendBatchConcurrencyEl;
 
 function initializeElements() {
   autoSuspendEl = document.getElementById('autoSuspend');
@@ -48,6 +48,7 @@ function initializeElements() {
   fixFaviconEnabledEl = document.getElementById('fixFaviconEnabled');
   fixFaviconBatchSizeEl = document.getElementById('fixFaviconBatchSize');
   fixFaviconMaxRetriesEl = document.getElementById('fixFaviconMaxRetries');
+  suspendBatchConcurrencyEl = document.getElementById('suspendBatchConcurrency');
 }
 
 function normalizeThemeMode(themeMode) {
@@ -222,9 +223,10 @@ function load() {
     // Load theme settings with default to 'auto'
     themeModeEl.value = normalizeThemeMode(cfg.themeMode); // default to auto (follow system)
     // Favicon fix settings
-    fixFaviconEnabledEl.checked = cfg.fixFaviconEnabled !== false; // default true
+    fixFaviconEnabledEl.checked = cfg.fixFaviconEnabled !== false;
     fixFaviconBatchSizeEl.value = (typeof cfg.fixFaviconBatchSize === 'number' ? cfg.fixFaviconBatchSize : FAVICON_FIX_DEFAULT_BATCH_SIZE);
     fixFaviconMaxRetriesEl.value = (typeof cfg.fixFaviconMaxRetries === 'number' ? cfg.fixFaviconMaxRetries : 5);
+    suspendBatchConcurrencyEl.value = (typeof cfg.suspendBatchConcurrency === 'number' ? cfg.suspendBatchConcurrency : 5);
   });
 }
 
@@ -270,6 +272,7 @@ function save() {
         updatedCfg.fixFaviconEnabled = fixFaviconEnabledEl.checked;
         updatedCfg.fixFaviconBatchSize = parseInt(fixFaviconBatchSizeEl.value, 10) || 0;
         updatedCfg.fixFaviconMaxRetries = parseInt(fixFaviconMaxRetriesEl.value, 10);
+        updatedCfg.suspendBatchConcurrency = Math.max(1, parseInt(suspendBatchConcurrencyEl.value, 10) || 5);
         break;
       case 'whitelist':
         updatedCfg.whitelist = whitelistEl.value.split(/\n/).map(s => s.trim()).filter(Boolean);
@@ -295,6 +298,7 @@ function save() {
           fixFaviconEnabled: fixFaviconEnabledEl.checked,
           fixFaviconBatchSize: parseInt(fixFaviconBatchSizeEl.value, 10) || 0,
           fixFaviconMaxRetries: parseInt(fixFaviconMaxRetriesEl.value, 10),
+          suspendBatchConcurrency: Math.max(1, parseInt(suspendBatchConcurrencyEl.value, 10) || 5),
         };
     }
 
@@ -2148,7 +2152,8 @@ function getDefaultSettings() {
     themeMode: 'auto',
     fixFaviconEnabled: true,
     fixFaviconBatchSize: FAVICON_FIX_DEFAULT_BATCH_SIZE,
-    fixFaviconMaxRetries: 5
+    fixFaviconMaxRetries: 5,
+    suspendBatchConcurrency: 5
   };
 }
 
@@ -2169,7 +2174,8 @@ async function getCurrentSettings() {
         themeMode: normalizeThemeMode(cfg.themeMode),
         fixFaviconEnabled: cfg.fixFaviconEnabled !== false,
         fixFaviconBatchSize: typeof cfg.fixFaviconBatchSize === 'number' ? cfg.fixFaviconBatchSize : FAVICON_FIX_DEFAULT_BATCH_SIZE,
-        fixFaviconMaxRetries: typeof cfg.fixFaviconMaxRetries === 'number' ? cfg.fixFaviconMaxRetries : 5
+        fixFaviconMaxRetries: typeof cfg.fixFaviconMaxRetries === 'number' ? cfg.fixFaviconMaxRetries : 5,
+        suspendBatchConcurrency: typeof cfg.suspendBatchConcurrency === 'number' ? cfg.suspendBatchConcurrency : 5
       };
       resolve(settings);
     });
@@ -2405,7 +2411,8 @@ async function importSettings() {
       themeMode: normalizeThemeMode(settingsData.themeMode),
       fixFaviconEnabled: settingsData.fixFaviconEnabled !== false,
       fixFaviconBatchSize: typeof settingsData.fixFaviconBatchSize === 'number' ? settingsData.fixFaviconBatchSize : FAVICON_FIX_DEFAULT_BATCH_SIZE,
-      fixFaviconMaxRetries: typeof settingsData.fixFaviconMaxRetries === 'number' ? settingsData.fixFaviconMaxRetries : 5
+      fixFaviconMaxRetries: typeof settingsData.fixFaviconMaxRetries === 'number' ? settingsData.fixFaviconMaxRetries : 5,
+      suspendBatchConcurrency: typeof settingsData.suspendBatchConcurrency === 'number' ? settingsData.suspendBatchConcurrency : 5
     };
     
     // Save theme mode to localStorage for suspended page caching

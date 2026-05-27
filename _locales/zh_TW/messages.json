@@ -775,5 +775,17 @@
   },
   "bulkCancelled": {
     "message": "已停止"
+  },
+  "bulkConcurrencyTitle": {
+    "message": "批次休眠併發設定"
+  },
+  "bulkConcurrencyDesc": {
+    "message": "控制同時休眠多個分頁時的處理速度與效能"
+  },
+  "suspendBatchConcurrencyLabel": {
+    "message": "批次休眠併發限制（建議值：5）："
+  },
+  "suspendBatchConcurrencyHelp": {
+    "message": "執行批次操作（例如「休眠其他分頁」或「休眠所有分頁」）時，同時休眠的分頁數量。設定越高速度越快，但會短暫消耗更多 CPU 與記憶體。"
   }
 }
