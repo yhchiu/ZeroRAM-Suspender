@@ -167,7 +167,24 @@
       
       // Small delay to ensure the status update is visible
       setTimeout(() => {
-        location.href = originalUrl;
+        // Extension pages cannot navigate to file:// and other restricted
+        // URL schemes via location.href. For these, delegate to the
+        // background script which uses chrome.tabs.update().
+        // Normal http/https URLs use location.href directly to avoid
+        // unnecessary service worker dependency.
+        if (/^(?:file|data|blob):/i.test(originalUrl)) {
+          chrome.runtime.sendMessage(
+            { command: 'unsuspendNavigate', url: originalUrl },
+            (response) => {
+              if (chrome.runtime.lastError || !response || !response.done) {
+                // Last resort: try direct navigation anyway
+                location.href = originalUrl;
+              }
+            }
+          );
+        } else {
+          location.href = originalUrl;
+        }
       }, 100);
     }
   }

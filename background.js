@@ -1118,6 +1118,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           unsuspendingTabs.add(tabId);
         }
         respond({ done: true });
+      } else if (msg.command === 'unsuspendNavigate') {
+        // Navigate the tab via chrome.tabs.update() which has the necessary
+        // privileges for file:// and other restricted URL schemes that
+        // location.href cannot load from an extension page.
+        const tabId = sender.tab ? sender.tab.id : null;
+        if (tabId && msg.url) {
+          await chrome.tabs.update(tabId, { url: msg.url });
+          respond({ done: true });
+        } else {
+          respond({ done: false, error: 'Missing tab or url' });
+        }
       } else {
         respond({ done: false, error: 'Unknown command' });
       }
