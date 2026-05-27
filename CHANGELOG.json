@@ -1,12 +1,78 @@
 [
 {
-  "sha": "c009caa52d84467072e4167332e926866fa3c9a7",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/c009caa52d84467072e4167332e926866fa3c9a7",
+  "sha": "432440aa01d237bfc0ba3267c06ea2eea9395f2d",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/432440aa01d237bfc0ba3267c06ea2eea9395f2d",
+  "commit": {
+    "message": "chore: update version to 1.6.6",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-05-27T12:22:51+08:00"
+    }
+  }
+},
+{
+  "sha": "7acb719ea8d021a5d619e75b7b02f2fe79271aac",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/7acb719ea8d021a5d619e75b7b02f2fe79271aac",
+  "commit": {
+    "message": "feat: add option for bulk suspension batch concurrency",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-05-27T12:22:19+08:00"
+    }
+  }
+},
+{
+  "sha": "c8cda9d09282c060dbc15f7f1103b92a657f6601",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/c8cda9d09282c060dbc15f7f1103b92a657f6601",
+  "commit": {
+    "message": "perf: speed up bulk tab suspension with concurrency",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-05-27T12:05:06+08:00"
+    }
+  }
+},
+{
+  "sha": "1e0b919c2d32b7c33c0a502497ed3f572701e8cb",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/1e0b919c2d32b7c33c0a502497ed3f572701e8cb",
+  "commit": {
+    "message": "feat: support Conventional Commits in the changelog",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-05-27T11:53:00+08:00"
+    }
+  }
+},
+{
+  "sha": "529eda8f8dc9a07e6d4586ea1c381264dbf70807",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/529eda8f8dc9a07e6d4586ea1c381264dbf70807",
+  "commit": {
+    "message": "feat: add advanced settings section in options page",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-05-27T10:39:35+08:00"
+    }
+  }
+},
+{
+  "sha": "c9f92197b0695d8581550e39220ce49102c299d6",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/c9f92197b0695d8581550e39220ce49102c299d6",
+  "commit": {
+    "message": "fix: use chrome.tabs.update() to unsuspend file:// URLs",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-05-27T09:38:23+08:00"
+    }
+  }
+},
+{
+  "sha": "fdd2ac0e2e263513887b58d513076b00befa8a7b",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/fdd2ac0e2e263513887b58d513076b00befa8a7b",
   "commit": {
     "message": "Update version to 1.6.5",
     "author": {
       "name": "Arthur Chiu",
-      "date": "2026-05-27T01:22:53+08:00"
+      "date": "2026-05-27T01:23:51+08:00"
     }
   }
 },
