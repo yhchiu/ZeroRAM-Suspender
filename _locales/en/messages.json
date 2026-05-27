@@ -1,260 +1,779 @@
 {
-  "extName": { "message": "ZeroRAM Suspender" },
-  "titleOptions": { "message": "ZeroRAM Suspender – Settings" },
-  "autoSuspendLabel": { "message": "Auto suspend after (minutes):" },
-  "autoSuspendHelp": { "message": "Set 0 to never auto suspend." },
-  "neverSuspendAudio": { "message": "Never suspend tabs that are playing audio" },
-  "neverSuspendPinned": { "message": "Never suspend pinned tabs" },
-  "neverSuspendActive": { "message": "Never suspend active tab in each window" },
-  "rememberLastActiveTab": { "message": "Remember last active tab when switching to other apps" },
-  "rememberLastActiveTabHelp": { "message": "When switching from browser to other applications, protect the last active tab from being suspended" },
-  "clickAnywhereToUnsuspend": { "message": "Click anywhere on the suspended page to unsuspend" },
-  "clickAnywhereToUnsuspendHelp": { "message": "When enabled, clicking the original title or URL will also reload the suspended tab." },
-  "nativeDiscardLabel": { "message": "Use native discard (lowest memory)" },
-  "whitelistTitle": { "message": "Whitelist" },
-  "whitelistHelp": { "message": "Tabs whose URL or domain matches anything in the list will never be suspended." },
-  "whitelistPlaceholder": { "message": "One entry per line" },
-  "saveButton": { "message": "Save" },
-  "savedNotice": { "message": "Saved!" },
-  "savedBasicSettings": { "message": "Basic settings saved!" },
-  "savedWhitelistSettings": { "message": "Whitelist settings saved!" },
-  "cannotSuspend": { "message": "This tab cannot be suspended" },
-  "tabSuspended": { "message": "Tab suspended" },
-  "tabReloading": { "message": "Reloading" },
-  "autoSuspendDisabled": { "message": "Auto suspend disabled" },
-  "autoSuspendPaused": { "message": "Auto suspend paused" },
-  "audioTabProtected": { "message": "Playing audio; auto suspend paused" },
-  "tabWillSuspend": { "message": "Tab will suspend automatically." },
-  "notNow": { "message": "Not now" },
-  "allowSuspend": { "message": "Allow suspend" },
-  "suspendThisTab": { "message": "Suspend this tab now" },
-  "neverSuspendURL": { "message": "Never suspend this URL" },
-  "neverSuspendDomain": { "message": "Never suspend this domain" },
-  "suspendOthers": { "message": "Suspend all other tabs (this window)" },
-  "suspendAllOthersAllWindows": { "message": "Suspend all other tabs (all windows)" },
-  "unsuspendAllThisWindow": { "message": "Unsuspend all tabs (this window)" },
-  "unsuspendAll": { "message": "Unsuspend all tabs (all windows)" },
-  "suspendSelectedTabs": { "message": "Force suspend selected tabs" },
-  "unsuspendSelectedTabs": { "message": "Unsuspend selected tabs" },
-  "settingsMenu": { "message": "Settings" },
-  "suspendedInstruction": { "message": "Click here or press Ctrl+Shift+Z to reload this tab." },
-  "suspendedInstructionClickAnywhere": { "message": "Click anywhere or press Ctrl+Shift+Z to reload this tab." },
-  "basicSettings": { "message": "Basic Settings" },
-  "basicSettingsDesc": { "message": "Configure basic tab suspension behavior and options" },
-  "autoSuspendTitle": { "message": "Auto Suspend" },
-  "autoSuspendDesc": { "message": "Set how long tabs should be idle before automatically suspending to save memory" },
-  "memoryOptimization": { "message": "Memory Optimization" },
-  "memoryOptimizationDesc": { "message": "Choose how to handle suspended tabs for optimal memory usage" },
-  "nativeDiscardHelp": { "message": "Use browser's built-in tab discarding feature for maximum memory savings, but tab state may not be fully preserved." },
-  "fixFaviconEnabled": { "message": "Fix suspended tab favicon (recommended)" },
-  "fixFaviconEnabledHelp": { "message": "When a suspended tab shows no favicon after browser restart, try to reload it briefly and discard again to restore its favicon." },
-  "fixFaviconBatchSize": { "message": "Max tabs to process per scan (0 = unlimited):" },
-  "fixFaviconBatchSizeHelp": { "message": "Limit how many tabs are processed each time the background scan runs. This helps avoid long processing when many tabs need fixes." },
-  "fixFaviconMaxRetries": { "message": "Max retries per tab:" },
-  "fixFaviconMaxRetriesHelp": { "message": "Prevent infinite retries for tabs that cannot be fixed. Set 0 to disable the limit." },
-  "fixFaviconSectionTitle": { "message": "Suspended Favicon Fix" },
-  "fixFaviconSectionDesc": { "message": "Control how the extension tries to restore missing favicons on suspended tabs" },
-  "whitelistDesc": { "message": "Manage websites and domains that will never be suspended" },
-  "whitelistRules": { "message": "Whitelist Rules" },
-  "whitelistLabel": { "message": "URL or domain list:" },
-  "whitelistHelpDetailed": { "message": "Enter one URL or domain per line. Examples:\n• google.com - entire domain\n• https://example.com/page - specific URL\n• localhost - local development" },
-  "refresh": { "message": "Refresh" },
-  "whitelistRefreshed": { "message": "Whitelist refreshed!" },
-  "siteWhitelisted": { "message": "Site whitelisted." },
-  "removeFromWhitelist": { "message": "Remove from whitelist" },
-  "confirmRemoveFromWhitelist": { "message": "Are you sure you want to remove '%s' from the whitelist?" },
-  "advancedSettings": { "message": "Advanced Settings" },
-  "advancedSettingsDesc": { "message": "Advanced user options (in development)" },
-  "aboutSettings": { "message": "About" },
-  "aboutDesc": { "message": "Extension information and details" },
-  "changeLogSettings": { "message": "Change Log" },
-  "changeLogDesc": { "message": "Version history and feature updates" },
-  "loadingChanges": { "message": "Loading change log..." },
-  "failedToLoadChanges": { "message": "Failed to load change log" },
-  "noChangesFound": { "message": "No version changes found" },
-  "version": { "message": "Version" },
-  "unreleased": { "message": "Unreleased" },
-  "description": { "message": "Description" },
-  "supportWebsite": { "message": "Website" },
-  "extDescription": { "message": "Suspend inactive tabs to save memory using native discard or lightweight placeholder." },
-  "comingSoon": { "message": "Coming Soon" },
-  "comingSoonDesc": { "message": "More advanced settings are in development" },
-  "privacyNotice": { "message": "Privacy Notice" },
-  "privacyNoticeText": { "message": "This extension only processes data locally and does not upload any information to external servers" },
-  "tabMigration": { "message": "Tab Migration" },
-  "tabMigrationDesc": { "message": "Migrate suspended tabs from other tab suspension extensions" },
-  "marvellousTabDetection": { "message": "The Marvellous Suspender Tab Detection" },
-  "marvellousTabDetectionDesc": { "message": "Automatically detect and provide migration for The Marvellous Suspender, The Great Suspender (notrack), The Great-er Tab Discarder, and other similar suspended tabs" },
-  "scanForMarvellousTab": { "message": "Scan for The Marvellous Suspender tabs" },
-  "noMarvellousTabFound": { "message": "No The Marvellous Suspender tabs found" },
-  "foundMarvellousTab": { "message": "Found %d The Marvellous Suspender tabs" },
-  "tabSuspenderDetection": { "message": "Tab Suspender Tab Detection" },
-  "tabSuspenderDetectionDesc": { "message": "Automatically detect and provide migration for Tab Suspender suspended tabs" },
-  "scanForTabSuspenderTab": { "message": "Scan for Tab Suspender tabs" },
-  "noTabSuspenderTabFound": { "message": "No Tab Suspender tabs found" },
-  "foundTabSuspenderTab": { "message": "Found %d Tab Suspender tabs" },
-  "customTabDetection": { "message": "Custom Suspended Tab Detection" },
-  "customTabDetectionDesc": { "message": "Configure custom detection pattern for other suspended tab extensions" },
-  "customPatternLabel": { "message": "Custom URL Pattern:" },
-  "extensionIdLabel": { "message": "Extension ID:" },
-  "pathLabel": { "message": "Path:" },
-  "separatorLabel": { "message": "Separator:" },
-  "titleParamLabel": { "message": "Title Parameter:" },
-  "urlParamLabel": { "message": "URL Parameter:" },
-  "testPattern": { "message": "Test Pattern" },
-  "scanCustomTabs": { "message": "Scan for Custom Tabs" },
-  "fillAllFields": { "message": "Please fill in all fields" },
-  "patternTestSuccess": { "message": "Pattern test successful! Example URL parsed correctly." },
-  "patternTestFailed": { "message": "Pattern test failed. Please check your configuration." },
-  "migrateSelected": { "message": "Migrate selected tabs" },
-  "migrationComplete": { "message": "Tab migration completed!" },
-  "migrationFailed": { "message": "Tab migration failed" },
-  "selectAllTabs": { "message": "Select All" },
-  "deselectAllTabs": { "message": "Deselect All" },
-  "tabMigrationHelp": { "message": "This feature allows you to convert suspended tabs from other tab suspension extensions (like The Marvellous Suspender) to ZeroRAM Suspender format, so you can continue using those tabs." },
-  "savedTabMigrationSettings": { "message": "Tab migration settings saved!" },
-  "scanningTabs": { "message": "Scanning tabs..." },
-  "noTabsSelected": { "message": "No tabs selected for migration" },
-  "errorScanningTabs": { "message": "Error scanning tabs: " },
-  "tabsMigrated": { "message": " tabs migrated" },
-  "tabsFailed": { "message": " tabs failed" },
-  "unknownVariant": { "message": "Unknown Version" },
-  "extensionId": { "message": "Extension ID" },
-  "migrationTip": { "message": "💡 Tip:" },
-  "migrationTipDesc": { "message": "This feature can automatically detect and migrate suspended tabs from other tab suspension extensions. It supports detecting both known and unknown variants. The scan state will be automatically reset each time you switch to this page." },
-  "licenseCredits": { "message": "License & Credits" },
-  "licenseText": { "message": "This extension is released under the GNU General Public License v3 (GPL v3). You are free to use, modify, and distribute this software under the terms of the GPL v3." },
-  "copyright": { "message": "Copyright:" },
-  "copyrightText": { "message": "Copyright (C) Yu-Hsiung Chiu" },
-  "keyboardShortcuts": { "message": "Keyboard Shortcuts" },
-  "keyboardShortcutsDesc": { "message": "View and manage extension keyboard shortcuts" },
-  "shortcutsList": { "message": "Available Shortcuts" },
-  "shortcutsHelp": { "message": "Below are the keyboard shortcuts configured for this extension. To modify shortcuts, click \"Manage Shortcuts\" to open Chrome's extension shortcuts page." },
-  "loadingShortcuts": { "message": "Loading shortcuts..." },
-  "errorLoadingShortcuts": { "message": "Error loading shortcuts" },
-  "noShortcutsFound": { "message": "No shortcuts found" },
-  "notAssigned": { "message": "Not assigned" },
-  "manageShortcuts": { "message": "Manage Shortcuts" },
-  "shortcutsRefreshed": { "message": "Shortcuts refreshed!" },
-  "shortcutToggleSuspend": { "message": "Suspend/Unsuspend current tab" },
-  "migrationProgress": { "message": "Migration Progress" },
-  "sessionManagement": { "message": "Session Management" },
-  "sessionManagementDesc": { "message": "Export and import all tabs from all windows" },
-  "exportSessions": { "message": "Export Sessions" },
-  "exportSessionsDesc": { "message": "Export all tabs from all windows to save your current browsing session" },
-  "exportFormat": { "message": "Export format:" },
-  "formatTxt": { "message": "TXT" },
-  "formatJson": { "message": "JSON" },
-  "export": { "message": "Export" },
-  "preview": { "message": "Preview" },
-  "exportPreviewTitle": { "message": "Export Preview:" },
-  "exportHelpTxt": { "message": "TXT format: One URL per line, windows separated by blank lines" },
-  "exportHelpJson": { "message": "JSON format: Array of windows with title and URL for each tab" },
-  "importSessions": { "message": "Import Sessions" },
-  "importSessionsDesc": { "message": "Import tabs from previously exported session files" },
-  "selectSessionFile": { "message": "Select session file:" },
-  "importAsSuspended": { "message": "Import tabs as suspended (saves memory)" },
-  "importAsSuspendedHelp": { "message": "When enabled, imported tabs will be suspended immediately to save memory" },
-  "import": { "message": "Import" },
-  "sessionPreviewTitle": { "message": "Session Preview:" },
-  "importHelp": { "message": "Supports TXT and JSON formats. TXT files should have one URL per line with blank lines separating windows. JSON files should contain an array of windows with tab objects." },
-  "importProgressText": { "message": "Progress:" },
-  "exportingSession": { "message": "Exporting session..." },
-  "sessionExported": { "message": "Session exported" },
-  "exportFailed": { "message": "Export failed" },
-  "generatingPreview": { "message": "Generating preview..." },
-  "exportPreviewReady": { "message": "Export preview ready" },
-  "sessionPreviewed": { "message": "Session preview ready" },
-  "previewFailed": { "message": "Preview failed: Invalid file format" },
-  "sessionImported": { "message": "Session imported successfully" },
-  "importFailed": { "message": "Import failed" },
-  "pleaseSelectFile": { "message": "Please select a file first" },
-  "window": { "message": "Window" },
-  "tabs": { "message": "tabs" },
-  "settingsManagement": { "message": "Settings Management" },
-  "settingsManagementDesc": { "message": "Backup and restore extension settings" },
-  "exportSettings": { "message": "Export Settings" },
-  "exportSettingsDesc": { "message": "Export all current extension settings to a JSON file for backup" },
-  "exportSettingsHelp": { "message": "Exports all settings including auto-suspend configuration, whitelist, and other preferences" },
-  "settingsPreviewTitle": { "message": "Settings Preview:" },
-  "importSettings": { "message": "Import Settings" },
-  "importSettingsDesc": { "message": "Import previously exported settings to restore your configuration" },
-  "selectSettingsFile": { "message": "Select settings file:" },
-  "importSettingsHelp": { "message": "Import settings from a previously exported JSON file. This will replace all current settings. Note: Keyboard shortcuts cannot be imported; please set them manually." },
-  "importPreviewTitle": { "message": "Import Preview:" },
-  "resetSettings": { "message": "Reset Settings" },
-  "resetSettingsDesc": { "message": "Reset all settings to their default values" },
-  "warning": { "message": "Warning" },
-  "resetWarning": { "message": "This action will permanently delete all your current settings and restore defaults. This cannot be undone." },
-  "resetToDefaults": { "message": "Reset to Defaults" },
-  "resetHelp": { "message": "Consider exporting your current settings before resetting, in case you want to restore them later." },
-  "exportingSettings": { "message": "Exporting settings..." },
-  "settingsExported": { "message": "Settings exported successfully" },
-  "settingsPreviewReady": { "message": "Settings preview ready" },
-  "settingsImported": { "message": "Settings imported successfully" },
-  "settingsReset": { "message": "Settings have been reset to defaults" },
-  "resetFailed": { "message": "Reset failed" },
-  "confirmResetSettings": { "message": "Are you sure you want to reset all settings to their default values? This action cannot be undone." },
-  "settingsFileInfo": { "message": "Settings File Information" },
-  "exportedAt": { "message": "Exported at" },
-  "settingsToImport": { "message": "Settings to import" },
-  "minutes": { "message": "minutes" },
-  "enabled": { "message": "Enabled" },
-  "disabled": { "message": "Disabled" },
-  "items": { "message": "items" },
-  "whitelistItems": { "message": "Whitelist items" },
-  "importPreviewReady": { "message": "Import preview ready" },
-  "reportIssue": { "message": "Report Bug or Request Feature" },
-  "rateUs": { "message": "⭐ Rate us on Chrome Web Store" },
-  "themeSettings": { "message": "Theme Settings" },
-  "themeSettingsDesc": { "message": "Choose the appearance theme for the suspended tab page" },
-  "themeMode": { "message": "Theme mode:" },
-  "themeAuto": { "message": "Follow system/browser theme" },
-  "themeLight": { "message": "Light theme" },
-  "themeDark": { "message": "Dark theme" },
-  "themeHelpText": { "message": "The suspended tab page needs to be reloaded to apply the theme. Auto mode will follow your system's dark/light theme preference." },
-  "tabViewer": { "message": "Tab Viewer" },
-  "tabViewerDesc": { "message": "View and manage all suspended tabs" },
-  "tabViewerFilterLabel": { "message": "Filter:" },
-  "tabViewerFilterSuspendedAll": { "message": "All suspended tabs" },
-  "tabViewerFilterSuspendedUndiscarded": { "message": "Suspended but not discarded" },
-  "tabViewerFilterNotSuspended": { "message": "Not suspended" },
-  "suspendedTabsViewer": { "message": "Suspended Tabs Viewer" },
-  "suspendedTabsViewerDesc": { "message": "View all suspended tabs across all windows and check their discard status" },
-  "suspendedTabsDiscardsHint": { "message": "You can also check discard details in chrome://discards." },
-  "showSuspendedTabs": { "message": "Show Suspended Tabs" },
-  "suspendedTabsTitle": { "message": "Suspended Tabs Information:" },
-  "scanningSuspendedTabs": { "message": "Scanning for suspended tabs..." },
-  "noSuspendedTabs": { "message": "No suspended tabs found" },
-  "suspendedTabsFound": { "message": "Found %d suspended tabs" },
-  "suspendedUndiscardedTabsFound": { "message": "Found %d suspended but not discarded tabs" },
-  "notSuspendedTabsFound": { "message": "Found %d not suspended tabs" },
-  "noTabsMatchFilter": { "message": "No tabs match the current filter" },
-  "totalTabsCount": { "message": "Total tabs: %d" },
-  "discardedTabsCount": { "message": "(%d discarded)" },
-  "noSuspendedTabsDesc": { "message": "No suspended tabs found. Suspended tabs are created when ZeroRAM Suspender puts tabs to sleep to save memory." },
-  "suspendedTabsLoaded": { "message": "Suspended tabs information loaded" },
-  "errorLoadingSuspendedTabs": { "message": "Error loading suspended tabs" },
-  "errorOccurred": { "message": "An error occurred" },
-  "discarded": { "message": "Discarded" },
-  "suspended": { "message": "Suspended" },
-  "notSuspended": { "message": "Not suspended" },
-  "unsuspend": { "message": "Unsuspend" },
-  "unsuspending": { "message": "Unsuspending..." },
-  "tabUnsuspended": { "message": "Tab unsuspended successfully" },
-  "unsuspendFailed": { "message": "Failed to unsuspend tab" },
-  "reactivate": { "message": "Reactivate" },
-  "reactivating": { "message": "Reactivating..." },
-  "tabReactivated": { "message": "Tab reactivated successfully" },
-  "reactivationFailed": { "message": "Failed to reactivate tab" },
-  "tabId": { "message": "Tab ID" },
-  "windowId": { "message": "Window ID" },
-  "tab": { "message": "tab" },
-  "loading": { "message": "Loading..." },
-  "bulkProgress": { "message": "Bulk Progress" },
-  "suspendingAllTabs": { "message": "Suspending all tabs" },
-  "unsuspendingAllTabs": { "message": "Unsuspending all tabs" },
-  "bulkDone": { "message": "Done" },
-  "bulkCancel": { "message": "Cancel" },
-  "bulkCancelled": { "message": "Cancelled" }
-} 
+  "extName": {
+    "message": "ZeroRAM Suspender"
+  },
+  "titleOptions": {
+    "message": "ZeroRAM Suspender – Settings"
+  },
+  "autoSuspendLabel": {
+    "message": "Auto suspend after (minutes):"
+  },
+  "autoSuspendHelp": {
+    "message": "Set 0 to never auto suspend."
+  },
+  "neverSuspendAudio": {
+    "message": "Never suspend tabs that are playing audio"
+  },
+  "neverSuspendPinned": {
+    "message": "Never suspend pinned tabs"
+  },
+  "neverSuspendActive": {
+    "message": "Never suspend active tab in each window"
+  },
+  "rememberLastActiveTab": {
+    "message": "Remember last active tab when switching to other apps"
+  },
+  "rememberLastActiveTabHelp": {
+    "message": "When switching from browser to other applications, protect the last active tab from being suspended"
+  },
+  "clickAnywhereToUnsuspend": {
+    "message": "Click anywhere on the suspended page to unsuspend"
+  },
+  "clickAnywhereToUnsuspendHelp": {
+    "message": "When enabled, clicking the original title or URL will also reload the suspended tab."
+  },
+  "nativeDiscardLabel": {
+    "message": "Use native discard (lowest memory)"
+  },
+  "whitelistTitle": {
+    "message": "Whitelist"
+  },
+  "whitelistHelp": {
+    "message": "Tabs whose URL or domain matches anything in the list will never be suspended."
+  },
+  "whitelistPlaceholder": {
+    "message": "One entry per line"
+  },
+  "saveButton": {
+    "message": "Save"
+  },
+  "savedNotice": {
+    "message": "Saved!"
+  },
+  "savedBasicSettings": {
+    "message": "Basic settings saved!"
+  },
+  "savedAdvancedSettings": {
+    "message": "Advanced settings saved!"
+  },
+  "savedWhitelistSettings": {
+    "message": "Whitelist settings saved!"
+  },
+  "cannotSuspend": {
+    "message": "This tab cannot be suspended"
+  },
+  "tabSuspended": {
+    "message": "Tab suspended"
+  },
+  "tabReloading": {
+    "message": "Reloading"
+  },
+  "autoSuspendDisabled": {
+    "message": "Auto suspend disabled"
+  },
+  "autoSuspendPaused": {
+    "message": "Auto suspend paused"
+  },
+  "audioTabProtected": {
+    "message": "Playing audio; auto suspend paused"
+  },
+  "tabWillSuspend": {
+    "message": "Tab will suspend automatically."
+  },
+  "notNow": {
+    "message": "Not now"
+  },
+  "allowSuspend": {
+    "message": "Allow suspend"
+  },
+  "suspendThisTab": {
+    "message": "Suspend this tab now"
+  },
+  "neverSuspendURL": {
+    "message": "Never suspend this URL"
+  },
+  "neverSuspendDomain": {
+    "message": "Never suspend this domain"
+  },
+  "suspendOthers": {
+    "message": "Suspend all other tabs (this window)"
+  },
+  "suspendAllOthersAllWindows": {
+    "message": "Suspend all other tabs (all windows)"
+  },
+  "unsuspendAllThisWindow": {
+    "message": "Unsuspend all tabs (this window)"
+  },
+  "unsuspendAll": {
+    "message": "Unsuspend all tabs (all windows)"
+  },
+  "suspendSelectedTabs": {
+    "message": "Force suspend selected tabs"
+  },
+  "unsuspendSelectedTabs": {
+    "message": "Unsuspend selected tabs"
+  },
+  "settingsMenu": {
+    "message": "Settings"
+  },
+  "suspendedInstruction": {
+    "message": "Click here or press Ctrl+Shift+Z to reload this tab."
+  },
+  "suspendedInstructionClickAnywhere": {
+    "message": "Click anywhere or press Ctrl+Shift+Z to reload this tab."
+  },
+  "basicSettings": {
+    "message": "Basic Settings"
+  },
+  "basicSettingsDesc": {
+    "message": "Configure basic tab suspension behavior and options"
+  },
+  "autoSuspendTitle": {
+    "message": "Auto Suspend"
+  },
+  "autoSuspendDesc": {
+    "message": "Set how long tabs should be idle before automatically suspending to save memory"
+  },
+  "memoryOptimization": {
+    "message": "Memory Optimization"
+  },
+  "memoryOptimizationDesc": {
+    "message": "Choose how to handle suspended tabs for optimal memory usage"
+  },
+  "nativeDiscardHelp": {
+    "message": "Use browser's built-in tab discarding feature for maximum memory savings, but tab state may not be fully preserved."
+  },
+  "fixFaviconEnabled": {
+    "message": "Fix suspended tab favicon (recommended)"
+  },
+  "fixFaviconEnabledHelp": {
+    "message": "When a suspended tab shows no favicon after browser restart, try to reload it briefly and discard again to restore its favicon."
+  },
+  "fixFaviconBatchSize": {
+    "message": "Max tabs to process per scan (0 = unlimited):"
+  },
+  "fixFaviconBatchSizeHelp": {
+    "message": "Limit how many tabs are processed each time the background scan runs. This helps avoid long processing when many tabs need fixes."
+  },
+  "fixFaviconMaxRetries": {
+    "message": "Max retries per tab:"
+  },
+  "fixFaviconMaxRetriesHelp": {
+    "message": "Prevent infinite retries for tabs that cannot be fixed. Set 0 to disable the limit."
+  },
+  "fixFaviconSectionTitle": {
+    "message": "Suspended Favicon Fix"
+  },
+  "fixFaviconSectionDesc": {
+    "message": "Control how the extension tries to restore missing favicons on suspended tabs"
+  },
+  "whitelistDesc": {
+    "message": "Manage websites and domains that will never be suspended"
+  },
+  "whitelistRules": {
+    "message": "Whitelist Rules"
+  },
+  "whitelistLabel": {
+    "message": "URL or domain list:"
+  },
+  "whitelistHelpDetailed": {
+    "message": "Enter one URL or domain per line. Examples:\n• google.com - entire domain\n• https://example.com/page - specific URL\n• localhost - local development"
+  },
+  "refresh": {
+    "message": "Refresh"
+  },
+  "whitelistRefreshed": {
+    "message": "Whitelist refreshed!"
+  },
+  "siteWhitelisted": {
+    "message": "Site whitelisted."
+  },
+  "removeFromWhitelist": {
+    "message": "Remove from whitelist"
+  },
+  "confirmRemoveFromWhitelist": {
+    "message": "Are you sure you want to remove '%s' from the whitelist?"
+  },
+  "advancedSettings": {
+    "message": "Advanced Settings"
+  },
+  "advancedSettingsDesc": {
+    "message": "Configure advanced suspension, theme, and favicon restoration options"
+  },
+  "aboutSettings": {
+    "message": "About"
+  },
+  "aboutDesc": {
+    "message": "Extension information and details"
+  },
+  "changeLogSettings": {
+    "message": "Change Log"
+  },
+  "changeLogDesc": {
+    "message": "Version history and feature updates"
+  },
+  "loadingChanges": {
+    "message": "Loading change log..."
+  },
+  "failedToLoadChanges": {
+    "message": "Failed to load change log"
+  },
+  "noChangesFound": {
+    "message": "No version changes found"
+  },
+  "version": {
+    "message": "Version"
+  },
+  "unreleased": {
+    "message": "Unreleased"
+  },
+  "description": {
+    "message": "Description"
+  },
+  "supportWebsite": {
+    "message": "Website"
+  },
+  "extDescription": {
+    "message": "Suspend inactive tabs to save memory using native discard or lightweight placeholder."
+  },
+  "comingSoon": {
+    "message": "Coming Soon"
+  },
+  "comingSoonDesc": {
+    "message": "More advanced settings are in development"
+  },
+  "privacyNotice": {
+    "message": "Privacy Notice"
+  },
+  "privacyNoticeText": {
+    "message": "This extension only processes data locally and does not upload any information to external servers"
+  },
+  "tabMigration": {
+    "message": "Tab Migration"
+  },
+  "tabMigrationDesc": {
+    "message": "Migrate suspended tabs from other tab suspension extensions"
+  },
+  "marvellousTabDetection": {
+    "message": "The Marvellous Suspender Tab Detection"
+  },
+  "marvellousTabDetectionDesc": {
+    "message": "Automatically detect and provide migration for The Marvellous Suspender, The Great Suspender (notrack), The Great-er Tab Discarder, and other similar suspended tabs"
+  },
+  "scanForMarvellousTab": {
+    "message": "Scan for The Marvellous Suspender tabs"
+  },
+  "noMarvellousTabFound": {
+    "message": "No The Marvellous Suspender tabs found"
+  },
+  "foundMarvellousTab": {
+    "message": "Found %d The Marvellous Suspender tabs"
+  },
+  "tabSuspenderDetection": {
+    "message": "Tab Suspender Tab Detection"
+  },
+  "tabSuspenderDetectionDesc": {
+    "message": "Automatically detect and provide migration for Tab Suspender suspended tabs"
+  },
+  "scanForTabSuspenderTab": {
+    "message": "Scan for Tab Suspender tabs"
+  },
+  "noTabSuspenderTabFound": {
+    "message": "No Tab Suspender tabs found"
+  },
+  "foundTabSuspenderTab": {
+    "message": "Found %d Tab Suspender tabs"
+  },
+  "customTabDetection": {
+    "message": "Custom Suspended Tab Detection"
+  },
+  "customTabDetectionDesc": {
+    "message": "Configure custom detection pattern for other suspended tab extensions"
+  },
+  "customPatternLabel": {
+    "message": "Custom URL Pattern:"
+  },
+  "extensionIdLabel": {
+    "message": "Extension ID:"
+  },
+  "pathLabel": {
+    "message": "Path:"
+  },
+  "separatorLabel": {
+    "message": "Separator:"
+  },
+  "titleParamLabel": {
+    "message": "Title Parameter:"
+  },
+  "urlParamLabel": {
+    "message": "URL Parameter:"
+  },
+  "testPattern": {
+    "message": "Test Pattern"
+  },
+  "scanCustomTabs": {
+    "message": "Scan for Custom Tabs"
+  },
+  "fillAllFields": {
+    "message": "Please fill in all fields"
+  },
+  "patternTestSuccess": {
+    "message": "Pattern test successful! Example URL parsed correctly."
+  },
+  "patternTestFailed": {
+    "message": "Pattern test failed. Please check your configuration."
+  },
+  "migrateSelected": {
+    "message": "Migrate selected tabs"
+  },
+  "migrationComplete": {
+    "message": "Tab migration completed!"
+  },
+  "migrationFailed": {
+    "message": "Tab migration failed"
+  },
+  "selectAllTabs": {
+    "message": "Select All"
+  },
+  "deselectAllTabs": {
+    "message": "Deselect All"
+  },
+  "tabMigrationHelp": {
+    "message": "This feature allows you to convert suspended tabs from other tab suspension extensions (like The Marvellous Suspender) to ZeroRAM Suspender format, so you can continue using those tabs."
+  },
+  "savedTabMigrationSettings": {
+    "message": "Tab migration settings saved!"
+  },
+  "scanningTabs": {
+    "message": "Scanning tabs..."
+  },
+  "noTabsSelected": {
+    "message": "No tabs selected for migration"
+  },
+  "errorScanningTabs": {
+    "message": "Error scanning tabs: "
+  },
+  "tabsMigrated": {
+    "message": " tabs migrated"
+  },
+  "tabsFailed": {
+    "message": " tabs failed"
+  },
+  "unknownVariant": {
+    "message": "Unknown Version"
+  },
+  "extensionId": {
+    "message": "Extension ID"
+  },
+  "migrationTip": {
+    "message": "💡 Tip:"
+  },
+  "migrationTipDesc": {
+    "message": "This feature can automatically detect and migrate suspended tabs from other tab suspension extensions. It supports detecting both known and unknown variants. The scan state will be automatically reset each time you switch to this page."
+  },
+  "licenseCredits": {
+    "message": "License & Credits"
+  },
+  "licenseText": {
+    "message": "This extension is released under the GNU General Public License v3 (GPL v3). You are free to use, modify, and distribute this software under the terms of the GPL v3."
+  },
+  "copyright": {
+    "message": "Copyright:"
+  },
+  "copyrightText": {
+    "message": "Copyright (C) Yu-Hsiung Chiu"
+  },
+  "keyboardShortcuts": {
+    "message": "Keyboard Shortcuts"
+  },
+  "keyboardShortcutsDesc": {
+    "message": "View and manage extension keyboard shortcuts"
+  },
+  "shortcutsList": {
+    "message": "Available Shortcuts"
+  },
+  "shortcutsHelp": {
+    "message": "Below are the keyboard shortcuts configured for this extension. To modify shortcuts, click \"Manage Shortcuts\" to open Chrome's extension shortcuts page."
+  },
+  "loadingShortcuts": {
+    "message": "Loading shortcuts..."
+  },
+  "errorLoadingShortcuts": {
+    "message": "Error loading shortcuts"
+  },
+  "noShortcutsFound": {
+    "message": "No shortcuts found"
+  },
+  "notAssigned": {
+    "message": "Not assigned"
+  },
+  "manageShortcuts": {
+    "message": "Manage Shortcuts"
+  },
+  "shortcutsRefreshed": {
+    "message": "Shortcuts refreshed!"
+  },
+  "shortcutToggleSuspend": {
+    "message": "Suspend/Unsuspend current tab"
+  },
+  "migrationProgress": {
+    "message": "Migration Progress"
+  },
+  "sessionManagement": {
+    "message": "Session Management"
+  },
+  "sessionManagementDesc": {
+    "message": "Export and import all tabs from all windows"
+  },
+  "exportSessions": {
+    "message": "Export Sessions"
+  },
+  "exportSessionsDesc": {
+    "message": "Export all tabs from all windows to save your current browsing session"
+  },
+  "exportFormat": {
+    "message": "Export format:"
+  },
+  "formatTxt": {
+    "message": "TXT"
+  },
+  "formatJson": {
+    "message": "JSON"
+  },
+  "export": {
+    "message": "Export"
+  },
+  "preview": {
+    "message": "Preview"
+  },
+  "exportPreviewTitle": {
+    "message": "Export Preview:"
+  },
+  "exportHelpTxt": {
+    "message": "TXT format: One URL per line, windows separated by blank lines"
+  },
+  "exportHelpJson": {
+    "message": "JSON format: Array of windows with title and URL for each tab"
+  },
+  "importSessions": {
+    "message": "Import Sessions"
+  },
+  "importSessionsDesc": {
+    "message": "Import tabs from previously exported session files"
+  },
+  "selectSessionFile": {
+    "message": "Select session file:"
+  },
+  "importAsSuspended": {
+    "message": "Import tabs as suspended (saves memory)"
+  },
+  "importAsSuspendedHelp": {
+    "message": "When enabled, imported tabs will be suspended immediately to save memory"
+  },
+  "import": {
+    "message": "Import"
+  },
+  "sessionPreviewTitle": {
+    "message": "Session Preview:"
+  },
+  "importHelp": {
+    "message": "Supports TXT and JSON formats. TXT files should have one URL per line with blank lines separating windows. JSON files should contain an array of windows with tab objects."
+  },
+  "importProgressText": {
+    "message": "Progress:"
+  },
+  "exportingSession": {
+    "message": "Exporting session..."
+  },
+  "sessionExported": {
+    "message": "Session exported"
+  },
+  "exportFailed": {
+    "message": "Export failed"
+  },
+  "generatingPreview": {
+    "message": "Generating preview..."
+  },
+  "exportPreviewReady": {
+    "message": "Export preview ready"
+  },
+  "sessionPreviewed": {
+    "message": "Session preview ready"
+  },
+  "previewFailed": {
+    "message": "Preview failed: Invalid file format"
+  },
+  "sessionImported": {
+    "message": "Session imported successfully"
+  },
+  "importFailed": {
+    "message": "Import failed"
+  },
+  "pleaseSelectFile": {
+    "message": "Please select a file first"
+  },
+  "window": {
+    "message": "Window"
+  },
+  "tabs": {
+    "message": "tabs"
+  },
+  "settingsManagement": {
+    "message": "Settings Management"
+  },
+  "settingsManagementDesc": {
+    "message": "Backup and restore extension settings"
+  },
+  "exportSettings": {
+    "message": "Export Settings"
+  },
+  "exportSettingsDesc": {
+    "message": "Export all current extension settings to a JSON file for backup"
+  },
+  "exportSettingsHelp": {
+    "message": "Exports all settings including auto-suspend configuration, whitelist, and other preferences"
+  },
+  "settingsPreviewTitle": {
+    "message": "Settings Preview:"
+  },
+  "importSettings": {
+    "message": "Import Settings"
+  },
+  "importSettingsDesc": {
+    "message": "Import previously exported settings to restore your configuration"
+  },
+  "selectSettingsFile": {
+    "message": "Select settings file:"
+  },
+  "importSettingsHelp": {
+    "message": "Import settings from a previously exported JSON file. This will replace all current settings. Note: Keyboard shortcuts cannot be imported; please set them manually."
+  },
+  "importPreviewTitle": {
+    "message": "Import Preview:"
+  },
+  "resetSettings": {
+    "message": "Reset Settings"
+  },
+  "resetSettingsDesc": {
+    "message": "Reset all settings to their default values"
+  },
+  "warning": {
+    "message": "Warning"
+  },
+  "resetWarning": {
+    "message": "This action will permanently delete all your current settings and restore defaults. This cannot be undone."
+  },
+  "resetToDefaults": {
+    "message": "Reset to Defaults"
+  },
+  "resetHelp": {
+    "message": "Consider exporting your current settings before resetting, in case you want to restore them later."
+  },
+  "exportingSettings": {
+    "message": "Exporting settings..."
+  },
+  "settingsExported": {
+    "message": "Settings exported successfully"
+  },
+  "settingsPreviewReady": {
+    "message": "Settings preview ready"
+  },
+  "settingsImported": {
+    "message": "Settings imported successfully"
+  },
+  "settingsReset": {
+    "message": "Settings have been reset to defaults"
+  },
+  "resetFailed": {
+    "message": "Reset failed"
+  },
+  "confirmResetSettings": {
+    "message": "Are you sure you want to reset all settings to their default values? This action cannot be undone."
+  },
+  "settingsFileInfo": {
+    "message": "Settings File Information"
+  },
+  "exportedAt": {
+    "message": "Exported at"
+  },
+  "settingsToImport": {
+    "message": "Settings to import"
+  },
+  "minutes": {
+    "message": "minutes"
+  },
+  "enabled": {
+    "message": "Enabled"
+  },
+  "disabled": {
+    "message": "Disabled"
+  },
+  "items": {
+    "message": "items"
+  },
+  "whitelistItems": {
+    "message": "Whitelist items"
+  },
+  "importPreviewReady": {
+    "message": "Import preview ready"
+  },
+  "reportIssue": {
+    "message": "Report Bug or Request Feature"
+  },
+  "rateUs": {
+    "message": "⭐ Rate us on Chrome Web Store"
+  },
+  "themeSettings": {
+    "message": "Theme Settings"
+  },
+  "themeSettingsDesc": {
+    "message": "Choose the appearance theme for the suspended tab page"
+  },
+  "themeMode": {
+    "message": "Theme mode:"
+  },
+  "themeAuto": {
+    "message": "Follow system/browser theme"
+  },
+  "themeLight": {
+    "message": "Light theme"
+  },
+  "themeDark": {
+    "message": "Dark theme"
+  },
+  "themeHelpText": {
+    "message": "The suspended tab page needs to be reloaded to apply the theme. Auto mode will follow your system's dark/light theme preference."
+  },
+  "tabViewer": {
+    "message": "Tab Viewer"
+  },
+  "tabViewerDesc": {
+    "message": "View and manage all suspended tabs"
+  },
+  "tabViewerFilterLabel": {
+    "message": "Filter:"
+  },
+  "tabViewerFilterSuspendedAll": {
+    "message": "All suspended tabs"
+  },
+  "tabViewerFilterSuspendedUndiscarded": {
+    "message": "Suspended but not discarded"
+  },
+  "tabViewerFilterNotSuspended": {
+    "message": "Not suspended"
+  },
+  "suspendedTabsViewer": {
+    "message": "Suspended Tabs Viewer"
+  },
+  "suspendedTabsViewerDesc": {
+    "message": "View all suspended tabs across all windows and check their discard status"
+  },
+  "suspendedTabsDiscardsHint": {
+    "message": "You can also check discard details in chrome://discards."
+  },
+  "showSuspendedTabs": {
+    "message": "Show Suspended Tabs"
+  },
+  "suspendedTabsTitle": {
+    "message": "Suspended Tabs Information:"
+  },
+  "scanningSuspendedTabs": {
+    "message": "Scanning for suspended tabs..."
+  },
+  "noSuspendedTabs": {
+    "message": "No suspended tabs found"
+  },
+  "suspendedTabsFound": {
+    "message": "Found %d suspended tabs"
+  },
+  "suspendedUndiscardedTabsFound": {
+    "message": "Found %d suspended but not discarded tabs"
+  },
+  "notSuspendedTabsFound": {
+    "message": "Found %d not suspended tabs"
+  },
+  "noTabsMatchFilter": {
+    "message": "No tabs match the current filter"
+  },
+  "totalTabsCount": {
+    "message": "Total tabs: %d"
+  },
+  "discardedTabsCount": {
+    "message": "(%d discarded)"
+  },
+  "noSuspendedTabsDesc": {
+    "message": "No suspended tabs found. Suspended tabs are created when ZeroRAM Suspender puts tabs to sleep to save memory."
+  },
+  "suspendedTabsLoaded": {
+    "message": "Suspended tabs information loaded"
+  },
+  "errorLoadingSuspendedTabs": {
+    "message": "Error loading suspended tabs"
+  },
+  "errorOccurred": {
+    "message": "An error occurred"
+  },
+  "discarded": {
+    "message": "Discarded"
+  },
+  "suspended": {
+    "message": "Suspended"
+  },
+  "notSuspended": {
+    "message": "Not suspended"
+  },
+  "unsuspend": {
+    "message": "Unsuspend"
+  },
+  "unsuspending": {
+    "message": "Unsuspending..."
+  },
+  "tabUnsuspended": {
+    "message": "Tab unsuspended successfully"
+  },
+  "unsuspendFailed": {
+    "message": "Failed to unsuspend tab"
+  },
+  "reactivate": {
+    "message": "Reactivate"
+  },
+  "reactivating": {
+    "message": "Reactivating..."
+  },
+  "tabReactivated": {
+    "message": "Tab reactivated successfully"
+  },
+  "reactivationFailed": {
+    "message": "Failed to reactivate tab"
+  },
+  "tabId": {
+    "message": "Tab ID"
+  },
+  "windowId": {
+    "message": "Window ID"
+  },
+  "tab": {
+    "message": "tab"
+  },
+  "loading": {
+    "message": "Loading..."
+  },
+  "bulkProgress": {
+    "message": "Bulk Progress"
+  },
+  "suspendingAllTabs": {
+    "message": "Suspending all tabs"
+  },
+  "unsuspendingAllTabs": {
+    "message": "Unsuspending all tabs"
+  },
+  "bulkDone": {
+    "message": "Done"
+  },
+  "bulkCancel": {
+    "message": "Cancel"
+  },
+  "bulkCancelled": {
+    "message": "Cancelled"
+  }
+}

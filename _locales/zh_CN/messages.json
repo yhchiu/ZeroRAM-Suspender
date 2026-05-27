@@ -1,263 +1,779 @@
 {
-  "extName": { "message": "ZeroRAM Suspender" },
-  "audioTabProtected": { "message": "正在播放音频，已暂停自动挂起" },
-  "clickAnywhereToUnsuspend": { "message": "点击挂起页任意位置即可唤醒" },
-  "clickAnywhereToUnsuspendHelp": { "message": "启用后，点击原始标题或网址也会重新加载挂起的标签页。" },
-  "suspendedInstructionClickAnywhere": { "message": "点击任意位置或按 Ctrl+Shift+Z 即可重新加载此标签页。" },
-  "titleOptions": { "message": "ZeroRAM Suspender – 设置" },
-  "autoSuspendLabel": { "message": "空闲多久后自动挂起（分钟）：" },
-  "autoSuspendHelp": { "message": "设置 0 表示永不自动挂起。" },
-  "neverSuspendAudio": { "message": "永不挂起正在播放音频的标签页" },
-  "neverSuspendPinned": { "message": "永不挂起已固定的标签页" },
-  "neverSuspendActive": { "message": "永不挂起各窗口中的活动标签页" },
-  "rememberLastActiveTab": { "message": "切换应用程序时记住最后活动标签页" },
-  "rememberLastActiveTabHelp": { "message": "当从浏览器切换到其他应用程序时，保护切换前的活动标签页不被挂起" },
-  "nativeDiscardLabel": { "message": "使用原生丢弃（最节省内存）" },
-  "whitelistTitle": { "message": "白名单" },
-  "whitelistHelp": { "message": "符合以下网址或域名的标签页将不会被挂起。" },
-  "whitelistPlaceholder": { "message": "每行一个项目" },
-  "saveButton": { "message": "保存" },
-  "savedNotice": { "message": "已保存！" },
-  "savedBasicSettings": { "message": "基本设置已保存！" },
-  "savedWhitelistSettings": { "message": "白名单设置已保存！" },
-  "cannotSuspend": { "message": "此标签页无法挂起" },
-  "tabSuspended": { "message": "标签页已挂起" },
-  "tabReloading": { "message": "重新加载中" },
-  "autoSuspendDisabled": { "message": "已禁用自动挂起" },
-  "autoSuspendPaused": { "message": "已暂停自动挂起" },
-  "tabWillSuspend": { "message": "标签页将自动挂起。" },
-  "notNow": { "message": "暂时不挂起" },
-  "allowSuspend": { "message": "允许挂起" },
-  "suspendThisTab": { "message": "立即挂起此标签页" },
-  "neverSuspendURL": { "message": "永不挂起此网址" },
-  "neverSuspendDomain": { "message": "永不挂起此域名" },
-  "suspendOthers": { "message": "挂起所有其他标签页（此窗口）" },
-  "suspendAllOthersAllWindows": { "message": "挂起所有其他标签页（所有窗口）" },
-  "unsuspendAllThisWindow": { "message": "唤醒所有标签页（此窗口）" },
-  "unsuspendAll": { "message": "唤醒所有标签页（所有窗口）" },
-  "suspendSelectedTabs": { "message": "强制挂起选中的标签页" },
-  "unsuspendSelectedTabs": { "message": "唤醒选中的标签页" },
-  "settingsMenu": { "message": "设置" },
-  "suspendedInstruction": { "message": "点击此处或按 Ctrl+Shift+Z 即可重新加载此标签页。" },
-  "basicSettings": { "message": "基本设置" },
-  "basicSettingsDesc": { "message": "配置标签页挂起的基本行为和选项" },
-  "autoSuspendTitle": { "message": "自动挂起" },
-  "autoSuspendDesc": { "message": "设置标签页空闲多长时间后自动挂起以节省内存" },
-  "memoryOptimization": { "message": "内存优化" },
-  "memoryOptimizationDesc": { "message": "选择如何处理挂起的标签页以达到最佳内存使用效果" },
-  "nativeDiscardHelp": { "message": "使用浏览器内置的标签页丢弃功能，可以达到最佳的内存节省效果，但标签页状态可能无法完全保留。" },
-  "fixFaviconEnabled": { "message": "修复已挂起标签页的网站图标（建议开启）" },
-  "fixFaviconEnabledHelp": { "message": "当浏览器重新启动后，如果已挂起标签页没有显示网站图标，将尝试短暂重新加载并再次丢弃以恢复图标。" },
-  "fixFaviconBatchSize": { "message": "每次扫描最多处理的标签页数（0 = 不限制）：" },
-  "fixFaviconBatchSizeHelp": { "message": "限制后台扫描每次要处理的标签页数，避免在需要修复很多标签页时长时间占用。" },
-  "fixFaviconMaxRetries": { "message": "单个标签页的最大重试次数：" },
-  "fixFaviconMaxRetriesHelp": { "message": "避免对无法修复的标签页无限重试。设置 0 代表不限制。" },
-  "fixFaviconSectionTitle": { "message": "修复已挂起标签页图标" },
-  "fixFaviconSectionDesc": { "message": "设置如何尝试恢复已挂起标签页缺失的网站图标" },
-  "whitelistDesc": { "message": "管理永不挂起的网站和域名" },
-  "whitelistRules": { "message": "白名单规则" },
-  "whitelistLabel": { "message": "网址或域名列表：" },
-  "whitelistHelpDetailed": { "message": "每行输入一个网址或域名。例如：\\n• google.com - 整个域名\\n• https://example.com/page - 特定网址\\n• localhost - 本地开发环境" },
-  "refresh": { "message": "重新加载" },
-  "whitelistRefreshed": { "message": "白名单已重新加载！" },
-  "siteWhitelisted": { "message": "网站已列入白名单。" },
-  "removeFromWhitelist": { "message": "从白名单移除" },
-  "confirmRemoveFromWhitelist": { "message": "确认要从白名单移除「%s」吗？" },
-  "advancedSettings": { "message": "高级设置" },
-  "advancedSettingsDesc": { "message": "高级用户选项（开发中）" },
-  "aboutSettings": { "message": "关于" },
-  "aboutDesc": { "message": "信息和说明" },
-  "changeLogSettings": { "message": "更新日志" },
-  "changeLogDesc": { "message": "版本历史和功能更新" },
-  "loadingChanges": { "message": "加载更新日志中..." },
-  "failedToLoadChanges": { "message": "加载更新日志失败" },
-  "noChangesFound": { "message": "未找到版本变更" },
-  "version": { "message": "版本" },
-  "unreleased": { "message": "尚未发布" },
-  "description": { "message": "说明" },
-  "supportWebsite": { "message": "网站" },
-  "extDescription": { "message": "挂起空闲标签页以节省浏览器内存（使用原生丢弃或轻量静态页面）" },
-  "comingSoon": { "message": "即将推出" },
-  "comingSoonDesc": { "message": "更多高级设置功能正在开发中" },
-  "privacyNotice": { "message": "隐私声明" },
-  "privacyNoticeText": { "message": "此扩展仅在本地处理数据，不会上传任何信息到外部服务器" },
-  "tabMigration": { "message": "标签页迁移" },
-  "tabMigrationDesc": { "message": "从其他标签页挂起插件迁移已挂起的标签页" },
-  "marvellousTabDetection": { "message": "The Marvellous Suspender 标签页检测" },
-  "marvellousTabDetectionDesc": { "message": "自动检测并提供迁移 The Marvellous Suspender, The Great Suspender (notrack), The Great-er Tab Discarder, 及其他类似的已挂起标签页" },
-  "scanForMarvellousTab": { "message": "扫描 The Marvellous Suspender 标签页" },
-  "noMarvellousTabFound": { "message": "未找到 The Marvellous Suspender 标签页" },
-  "foundMarvellousTab": { "message": "找到 %d 个 The Marvellous Suspender 标签页" },
-  "tabSuspenderDetection": { "message": "Tab Suspender 标签页检测" },
-  "tabSuspenderDetectionDesc": { "message": "自动检测并提供迁移 Tab Suspender 的已挂起标签页" },
-  "scanForTabSuspenderTab": { "message": "扫描 Tab Suspender 标签页" },
-  "noTabSuspenderTabFound": { "message": "未找到 Tab Suspender 标签页" },
-  "foundTabSuspenderTab": { "message": "找到 %d 个 Tab Suspender 标签页" },
-  "customTabDetection": { "message": "自定义挂起标签页检测" },
-  "customTabDetectionDesc": { "message": "配置自定义检测模式以支持其他标签页挂起扩展" },
-  "customPatternLabel": { "message": "自定义 URL 模式：" },
-  "extensionIdLabel": { "message": "扩展 ID：" },
-  "pathLabel": { "message": "路径：" },
-  "separatorLabel": { "message": "分隔符：" },
-  "titleParamLabel": { "message": "标题参数：" },
-  "urlParamLabel": { "message": "网址参数：" },
-  "testPattern": { "message": "测试模式" },
-  "scanCustomTabs": { "message": "扫描自定义标签页" },
-  "fillAllFields": { "message": "请填写所有字段" },
-  "patternTestSuccess": { "message": "模式测试成功！示例 URL 解析正确。" },
-  "patternTestFailed": { "message": "模式测试失败。请检查您的配置。" },
-  "migrateSelected": { "message": "迁移选中的标签页" },
-  "migrationComplete": { "message": "标签页迁移完成！" },
-  "migrationFailed": { "message": "标签页迁移失败" },
-  "selectAllTabs": { "message": "全选" },
-  "deselectAllTabs": { "message": "取消全选" },
-  "tabMigrationHelp": { "message": "此功能可以将其他标签页挂起插件（如 The Marvellous Suspender）的已挂起标签页转换为 ZeroRAM Suspender 格式，让您可以继续使用这些标签页。" },
-  "savedTabMigrationSettings": { "message": "标签页迁移设置已保存！" },
-  "scanningTabs": { "message": "正在扫描标签页..." },
-  "noTabsSelected": { "message": "未选择要迁移的标签页" },
-  "errorScanningTabs": { "message": "扫描标签页时发生错误：" },
-  "tabsMigrated": { "message": "个标签页已迁移" },
-  "tabsFailed": { "message": "个标签页迁移失败" },
-  "unknownVariant": { "message": "未知版本" },
-  "extensionId": { "message": "扩展 ID" },
-  "migrationTip": { "message": "💡 提示：" },
-  "migrationTipDesc": { "message": "此功能可以自动检测并迁移来自其他标签页挂起插件的已挂起标签页。支持检测已知和未知的版本变体。每次切换到此页面时，会自动重置扫描状态。" },
-  "licenseCredits": { "message": "授权" },
-  "licenseText": { "message": "此扩展依据 GNU 通用公共许可证条款第三版（GPL v3）发布。您可以在 GPL v3 条款规范下自由使用、修改和分发此软件。" },
-  "copyright": { "message": "版权：" },
-  "copyrightText": { "message": "Copyright (C) Yu-Hsiung Chiu" },
-  "keyboardShortcuts": { "message": "键盘快捷键" },
-  "keyboardShortcutsDesc": { "message": "查看和管理扩展的键盘快捷键" },
-  "shortcutsList": { "message": "可用快捷键" },
-  "shortcutsHelp": { "message": "以下是此扩展配置的键盘快捷键。若要修改快捷键，请点击「管理快捷键」以打开 Chrome 的扩展快捷键设置页面。" },
-  "loadingShortcuts": { "message": "加载快捷键中..." },
-  "errorLoadingShortcuts": { "message": "加载快捷键时发生错误" },
-  "noShortcutsFound": { "message": "未找到快捷键" },
-  "notAssigned": { "message": "未设置" },
-  "manageShortcuts": { "message": "管理快捷键" },
-  "shortcutsRefreshed": { "message": "快捷键已重新加载！" },
-  "shortcutToggleSuspend": { "message": "挂起/唤醒当前标签页" },
-  "migrationProgress": { "message": "迁移进度" },
-  "sessionManagement": { "message": "会话管理" },
-  "sessionManagementDesc": { "message": "导出和导入所有窗口的所有标签页" },
-  "exportSessions": { "message": "导出会话" },
-  "exportSessionsDesc": { "message": "导出所有窗口的所有标签页以保存您当前的浏览会话" },
-  "exportFormat": { "message": "导出格式：" },
-  "formatTxt": { "message": "TXT" },
-  "formatJson": { "message": "JSON" },
-  "export": { "message": "导出" },
-  "preview": { "message": "预览" },
-  "exportPreviewTitle": { "message": "导出预览：" },
-  "exportHelpTxt": { "message": "TXT 格式：每行一个网址，窗口间以空白行分隔" },
-  "exportHelpJson": { "message": "JSON 格式：包含每个标签页标题和网址的窗口数组" },
-  "importSessions": { "message": "导入会话" },
-  "importSessionsDesc": { "message": "从先前导出的会话文件导入标签页" },
-  "selectSessionFile": { "message": "选择会话文件：" },
-  "importAsSuspended": { "message": "以挂起方式导入标签页（节省内存）" },
-  "importAsSuspendedHelp": { "message": "启用时，导入的标签页将立即挂起以节省内存" },
-  "import": { "message": "导入" },
-  "sessionPreviewTitle": { "message": "会话预览：" },
-  "importHelp": { "message": "支持 TXT 和 JSON 格式。TXT 文件应该每行一个网址，以空白行分隔窗口。JSON 文件应该包含含有标签页对象的窗口数组。" },
-  "importProgressText": { "message": "进度：" },
-  "exportingSession": { "message": "正在导出会话..." },
-  "sessionExported": { "message": "会话已导出" },
-  "exportFailed": { "message": "导出失败" },
-  "generatingPreview": { "message": "正在生成预览..." },
-  "exportPreviewReady": { "message": "导出预览已准备就绪" },
-  "sessionPreviewed": { "message": "会话预览已准备就绪" },
-  "previewFailed": { "message": "预览失败：文件格式无效" },
-  "sessionImported": { "message": "会话导入成功" },
-  "importFailed": { "message": "导入失败" },
-  "pleaseSelectFile": { "message": "请先选择文件" },
-  "window": { "message": "窗口" },
-  "tabs": { "message": "标签页" },
-  "settingsManagement": { "message": "设置管理" },
-  "settingsManagementDesc": { "message": "备份和恢复扩展设置" },
-  "exportSettings": { "message": "导出设置" },
-  "exportSettingsDesc": { "message": "将所有当前的扩展设置导出为 JSON 文件进行备份" },
-  "exportSettingsHelp": { "message": "导出包括自动挂起配置、白名单和其他偏好设置在内的所有设置" },
-  "settingsPreviewTitle": { "message": "设置预览：" },
-  "importSettings": { "message": "导入设置" },
-  "importSettingsDesc": { "message": "导入先前导出的设置以恢复您的配置" },
-  "selectSettingsFile": { "message": "选择设置文件：" },
-  "importSettingsHelp": { "message": "从先前导出的 JSON 文件导入设置。这将替换所有当前的设置。注意：键盘快捷键无法导入，需要手动设置。" },
-  "importPreviewTitle": { "message": "导入预览：" },
-  "resetSettings": { "message": "重置设置" },
-  "resetSettingsDesc": { "message": "将所有设置重置为默认值" },
-  "warning": { "message": "警告" },
-  "resetWarning": { "message": "此操作将永久删除您所有的当前设置并恢复为默认值。此操作无法撤销。" },
-  "resetToDefaults": { "message": "重置为默认值" },
-  "resetHelp": { "message": "在重置之前，建议先导出您当前的设置，以防您稍后想要恢复它们。" },
-  "exportingSettings": { "message": "正在导出设置..." },
-  "settingsExported": { "message": "设置导出成功" },
-  "settingsPreviewReady": { "message": "设置预览已准备就绪" },
-  "settingsImported": { "message": "设置导入成功" },
-  "settingsReset": { "message": "设置已重置为默认值" },
-  "resetFailed": { "message": "重置失败" },
-  "confirmResetSettings": { "message": "您确定要将所有设置重置为默认值吗？此操作无法撤销。" },
-  "settingsFileInfo": { "message": "设置文件信息" },
-  "exportedAt": { "message": "导出时间" },
-  "settingsToImport": { "message": "要导入的设置" },
-  "minutes": { "message": "分钟" },
-  "enabled": { "message": "已启用" },
-  "disabled": { "message": "已禁用" },
-  "items": { "message": "项目" },
-  "whitelistItems": { "message": "白名单项目" },
-  "importPreviewReady": { "message": "导入预览已准备就绪" },
-  "reportIssue": { "message": "回报错误或请求功能" },
-  "rateUs": { "message": "⭐ 在 Chrome 网上应用店评分" },
-  "themeSettings": { "message": "主题设置" },
-  "themeSettingsDesc": { "message": "选择挂起标签页面的外观主题" },
-  "themeMode": { "message": "主题模式：" },
-  "themeAuto": { "message": "自动跟随系统/浏览器主题" },
-  "themeLight": { "message": "浅色主题" },
-  "themeDark": { "message": "深色主题" },
-  "themeHelpText": { "message": "挂起标签页面需要重新加载以应用主题。自动模式会跟随您的系统深色/浅色主题偏好设置。" },
-  "tabViewer": { "message": "标签页查看器" },
-  "tabViewerDesc": { "message": "查看和管理所有已挂起的标签页" },
-
-  "tabViewerFilterLabel": { "message": "筛选：" },
-  "tabViewerFilterSuspendedAll": { "message": "全部已挂起标签页" },
-  "tabViewerFilterSuspendedUndiscarded": { "message": "仅已挂起且未丢弃" },
-  "tabViewerFilterNotSuspended": { "message": "仅未挂起" },
-  "suspendedTabsViewer": { "message": "已挂起标签页查看器" },
-  "suspendedTabsViewerDesc": { "message": "查看所有窗口中的已挂起标签页并检查其丢弃状态" },
-  "suspendedTabsDiscardsHint": { "message": "你也可以通过 chrome://discards 查看丢弃详细信息。" },
-  "showSuspendedTabs": { "message": "显示已挂起的标签页" },
-  "suspendedTabsTitle": { "message": "已挂起标签页信息：" },
-  "scanningSuspendedTabs": { "message": "正在扫描已挂起的标签页..." },
-  "noSuspendedTabs": { "message": "未找到已挂起的标签页" },
-  "suspendedTabsFound": { "message": "找到 %d 个已挂起的标签页" },
-
-  "suspendedUndiscardedTabsFound": { "message": "找到 %d 个已挂起且未丢弃的标签页" },
-  "notSuspendedTabsFound": { "message": "找到 %d 个未挂起的标签页" },
-  "noTabsMatchFilter": { "message": "没有符合当前筛选条件的标签页" },
-  "totalTabsCount": { "message": "标签页总数：%d" },
-  "discardedTabsCount": { "message": "（%d 个已丢弃）" },
-  "noSuspendedTabsDesc": { "message": "未找到已挂起的标签页。当 ZeroRAM Suspender 让标签页休眠以节省内存时会创建已挂起的标签页。" },
-  "suspendedTabsLoaded": { "message": "已加载已挂起标签页信息" },
-  "errorLoadingSuspendedTabs": { "message": "加载已挂起标签页时发生错误" },
-  "errorOccurred": { "message": "发生错误" },
-  "discarded": { "message": "已丢弃" },
-  "suspended": { "message": "已挂起" },
-
-  "notSuspended": { "message": "未挂起" },
-  "unsuspend": { "message": "取消挂起" },
-  "unsuspending": { "message": "取消挂起中..." },
-  "tabUnsuspended": { "message": "标签页取消挂起成功" },
-  "unsuspendFailed": { "message": "标签页取消挂起失败" },
-  "reactivate": { "message": "重新激活" },
-  "reactivating": { "message": "重新激活中..." },
-  "tabReactivated": { "message": "标签页重新激活成功" },
-  "reactivationFailed": { "message": "标签页重新激活失败" },
-  "tabId": { "message": "标签页 ID" },
-  "windowId": { "message": "窗口 ID" },
-  "tab": { "message": "标签页" },
-  "loading": { "message": "加载中..." },
-  "bulkProgress": { "message": "批次进度" },
-  "suspendingAllTabs": { "message": "正在挂起所有标签页" },
-  "unsuspendingAllTabs": { "message": "正在唤醒所有标签页" },
-  "bulkDone": { "message": "完成" },
-  "bulkCancel": { "message": "停止" },
-  "bulkCancelled": { "message": "已停止" }
+  "extName": {
+    "message": "ZeroRAM Suspender"
+  },
+  "audioTabProtected": {
+    "message": "正在播放音频，已暂停自动挂起"
+  },
+  "clickAnywhereToUnsuspend": {
+    "message": "点击挂起页任意位置即可唤醒"
+  },
+  "clickAnywhereToUnsuspendHelp": {
+    "message": "启用后，点击原始标题或网址也会重新加载挂起的标签页。"
+  },
+  "suspendedInstructionClickAnywhere": {
+    "message": "点击任意位置或按 Ctrl+Shift+Z 即可重新加载此标签页。"
+  },
+  "titleOptions": {
+    "message": "ZeroRAM Suspender – 设置"
+  },
+  "autoSuspendLabel": {
+    "message": "空闲多久后自动挂起（分钟）："
+  },
+  "autoSuspendHelp": {
+    "message": "设置 0 表示永不自动挂起。"
+  },
+  "neverSuspendAudio": {
+    "message": "永不挂起正在播放音频的标签页"
+  },
+  "neverSuspendPinned": {
+    "message": "永不挂起已固定的标签页"
+  },
+  "neverSuspendActive": {
+    "message": "永不挂起各窗口中的活动标签页"
+  },
+  "rememberLastActiveTab": {
+    "message": "切换应用程序时记住最后活动标签页"
+  },
+  "rememberLastActiveTabHelp": {
+    "message": "当从浏览器切换到其他应用程序时，保护切换前的活动标签页不被挂起"
+  },
+  "nativeDiscardLabel": {
+    "message": "使用原生丢弃（最节省内存）"
+  },
+  "whitelistTitle": {
+    "message": "白名单"
+  },
+  "whitelistHelp": {
+    "message": "符合以下网址或域名的标签页将不会被挂起。"
+  },
+  "whitelistPlaceholder": {
+    "message": "每行一个项目"
+  },
+  "saveButton": {
+    "message": "保存"
+  },
+  "savedNotice": {
+    "message": "已保存！"
+  },
+  "savedBasicSettings": {
+    "message": "基本设置已保存！"
+  },
+  "savedAdvancedSettings": {
+    "message": "高级设置已保存！"
+  },
+  "savedWhitelistSettings": {
+    "message": "白名单设置已保存！"
+  },
+  "cannotSuspend": {
+    "message": "此标签页无法挂起"
+  },
+  "tabSuspended": {
+    "message": "标签页已挂起"
+  },
+  "tabReloading": {
+    "message": "重新加载中"
+  },
+  "autoSuspendDisabled": {
+    "message": "已禁用自动挂起"
+  },
+  "autoSuspendPaused": {
+    "message": "已暂停自动挂起"
+  },
+  "tabWillSuspend": {
+    "message": "标签页将自动挂起。"
+  },
+  "notNow": {
+    "message": "暂时不挂起"
+  },
+  "allowSuspend": {
+    "message": "允许挂起"
+  },
+  "suspendThisTab": {
+    "message": "立即挂起此标签页"
+  },
+  "neverSuspendURL": {
+    "message": "永不挂起此网址"
+  },
+  "neverSuspendDomain": {
+    "message": "永不挂起此域名"
+  },
+  "suspendOthers": {
+    "message": "挂起所有其他标签页（此窗口）"
+  },
+  "suspendAllOthersAllWindows": {
+    "message": "挂起所有其他标签页（所有窗口）"
+  },
+  "unsuspendAllThisWindow": {
+    "message": "唤醒所有标签页（此窗口）"
+  },
+  "unsuspendAll": {
+    "message": "唤醒所有标签页（所有窗口）"
+  },
+  "suspendSelectedTabs": {
+    "message": "强制挂起选中的标签页"
+  },
+  "unsuspendSelectedTabs": {
+    "message": "唤醒选中的标签页"
+  },
+  "settingsMenu": {
+    "message": "设置"
+  },
+  "suspendedInstruction": {
+    "message": "点击此处或按 Ctrl+Shift+Z 即可重新加载此标签页。"
+  },
+  "basicSettings": {
+    "message": "基本设置"
+  },
+  "basicSettingsDesc": {
+    "message": "配置标签页挂起的基本行为和选项"
+  },
+  "autoSuspendTitle": {
+    "message": "自动挂起"
+  },
+  "autoSuspendDesc": {
+    "message": "设置标签页空闲多长时间后自动挂起以节省内存"
+  },
+  "memoryOptimization": {
+    "message": "内存优化"
+  },
+  "memoryOptimizationDesc": {
+    "message": "选择如何处理挂起的标签页以达到最佳内存使用效果"
+  },
+  "nativeDiscardHelp": {
+    "message": "使用浏览器内置的标签页丢弃功能，可以达到最佳的内存节省效果，但标签页状态可能无法完全保留。"
+  },
+  "fixFaviconEnabled": {
+    "message": "修复已挂起标签页的网站图标（建议开启）"
+  },
+  "fixFaviconEnabledHelp": {
+    "message": "当浏览器重新启动后，如果已挂起标签页没有显示网站图标，将尝试短暂重新加载并再次丢弃以恢复图标。"
+  },
+  "fixFaviconBatchSize": {
+    "message": "每次扫描最多处理的标签页数（0 = 不限制）："
+  },
+  "fixFaviconBatchSizeHelp": {
+    "message": "限制后台扫描每次要处理的标签页数，避免在需要修复很多标签页时长时间占用。"
+  },
+  "fixFaviconMaxRetries": {
+    "message": "单个标签页的最大重试次数："
+  },
+  "fixFaviconMaxRetriesHelp": {
+    "message": "避免对无法修复的标签页无限重试。设置 0 代表不限制。"
+  },
+  "fixFaviconSectionTitle": {
+    "message": "修复已挂起标签页图标"
+  },
+  "fixFaviconSectionDesc": {
+    "message": "设置如何尝试恢复已挂起标签页缺失的网站图标"
+  },
+  "whitelistDesc": {
+    "message": "管理永不挂起的网站和域名"
+  },
+  "whitelistRules": {
+    "message": "白名单规则"
+  },
+  "whitelistLabel": {
+    "message": "网址或域名列表："
+  },
+  "whitelistHelpDetailed": {
+    "message": "每行输入一个网址或域名。例如：\\n• google.com - 整个域名\\n• https://example.com/page - 特定网址\\n• localhost - 本地开发环境"
+  },
+  "refresh": {
+    "message": "重新加载"
+  },
+  "whitelistRefreshed": {
+    "message": "白名单已重新加载！"
+  },
+  "siteWhitelisted": {
+    "message": "网站已列入白名单。"
+  },
+  "removeFromWhitelist": {
+    "message": "从白名单移除"
+  },
+  "confirmRemoveFromWhitelist": {
+    "message": "确认要从白名单移除「%s」吗？"
+  },
+  "advancedSettings": {
+    "message": "高级设置"
+  },
+  "advancedSettingsDesc": {
+    "message": "配置高级挂起、主题和网站图标修复等进阶选项"
+  },
+  "aboutSettings": {
+    "message": "关于"
+  },
+  "aboutDesc": {
+    "message": "信息和说明"
+  },
+  "changeLogSettings": {
+    "message": "更新日志"
+  },
+  "changeLogDesc": {
+    "message": "版本历史和功能更新"
+  },
+  "loadingChanges": {
+    "message": "加载更新日志中..."
+  },
+  "failedToLoadChanges": {
+    "message": "加载更新日志失败"
+  },
+  "noChangesFound": {
+    "message": "未找到版本变更"
+  },
+  "version": {
+    "message": "版本"
+  },
+  "unreleased": {
+    "message": "尚未发布"
+  },
+  "description": {
+    "message": "说明"
+  },
+  "supportWebsite": {
+    "message": "网站"
+  },
+  "extDescription": {
+    "message": "挂起空闲标签页以节省浏览器内存（使用原生丢弃或轻量静态页面）"
+  },
+  "comingSoon": {
+    "message": "即将推出"
+  },
+  "comingSoonDesc": {
+    "message": "更多高级设置功能正在开发中"
+  },
+  "privacyNotice": {
+    "message": "隐私声明"
+  },
+  "privacyNoticeText": {
+    "message": "此扩展仅在本地处理数据，不会上传任何信息到外部服务器"
+  },
+  "tabMigration": {
+    "message": "标签页迁移"
+  },
+  "tabMigrationDesc": {
+    "message": "从其他标签页挂起插件迁移已挂起的标签页"
+  },
+  "marvellousTabDetection": {
+    "message": "The Marvellous Suspender 标签页检测"
+  },
+  "marvellousTabDetectionDesc": {
+    "message": "自动检测并提供迁移 The Marvellous Suspender, The Great Suspender (notrack), The Great-er Tab Discarder, 及其他类似的已挂起标签页"
+  },
+  "scanForMarvellousTab": {
+    "message": "扫描 The Marvellous Suspender 标签页"
+  },
+  "noMarvellousTabFound": {
+    "message": "未找到 The Marvellous Suspender 标签页"
+  },
+  "foundMarvellousTab": {
+    "message": "找到 %d 个 The Marvellous Suspender 标签页"
+  },
+  "tabSuspenderDetection": {
+    "message": "Tab Suspender 标签页检测"
+  },
+  "tabSuspenderDetectionDesc": {
+    "message": "自动检测并提供迁移 Tab Suspender 的已挂起标签页"
+  },
+  "scanForTabSuspenderTab": {
+    "message": "扫描 Tab Suspender 标签页"
+  },
+  "noTabSuspenderTabFound": {
+    "message": "未找到 Tab Suspender 标签页"
+  },
+  "foundTabSuspenderTab": {
+    "message": "找到 %d 个 Tab Suspender 标签页"
+  },
+  "customTabDetection": {
+    "message": "自定义挂起标签页检测"
+  },
+  "customTabDetectionDesc": {
+    "message": "配置自定义检测模式以支持其他标签页挂起扩展"
+  },
+  "customPatternLabel": {
+    "message": "自定义 URL 模式："
+  },
+  "extensionIdLabel": {
+    "message": "扩展 ID："
+  },
+  "pathLabel": {
+    "message": "路径："
+  },
+  "separatorLabel": {
+    "message": "分隔符："
+  },
+  "titleParamLabel": {
+    "message": "标题参数："
+  },
+  "urlParamLabel": {
+    "message": "网址参数："
+  },
+  "testPattern": {
+    "message": "测试模式"
+  },
+  "scanCustomTabs": {
+    "message": "扫描自定义标签页"
+  },
+  "fillAllFields": {
+    "message": "请填写所有字段"
+  },
+  "patternTestSuccess": {
+    "message": "模式测试成功！示例 URL 解析正确。"
+  },
+  "patternTestFailed": {
+    "message": "模式测试失败。请检查您的配置。"
+  },
+  "migrateSelected": {
+    "message": "迁移选中的标签页"
+  },
+  "migrationComplete": {
+    "message": "标签页迁移完成！"
+  },
+  "migrationFailed": {
+    "message": "标签页迁移失败"
+  },
+  "selectAllTabs": {
+    "message": "全选"
+  },
+  "deselectAllTabs": {
+    "message": "取消全选"
+  },
+  "tabMigrationHelp": {
+    "message": "此功能可以将其他标签页挂起插件（如 The Marvellous Suspender）的已挂起标签页转换为 ZeroRAM Suspender 格式，让您可以继续使用这些标签页。"
+  },
+  "savedTabMigrationSettings": {
+    "message": "标签页迁移设置已保存！"
+  },
+  "scanningTabs": {
+    "message": "正在扫描标签页..."
+  },
+  "noTabsSelected": {
+    "message": "未选择要迁移的标签页"
+  },
+  "errorScanningTabs": {
+    "message": "扫描标签页时发生错误："
+  },
+  "tabsMigrated": {
+    "message": "个标签页已迁移"
+  },
+  "tabsFailed": {
+    "message": "个标签页迁移失败"
+  },
+  "unknownVariant": {
+    "message": "未知版本"
+  },
+  "extensionId": {
+    "message": "扩展 ID"
+  },
+  "migrationTip": {
+    "message": "💡 提示："
+  },
+  "migrationTipDesc": {
+    "message": "此功能可以自动检测并迁移来自其他标签页挂起插件的已挂起标签页。支持检测已知和未知的版本变体。每次切换到此页面时，会自动重置扫描状态。"
+  },
+  "licenseCredits": {
+    "message": "授权"
+  },
+  "licenseText": {
+    "message": "此扩展依据 GNU 通用公共许可证条款第三版（GPL v3）发布。您可以在 GPL v3 条款规范下自由使用、修改和分发此软件。"
+  },
+  "copyright": {
+    "message": "版权："
+  },
+  "copyrightText": {
+    "message": "Copyright (C) Yu-Hsiung Chiu"
+  },
+  "keyboardShortcuts": {
+    "message": "键盘快捷键"
+  },
+  "keyboardShortcutsDesc": {
+    "message": "查看和管理扩展的键盘快捷键"
+  },
+  "shortcutsList": {
+    "message": "可用快捷键"
+  },
+  "shortcutsHelp": {
+    "message": "以下是此扩展配置的键盘快捷键。若要修改快捷键，请点击「管理快捷键」以打开 Chrome 的扩展快捷键设置页面。"
+  },
+  "loadingShortcuts": {
+    "message": "加载快捷键中..."
+  },
+  "errorLoadingShortcuts": {
+    "message": "加载快捷键时发生错误"
+  },
+  "noShortcutsFound": {
+    "message": "未找到快捷键"
+  },
+  "notAssigned": {
+    "message": "未设置"
+  },
+  "manageShortcuts": {
+    "message": "管理快捷键"
+  },
+  "shortcutsRefreshed": {
+    "message": "快捷键已重新加载！"
+  },
+  "shortcutToggleSuspend": {
+    "message": "挂起/唤醒当前标签页"
+  },
+  "migrationProgress": {
+    "message": "迁移进度"
+  },
+  "sessionManagement": {
+    "message": "会话管理"
+  },
+  "sessionManagementDesc": {
+    "message": "导出和导入所有窗口的所有标签页"
+  },
+  "exportSessions": {
+    "message": "导出会话"
+  },
+  "exportSessionsDesc": {
+    "message": "导出所有窗口的所有标签页以保存您当前的浏览会话"
+  },
+  "exportFormat": {
+    "message": "导出格式："
+  },
+  "formatTxt": {
+    "message": "TXT"
+  },
+  "formatJson": {
+    "message": "JSON"
+  },
+  "export": {
+    "message": "导出"
+  },
+  "preview": {
+    "message": "预览"
+  },
+  "exportPreviewTitle": {
+    "message": "导出预览："
+  },
+  "exportHelpTxt": {
+    "message": "TXT 格式：每行一个网址，窗口间以空白行分隔"
+  },
+  "exportHelpJson": {
+    "message": "JSON 格式：包含每个标签页标题和网址的窗口数组"
+  },
+  "importSessions": {
+    "message": "导入会话"
+  },
+  "importSessionsDesc": {
+    "message": "从先前导出的会话文件导入标签页"
+  },
+  "selectSessionFile": {
+    "message": "选择会话文件："
+  },
+  "importAsSuspended": {
+    "message": "以挂起方式导入标签页（节省内存）"
+  },
+  "importAsSuspendedHelp": {
+    "message": "启用时，导入的标签页将立即挂起以节省内存"
+  },
+  "import": {
+    "message": "导入"
+  },
+  "sessionPreviewTitle": {
+    "message": "会话预览："
+  },
+  "importHelp": {
+    "message": "支持 TXT 和 JSON 格式。TXT 文件应该每行一个网址，以空白行分隔窗口。JSON 文件应该包含含有标签页对象的窗口数组。"
+  },
+  "importProgressText": {
+    "message": "进度："
+  },
+  "exportingSession": {
+    "message": "正在导出会话..."
+  },
+  "sessionExported": {
+    "message": "会话已导出"
+  },
+  "exportFailed": {
+    "message": "导出失败"
+  },
+  "generatingPreview": {
+    "message": "正在生成预览..."
+  },
+  "exportPreviewReady": {
+    "message": "导出预览已准备就绪"
+  },
+  "sessionPreviewed": {
+    "message": "会话预览已准备就绪"
+  },
+  "previewFailed": {
+    "message": "预览失败：文件格式无效"
+  },
+  "sessionImported": {
+    "message": "会话导入成功"
+  },
+  "importFailed": {
+    "message": "导入失败"
+  },
+  "pleaseSelectFile": {
+    "message": "请先选择文件"
+  },
+  "window": {
+    "message": "窗口"
+  },
+  "tabs": {
+    "message": "标签页"
+  },
+  "settingsManagement": {
+    "message": "设置管理"
+  },
+  "settingsManagementDesc": {
+    "message": "备份和恢复扩展设置"
+  },
+  "exportSettings": {
+    "message": "导出设置"
+  },
+  "exportSettingsDesc": {
+    "message": "将所有当前的扩展设置导出为 JSON 文件进行备份"
+  },
+  "exportSettingsHelp": {
+    "message": "导出包括自动挂起配置、白名单和其他偏好设置在内的所有设置"
+  },
+  "settingsPreviewTitle": {
+    "message": "设置预览："
+  },
+  "importSettings": {
+    "message": "导入设置"
+  },
+  "importSettingsDesc": {
+    "message": "导入先前导出的设置以恢复您的配置"
+  },
+  "selectSettingsFile": {
+    "message": "选择设置文件："
+  },
+  "importSettingsHelp": {
+    "message": "从先前导出的 JSON 文件导入设置。这将替换所有当前的设置。注意：键盘快捷键无法导入，需要手动设置。"
+  },
+  "importPreviewTitle": {
+    "message": "导入预览："
+  },
+  "resetSettings": {
+    "message": "重置设置"
+  },
+  "resetSettingsDesc": {
+    "message": "将所有设置重置为默认值"
+  },
+  "warning": {
+    "message": "警告"
+  },
+  "resetWarning": {
+    "message": "此操作将永久删除您所有的当前设置并恢复为默认值。此操作无法撤销。"
+  },
+  "resetToDefaults": {
+    "message": "重置为默认值"
+  },
+  "resetHelp": {
+    "message": "在重置之前，建议先导出您当前的设置，以防您稍后想要恢复它们。"
+  },
+  "exportingSettings": {
+    "message": "正在导出设置..."
+  },
+  "settingsExported": {
+    "message": "设置导出成功"
+  },
+  "settingsPreviewReady": {
+    "message": "设置预览已准备就绪"
+  },
+  "settingsImported": {
+    "message": "设置导入成功"
+  },
+  "settingsReset": {
+    "message": "设置已重置为默认值"
+  },
+  "resetFailed": {
+    "message": "重置失败"
+  },
+  "confirmResetSettings": {
+    "message": "您确定要将所有设置重置为默认值吗？此操作无法撤销。"
+  },
+  "settingsFileInfo": {
+    "message": "设置文件信息"
+  },
+  "exportedAt": {
+    "message": "导出时间"
+  },
+  "settingsToImport": {
+    "message": "要导入的设置"
+  },
+  "minutes": {
+    "message": "分钟"
+  },
+  "enabled": {
+    "message": "已启用"
+  },
+  "disabled": {
+    "message": "已禁用"
+  },
+  "items": {
+    "message": "项目"
+  },
+  "whitelistItems": {
+    "message": "白名单项目"
+  },
+  "importPreviewReady": {
+    "message": "导入预览已准备就绪"
+  },
+  "reportIssue": {
+    "message": "回报错误或请求功能"
+  },
+  "rateUs": {
+    "message": "⭐ 在 Chrome 网上应用店评分"
+  },
+  "themeSettings": {
+    "message": "主题设置"
+  },
+  "themeSettingsDesc": {
+    "message": "选择挂起标签页面的外观主题"
+  },
+  "themeMode": {
+    "message": "主题模式："
+  },
+  "themeAuto": {
+    "message": "自动跟随系统/浏览器主题"
+  },
+  "themeLight": {
+    "message": "浅色主题"
+  },
+  "themeDark": {
+    "message": "深色主题"
+  },
+  "themeHelpText": {
+    "message": "挂起标签页面需要重新加载以应用主题。自动模式会跟随您的系统深色/浅色主题偏好设置。"
+  },
+  "tabViewer": {
+    "message": "标签页查看器"
+  },
+  "tabViewerDesc": {
+    "message": "查看和管理所有已挂起的标签页"
+  },
+  "tabViewerFilterLabel": {
+    "message": "筛选："
+  },
+  "tabViewerFilterSuspendedAll": {
+    "message": "全部已挂起标签页"
+  },
+  "tabViewerFilterSuspendedUndiscarded": {
+    "message": "仅已挂起且未丢弃"
+  },
+  "tabViewerFilterNotSuspended": {
+    "message": "仅未挂起"
+  },
+  "suspendedTabsViewer": {
+    "message": "已挂起标签页查看器"
+  },
+  "suspendedTabsViewerDesc": {
+    "message": "查看所有窗口中的已挂起标签页并检查其丢弃状态"
+  },
+  "suspendedTabsDiscardsHint": {
+    "message": "你也可以通过 chrome://discards 查看丢弃详细信息。"
+  },
+  "showSuspendedTabs": {
+    "message": "显示已挂起的标签页"
+  },
+  "suspendedTabsTitle": {
+    "message": "已挂起标签页信息："
+  },
+  "scanningSuspendedTabs": {
+    "message": "正在扫描已挂起的标签页..."
+  },
+  "noSuspendedTabs": {
+    "message": "未找到已挂起的标签页"
+  },
+  "suspendedTabsFound": {
+    "message": "找到 %d 个已挂起的标签页"
+  },
+  "suspendedUndiscardedTabsFound": {
+    "message": "找到 %d 个已挂起且未丢弃的标签页"
+  },
+  "notSuspendedTabsFound": {
+    "message": "找到 %d 个未挂起的标签页"
+  },
+  "noTabsMatchFilter": {
+    "message": "没有符合当前筛选条件的标签页"
+  },
+  "totalTabsCount": {
+    "message": "标签页总数：%d"
+  },
+  "discardedTabsCount": {
+    "message": "（%d 个已丢弃）"
+  },
+  "noSuspendedTabsDesc": {
+    "message": "未找到已挂起的标签页。当 ZeroRAM Suspender 让标签页休眠以节省内存时会创建已挂起的标签页。"
+  },
+  "suspendedTabsLoaded": {
+    "message": "已加载已挂起标签页信息"
+  },
+  "errorLoadingSuspendedTabs": {
+    "message": "加载已挂起标签页时发生错误"
+  },
+  "errorOccurred": {
+    "message": "发生错误"
+  },
+  "discarded": {
+    "message": "已丢弃"
+  },
+  "suspended": {
+    "message": "已挂起"
+  },
+  "notSuspended": {
+    "message": "未挂起"
+  },
+  "unsuspend": {
+    "message": "取消挂起"
+  },
+  "unsuspending": {
+    "message": "取消挂起中..."
+  },
+  "tabUnsuspended": {
+    "message": "标签页取消挂起成功"
+  },
+  "unsuspendFailed": {
+    "message": "标签页取消挂起失败"
+  },
+  "reactivate": {
+    "message": "重新激活"
+  },
+  "reactivating": {
+    "message": "重新激活中..."
+  },
+  "tabReactivated": {
+    "message": "标签页重新激活成功"
+  },
+  "reactivationFailed": {
+    "message": "标签页重新激活失败"
+  },
+  "tabId": {
+    "message": "标签页 ID"
+  },
+  "windowId": {
+    "message": "窗口 ID"
+  },
+  "tab": {
+    "message": "标签页"
+  },
+  "loading": {
+    "message": "加载中..."
+  },
+  "bulkProgress": {
+    "message": "批次进度"
+  },
+  "suspendingAllTabs": {
+    "message": "正在挂起所有标签页"
+  },
+  "unsuspendingAllTabs": {
+    "message": "正在唤醒所有标签页"
+  },
+  "bulkDone": {
+    "message": "完成"
+  },
+  "bulkCancel": {
+    "message": "停止"
+  },
+  "bulkCancelled": {
+    "message": "已停止"
+  }
 }

@@ -1,263 +1,779 @@
 {
-  "extName": { "message": "ZeroRAM Suspender" },
-  "audioTabProtected": { "message": "正在播放音訊，已暫停自動休眠" },
-  "clickAnywhereToUnsuspend": { "message": "點擊暫停頁任意位置即可喚醒" },
-  "clickAnywhereToUnsuspendHelp": { "message": "啟用後，點擊原始標題或網址也會重新載入暫停的分頁。" },
-  "suspendedInstructionClickAnywhere": { "message": "點擊任意位置或按 Ctrl+Shift+Z 即可重新載入此分頁。" },
-  "titleOptions": { "message": "ZeroRAM Suspender – 設定" },
-  "autoSuspendLabel": { "message": "閒置多久後自動休眠（分鐘）：" },
-  "autoSuspendHelp": { "message": "設定 0 表示永不自動休眠。" },
-  "neverSuspendAudio": { "message": "永不休眠正在播放音訊的分頁" },
-  "neverSuspendPinned": { "message": "永不休眠釘選的分頁" },
-  "neverSuspendActive": { "message": "永不休眠各視窗中的作用中分頁" },
-  "rememberLastActiveTab": { "message": "切換應用程式時記住最後活動分頁" },
-  "rememberLastActiveTabHelp": { "message": "當從瀏覽器切換到其他應用程式時，保護切換前的活動分頁不被休眠" },
-  "nativeDiscardLabel": { "message": "使用原生丟棄（最省記憶體）" },
-  "whitelistTitle": { "message": "白名單" },
-  "whitelistHelp": { "message": "符合下列網址或網域的分頁將不會被休眠。" },
-  "whitelistPlaceholder": { "message": "每行一個項目" },
-  "saveButton": { "message": "儲存" },
-  "savedNotice": { "message": "已儲存！" },
-  "savedBasicSettings": { "message": "基本設定已儲存！" },
-  "savedWhitelistSettings": { "message": "白名單設定已儲存！" },
-  "cannotSuspend": { "message": "此分頁不可休眠" },
-  "tabSuspended": { "message": "分頁已休眠" },
-  "tabReloading": { "message": "重新載入中" },
-  "autoSuspendDisabled": { "message": "已停用自動休眠" },
-  "autoSuspendPaused": { "message": "已暫停自動休眠" },
-  "tabWillSuspend": { "message": "分頁將自動休眠。" },
-  "notNow": { "message": "暫時不休眠" },
-  "allowSuspend": { "message": "允許休眠" },
-  "suspendThisTab": { "message": "立即休眠此分頁" },
-  "neverSuspendURL": { "message": "永不休眠此網址" },
-  "neverSuspendDomain": { "message": "永不休眠此網域" },
-  "suspendOthers": { "message": "休眠所有其他分頁（此視窗）" },
-  "suspendAllOthersAllWindows": { "message": "休眠所有其他分頁（所有視窗）" },
-  "unsuspendAllThisWindow": { "message": "喚醒所有分頁（此視窗）" },
-  "unsuspendAll": { "message": "喚醒所有分頁（所有視窗）" },
-  "suspendSelectedTabs": { "message": "強制休眠選中的分頁" },
-  "unsuspendSelectedTabs": { "message": "喚醒選中的分頁" },
-  "settingsMenu": { "message": "設定" },
-  "suspendedInstruction": { "message": "點擊此處或按 Ctrl+Shift+Z 即可重新載入此分頁。" },
-  "basicSettings": { "message": "基本設定" },
-  "basicSettingsDesc": { "message": "配置分頁休眠的基本行為和選項" },
-  "autoSuspendTitle": { "message": "自動休眠" },
-  "autoSuspendDesc": { "message": "設定分頁閒置多長時間後自動休眠以節省記憶體" },
-  "memoryOptimization": { "message": "記憶體優化" },
-  "memoryOptimizationDesc": { "message": "選擇如何處理休眠的分頁以達到最佳記憶體使用效果" },
-  "nativeDiscardHelp": { "message": "使用瀏覽器內建的分頁丟棄功能，可以達到最佳的記憶體節省效果，但分頁狀態可能無法完全保留。" },
-  "fixFaviconEnabled": { "message": "修復已休眠分頁的網站圖示（建議開啟）" },
-  "fixFaviconEnabledHelp": { "message": "當瀏覽器重新啟動後，若已休眠分頁沒有顯示網站圖示，會嘗試短暫重新載入並再次丟棄以恢復圖示。" },
-  "fixFaviconBatchSize": { "message": "每次掃描最多處理的分頁數（0 = 不限制）：" },
-  "fixFaviconBatchSizeHelp": { "message": "限制背景掃描每次要處理的分頁數，避免在需要修復很多分頁時長時間占用。" },
-  "fixFaviconMaxRetries": { "message": "單一分頁的最大重試次數：" },
-  "fixFaviconMaxRetriesHelp": { "message": "避免對無法修復的分頁無限重試。設定 0 代表不限制。" },
-  "fixFaviconSectionTitle": { "message": "修復已休眠分頁圖示" },
-  "fixFaviconSectionDesc": { "message": "設定如何嘗試恢復已休眠分頁遺失的網站圖示" },
-  "whitelistDesc": { "message": "管理永不休眠的網站和網域" },
-  "whitelistRules": { "message": "白名單規則" },
-  "whitelistLabel": { "message": "網址或網域列表：" },
-  "whitelistHelpDetailed": { "message": "每行輸入一個網址或網域。例如：\n• google.com - 整個網域\n• https://example.com/page - 特定網址\n• localhost - 本地開發環境" },
-  "refresh": { "message": "重新載入" },
-  "whitelistRefreshed": { "message": "白名單已重新載入！" },
-  "siteWhitelisted": { "message": "網站已列入白名單。" },
-  "removeFromWhitelist": { "message": "從白名單移除" },
-  "confirmRemoveFromWhitelist": { "message": "確認要從白名單移除「%s」嗎？" },
-  "advancedSettings": { "message": "進階設定" },
-  "advancedSettingsDesc": { "message": "進階使用者選項（開發中）" },
-  "aboutSettings": { "message": "關於" },
-  "aboutDesc": { "message": "資訊和說明" },
-  "changeLogSettings": { "message": "更新日誌" },
-  "changeLogDesc": { "message": "版本歷史和功能更新" },
-  "loadingChanges": { "message": "載入更新日誌中..." },
-  "failedToLoadChanges": { "message": "載入更新日誌失敗" },
-  "noChangesFound": { "message": "未找到版本變更" },
-  "version": { "message": "版本" },
-  "unreleased": { "message": "尚未發布" },
-  "description": { "message": "說明" },
-  "supportWebsite": { "message": "網站" },
-  "extDescription": { "message": "休眠閒置分頁以節省瀏覽器記憶體 (使用原生丟棄或輕量靜態頁面)" },
-  "comingSoon": { "message": "即將推出" },
-  "comingSoonDesc": { "message": "更多進階設定功能正在開發中" },
-  "privacyNotice": { "message": "隱私聲明" },
-  "privacyNoticeText": { "message": "此擴展僅在本地處理數據，不會上傳任何資訊到外部伺服器" },
-  "tabMigration": { "message": "分頁遷移" },
-  "tabMigrationDesc": { "message": "從其他分頁休眠套件遷移已休眠的分頁" },
-  "marvellousTabDetection": { "message": "The Marvellous Suspender 分頁偵測" },
-  "marvellousTabDetectionDesc": { "message": "自動偵測並提供遷移 The Marvellous Suspender, The Great Suspender (notrack), The Great-er Tab Discarder, 及其他類似的已休眠分頁" },
-  "scanForMarvellousTab": { "message": "掃描 The Marvellous Suspender 分頁" },
-  "noMarvellousTabFound": { "message": "未找到 The Marvellous Suspender 分頁" },
-  "foundMarvellousTab": { "message": "找到 %d 個 The Marvellous Suspender 分頁" },
-  "tabSuspenderDetection": { "message": "Tab Suspender 分頁偵測" },
-  "tabSuspenderDetectionDesc": { "message": "自動偵測並提供遷移 Tab Suspender 的已休眠分頁" },
-  "scanForTabSuspenderTab": { "message": "掃描 Tab Suspender 分頁" },
-  "noTabSuspenderTabFound": { "message": "未找到 Tab Suspender 分頁" },
-  "foundTabSuspenderTab": { "message": "找到 %d 個 Tab Suspender 分頁" },
-  "customTabDetection": { "message": "自定義休眠分頁檢測" },
-  "customTabDetectionDesc": { "message": "配置自定義檢測模式以支援其他分頁休眠擴展" },
-  "customPatternLabel": { "message": "自定義 URL 模式：" },
-  "extensionIdLabel": { "message": "擴展 ID：" },
-  "pathLabel": { "message": "路徑：" },
-  "separatorLabel": { "message": "分隔符號：" },
-  "titleParamLabel": { "message": "標題參數：" },
-  "urlParamLabel": { "message": "網址參數：" },
-  "testPattern": { "message": "測試模式" },
-  "scanCustomTabs": { "message": "掃描自定義分頁" },
-  "fillAllFields": { "message": "請填寫所有欄位" },
-  "patternTestSuccess": { "message": "模式測試成功！範例 URL 解析正確。" },
-  "patternTestFailed": { "message": "模式測試失敗。請檢查您的配置。" },
-  "migrateSelected": { "message": "遷移選中的分頁" },
-  "migrationComplete": { "message": "分頁遷移完成！" },
-  "migrationFailed": { "message": "分頁遷移失敗" },
-  "selectAllTabs": { "message": "全選" },
-  "deselectAllTabs": { "message": "取消全選" },
-  "tabMigrationHelp": { "message": "此功能可以將其他分頁休眠套件（如 The Marvellous Suspender）的已休眠分頁轉換為 ZeroRAM Suspender 格式，讓您可以繼續使用這些分頁。" },
-  "savedTabMigrationSettings": { "message": "分頁遷移設定已儲存！" },
-  "scanningTabs": { "message": "正在掃描分頁..." },
-  "noTabsSelected": { "message": "未選擇要遷移的分頁" },
-  "errorScanningTabs": { "message": "掃描分頁時發生錯誤：" },
-  "tabsMigrated": { "message": "個分頁已遷移" },
-  "tabsFailed": { "message": "個分頁遷移失敗" },
-  "unknownVariant": { "message": "未知版本" },
-  "extensionId": { "message": "擴展 ID" },
-  "migrationTip": { "message": "💡 提示：" },
-  "migrationTipDesc": { "message": "此功能可以自動偵測並遷移來自其他分頁休眠套件的已休眠分頁。支援偵測已知和未知的版本變體。每次切換到此頁面時，會自動重設掃描狀態。" },
-  "licenseCredits": { "message": "授權" },
-  "licenseText": { "message": "此擴展依據 GNU 通用公共授權條款第三版（GPL v3）發布。您可以在 GPL v3 條款規範下自由使用、修改和分發此軟體。" },
-  "copyright": { "message": "版權：" },
-  "copyrightText": { "message": "Copyright (C) Yu-Hsiung Chiu" },
-  "keyboardShortcuts": { "message": "鍵盤快捷鍵" },
-  "keyboardShortcutsDesc": { "message": "檢視和管理擴展的鍵盤快捷鍵" },
-  "shortcutsList": { "message": "可用快捷鍵" },
-  "shortcutsHelp": { "message": "以下是此擴展配置的鍵盤快捷鍵。若要修改快捷鍵，請點擊「管理快捷鍵」以開啟 Chrome 的擴展快捷鍵設定頁面。" },
-  "loadingShortcuts": { "message": "載入快捷鍵中..." },
-  "errorLoadingShortcuts": { "message": "載入快捷鍵時發生錯誤" },
-  "noShortcutsFound": { "message": "未找到快捷鍵" },
-  "notAssigned": { "message": "未設定" },
-  "manageShortcuts": { "message": "管理快捷鍵" },
-  "shortcutsRefreshed": { "message": "快捷鍵已重新載入！" },
-  "shortcutToggleSuspend": { "message": "休眠/喚醒目前分頁" },
-  "migrationProgress": { "message": "遷移進度" },
-  "sessionManagement": { "message": "紀錄管理" },
-  "sessionManagementDesc": { "message": "匯出和匯入所有視窗的所有分頁" },
-  "exportSessions": { "message": "匯出紀錄" },
-  "exportSessionsDesc": { "message": "匯出所有視窗的所有分頁以保存您當前的瀏覽紀錄" },
-  "exportFormat": { "message": "匯出格式：" },
-  "formatTxt": { "message": "TXT" },
-  "formatJson": { "message": "JSON" },
-  "export": { "message": "匯出" },
-  "preview": { "message": "預覽" },
-  "exportPreviewTitle": { "message": "匯出預覽：" },
-  "exportHelpTxt": { "message": "TXT 格式：每行一個網址，視窗間以空白行分隔" },
-  "exportHelpJson": { "message": "JSON 格式：包含每個分頁標題和網址的視窗陣列" },
-  "importSessions": { "message": "匯入紀錄" },
-  "importSessionsDesc": { "message": "從先前匯出的紀錄檔案匯入分頁" },
-  "selectSessionFile": { "message": "選擇紀錄檔案：" },
-  "importAsSuspended": { "message": "以休眠方式匯入分頁（節省記憶體）" },
-  "importAsSuspendedHelp": { "message": "啟用時，匯入的分頁將立即休眠以節省記憶體" },
-  "import": { "message": "匯入" },
-  "sessionPreviewTitle": { "message": "紀錄預覽：" },
-  "importHelp": { "message": "支援 TXT 和 JSON 格式。TXT 檔案應該每行一個網址，以空白行分隔視窗。JSON 檔案應該包含含有分頁物件的視窗陣列。" },
-  "importProgressText": { "message": "進度：" },
-  "exportingSession": { "message": "正在匯出紀錄..." },
-  "sessionExported": { "message": "紀錄已匯出" },
-  "exportFailed": { "message": "匯出失敗" },
-  "generatingPreview": { "message": "正在產生預覽..." },
-  "exportPreviewReady": { "message": "匯出預覽已準備就緒" },
-  "sessionPreviewed": { "message": "紀錄預覽已準備就緒" },
-  "previewFailed": { "message": "預覽失敗：檔案格式無效" },
-  "sessionImported": { "message": "紀錄匯入成功" },
-  "importFailed": { "message": "匯入失敗" },
-  "pleaseSelectFile": { "message": "請先選擇檔案" },
-  "window": { "message": "視窗" },
-  "tabs": { "message": "分頁" },
-  "settingsManagement": { "message": "設定管理" },
-  "settingsManagementDesc": { "message": "備份和還原擴展設定" },
-  "exportSettings": { "message": "匯出設定" },
-  "exportSettingsDesc": { "message": "將所有目前的擴展設定匯出為 JSON 檔案進行備份" },
-  "exportSettingsHelp": { "message": "匯出包括自動休眠配置、白名單和其他偏好設定在內的所有設定" },
-  "settingsPreviewTitle": { "message": "設定預覽：" },
-  "importSettings": { "message": "匯入設定" },
-  "importSettingsDesc": { "message": "匯入先前匯出的設定以還原您的配置" },
-  "selectSettingsFile": { "message": "選擇設定檔案：" },
-  "importSettingsHelp": { "message": "從先前匯出的 JSON 檔案匯入設定。這將取代所有目前的設定。注意：鍵盤快速鍵無法匯入，需要手動設定。" },
-  "importPreviewTitle": { "message": "匯入預覽：" },
-  "resetSettings": { "message": "重設設定" },
-  "resetSettingsDesc": { "message": "將所有設定重設為預設值" },
-  "warning": { "message": "警告" },
-  "resetWarning": { "message": "此操作將永久刪除您所有的目前設定並還原為預設值。此操作無法復原。" },
-  "resetToDefaults": { "message": "重設為預設值" },
-  "resetHelp": { "message": "在重設之前，建議先匯出您目前的設定，以防您稍後想要還原它們。" },
-  "exportingSettings": { "message": "正在匯出設定..." },
-  "settingsExported": { "message": "設定匯出成功" },
-  "settingsPreviewReady": { "message": "設定預覽已準備就緒" },
-  "settingsImported": { "message": "設定匯入成功" },
-  "settingsReset": { "message": "設定已重設為預設值" },
-  "resetFailed": { "message": "重設失敗" },
-  "confirmResetSettings": { "message": "您確定要將所有設定重設為預設值嗎？此操作無法復原。" },
-  "settingsFileInfo": { "message": "設定檔案資訊" },
-  "exportedAt": { "message": "匯出時間" },
-  "settingsToImport": { "message": "要匯入的設定" },
-  "minutes": { "message": "分鐘" },
-  "enabled": { "message": "已啟用" },
-  "disabled": { "message": "已停用" },
-  "items": { "message": "項目" },
-  "whitelistItems": { "message": "白名單項目" },
-  "importPreviewReady": { "message": "匯入預覽已準備就緒" },
-  "reportIssue": { "message": "回報錯誤或請求功能" },
-  "rateUs": { "message": "⭐ 在 Chrome 線上應用程式商店評分" },
-  "themeSettings": { "message": "主題設定" },
-  "themeSettingsDesc": { "message": "選擇休眠分頁的外觀主題" },
-  "themeMode": { "message": "主題模式：" },
-  "themeAuto": { "message": "自動跟隨系統/瀏覽器主題" },
-  "themeLight": { "message": "淺色主題" },
-  "themeDark": { "message": "深色主題" },
-  "themeHelpText": { "message": "休眠分頁需要重新載入以套用主題。自動模式會跟隨您的系統深色/淺色主題偏好設定。" },
-  "tabViewer": { "message": "分頁檢視器" },
-  "tabViewerDesc": { "message": "檢視和管理所有已暫停的分頁" },
-
-  "tabViewerFilterLabel": { "message": "篩選：" },
-  "tabViewerFilterSuspendedAll": { "message": "全部已暫停分頁" },
-  "tabViewerFilterSuspendedUndiscarded": { "message": "僅已暫停且未丟棄" },
-  "tabViewerFilterNotSuspended": { "message": "僅未暫停" },
-  "suspendedTabsViewer": { "message": "已暫停分頁檢視器" },
-  "suspendedTabsViewerDesc": { "message": "檢視所有視窗中的已暫停分頁並查看其丟棄狀態" },
-  "suspendedTabsDiscardsHint": { "message": "你也可以透過 chrome://discards 查看丟棄詳細資訊。" },
-  "showSuspendedTabs": { "message": "顯示已暫停的分頁" },
-  "suspendedTabsTitle": { "message": "已暫停分頁資訊：" },
-  "scanningSuspendedTabs": { "message": "正在掃描已暫停的分頁..." },
-  "noSuspendedTabs": { "message": "未找到已暫停的分頁" },
-  "suspendedTabsFound": { "message": "找到 %d 個已暫停的分頁" },
-
-  "suspendedUndiscardedTabsFound": { "message": "找到 %d 個已暫停且未丟棄的分頁" },
-  "notSuspendedTabsFound": { "message": "找到 %d 個未暫停的分頁" },
-  "noTabsMatchFilter": { "message": "沒有符合目前篩選條件的分頁" },
-  "totalTabsCount": { "message": "總分頁數：%d" },
-  "discardedTabsCount": { "message": "（%d 個已丟棄）" },
-  "noSuspendedTabsDesc": { "message": "未找到已暫停的分頁。當 ZeroRAM Suspender 讓分頁休眠以節省記憶體時會建立已暫停的分頁。" },
-  "suspendedTabsLoaded": { "message": "已載入已暫停分頁資訊" },
-  "errorLoadingSuspendedTabs": { "message": "載入已暫停分頁時發生錯誤" },
-  "errorOccurred": { "message": "發生錯誤" },
-  "discarded": { "message": "已丟棄" },
-  "suspended": { "message": "已暫停" },
-
-  "notSuspended": { "message": "未暫停" },
-  "unsuspend": { "message": "取消暫停" },
-  "unsuspending": { "message": "取消暫停中..." },
-  "tabUnsuspended": { "message": "分頁取消暫停成功" },
-  "unsuspendFailed": { "message": "分頁取消暫停失敗" },
-  "reactivate": { "message": "重新啟用" },
-  "reactivating": { "message": "重新啟用中..." },
-  "tabReactivated": { "message": "分頁重新啟用成功" },
-  "reactivationFailed": { "message": "分頁重新啟用失敗" },
-  "tabId": { "message": "分頁 ID" },
-  "windowId": { "message": "視窗 ID" },
-  "tab": { "message": "分頁" },
-  "loading": { "message": "載入中..." },
-  "bulkProgress": { "message": "批次進度" },
-  "suspendingAllTabs": { "message": "正在休眠所有分頁" },
-  "unsuspendingAllTabs": { "message": "正在喚醒所有分頁" },
-  "bulkDone": { "message": "完成" },
-  "bulkCancel": { "message": "停止" },
-  "bulkCancelled": { "message": "已停止" }
-} 
+  "extName": {
+    "message": "ZeroRAM Suspender"
+  },
+  "audioTabProtected": {
+    "message": "正在播放音訊，已暫停自動休眠"
+  },
+  "clickAnywhereToUnsuspend": {
+    "message": "點擊暫停頁任意位置即可喚醒"
+  },
+  "clickAnywhereToUnsuspendHelp": {
+    "message": "啟用後，點擊原始標題或網址也會重新載入暫停的分頁。"
+  },
+  "suspendedInstructionClickAnywhere": {
+    "message": "點擊任意位置或按 Ctrl+Shift+Z 即可重新載入此分頁。"
+  },
+  "titleOptions": {
+    "message": "ZeroRAM Suspender – 設定"
+  },
+  "autoSuspendLabel": {
+    "message": "閒置多久後自動休眠（分鐘）："
+  },
+  "autoSuspendHelp": {
+    "message": "設定 0 表示永不自動休眠。"
+  },
+  "neverSuspendAudio": {
+    "message": "永不休眠正在播放音訊的分頁"
+  },
+  "neverSuspendPinned": {
+    "message": "永不休眠釘選的分頁"
+  },
+  "neverSuspendActive": {
+    "message": "永不休眠各視窗中的作用中分頁"
+  },
+  "rememberLastActiveTab": {
+    "message": "切換應用程式時記住最後活動分頁"
+  },
+  "rememberLastActiveTabHelp": {
+    "message": "當從瀏覽器切換到其他應用程式時，保護切換前的活動分頁不被休眠"
+  },
+  "nativeDiscardLabel": {
+    "message": "使用原生丟棄（最省記憶體）"
+  },
+  "whitelistTitle": {
+    "message": "白名單"
+  },
+  "whitelistHelp": {
+    "message": "符合下列網址或網域的分頁將不會被休眠。"
+  },
+  "whitelistPlaceholder": {
+    "message": "每行一個項目"
+  },
+  "saveButton": {
+    "message": "儲存"
+  },
+  "savedNotice": {
+    "message": "已儲存！"
+  },
+  "savedBasicSettings": {
+    "message": "基本設定已儲存！"
+  },
+  "savedAdvancedSettings": {
+    "message": "進階設定已儲存！"
+  },
+  "savedWhitelistSettings": {
+    "message": "白名單設定已儲存！"
+  },
+  "cannotSuspend": {
+    "message": "此分頁不可休眠"
+  },
+  "tabSuspended": {
+    "message": "分頁已休眠"
+  },
+  "tabReloading": {
+    "message": "重新載入中"
+  },
+  "autoSuspendDisabled": {
+    "message": "已停用自動休眠"
+  },
+  "autoSuspendPaused": {
+    "message": "已暫停自動休眠"
+  },
+  "tabWillSuspend": {
+    "message": "分頁將自動休眠。"
+  },
+  "notNow": {
+    "message": "暫時不休眠"
+  },
+  "allowSuspend": {
+    "message": "允許休眠"
+  },
+  "suspendThisTab": {
+    "message": "立即休眠此分頁"
+  },
+  "neverSuspendURL": {
+    "message": "永不休眠此網址"
+  },
+  "neverSuspendDomain": {
+    "message": "永不休眠此網域"
+  },
+  "suspendOthers": {
+    "message": "休眠所有其他分頁（此視窗）"
+  },
+  "suspendAllOthersAllWindows": {
+    "message": "休眠所有其他分頁（所有視窗）"
+  },
+  "unsuspendAllThisWindow": {
+    "message": "喚醒所有分頁（此視窗）"
+  },
+  "unsuspendAll": {
+    "message": "喚醒所有分頁（所有視窗）"
+  },
+  "suspendSelectedTabs": {
+    "message": "強制休眠選中的分頁"
+  },
+  "unsuspendSelectedTabs": {
+    "message": "喚醒選中的分頁"
+  },
+  "settingsMenu": {
+    "message": "設定"
+  },
+  "suspendedInstruction": {
+    "message": "點擊此處或按 Ctrl+Shift+Z 即可重新載入此分頁。"
+  },
+  "basicSettings": {
+    "message": "基本設定"
+  },
+  "basicSettingsDesc": {
+    "message": "配置分頁休眠的基本行為和選項"
+  },
+  "autoSuspendTitle": {
+    "message": "自動休眠"
+  },
+  "autoSuspendDesc": {
+    "message": "設定分頁閒置多長時間後自動休眠以節省記憶體"
+  },
+  "memoryOptimization": {
+    "message": "記憶體優化"
+  },
+  "memoryOptimizationDesc": {
+    "message": "選擇如何處理休眠的分頁以達到最佳記憶體使用效果"
+  },
+  "nativeDiscardHelp": {
+    "message": "使用瀏覽器內建的分頁丟棄功能，可以達到最佳的記憶體節省效果，但分頁狀態可能無法完全保留。"
+  },
+  "fixFaviconEnabled": {
+    "message": "修復已休眠分頁的網站圖示（建議開啟）"
+  },
+  "fixFaviconEnabledHelp": {
+    "message": "當瀏覽器重新啟動後，若已休眠分頁沒有顯示網站圖示，會嘗試短暫重新載入並再次丟棄以恢復圖示。"
+  },
+  "fixFaviconBatchSize": {
+    "message": "每次掃描最多處理的分頁數（0 = 不限制）："
+  },
+  "fixFaviconBatchSizeHelp": {
+    "message": "限制背景掃描每次要處理的分頁數，避免在需要修復很多分頁時長時間占用。"
+  },
+  "fixFaviconMaxRetries": {
+    "message": "單一分頁的最大重試次數："
+  },
+  "fixFaviconMaxRetriesHelp": {
+    "message": "避免對無法修復的分頁無限重試。設定 0 代表不限制。"
+  },
+  "fixFaviconSectionTitle": {
+    "message": "修復已休眠分頁圖示"
+  },
+  "fixFaviconSectionDesc": {
+    "message": "設定如何嘗試恢復已休眠分頁遺失的網站圖示"
+  },
+  "whitelistDesc": {
+    "message": "管理永不休眠的網站和網域"
+  },
+  "whitelistRules": {
+    "message": "白名單規則"
+  },
+  "whitelistLabel": {
+    "message": "網址或網域列表："
+  },
+  "whitelistHelpDetailed": {
+    "message": "每行輸入一個網址或網域。例如：\n• google.com - 整個網域\n• https://example.com/page - 特定網址\n• localhost - 本地開發環境"
+  },
+  "refresh": {
+    "message": "重新載入"
+  },
+  "whitelistRefreshed": {
+    "message": "白名單已重新載入！"
+  },
+  "siteWhitelisted": {
+    "message": "網站已列入白名單。"
+  },
+  "removeFromWhitelist": {
+    "message": "從白名單移除"
+  },
+  "confirmRemoveFromWhitelist": {
+    "message": "確認要從白名單移除「%s」嗎？"
+  },
+  "advancedSettings": {
+    "message": "進階設定"
+  },
+  "advancedSettingsDesc": {
+    "message": "配置高級休眠、主題和網站圖示修復等進階選項"
+  },
+  "aboutSettings": {
+    "message": "關於"
+  },
+  "aboutDesc": {
+    "message": "資訊和說明"
+  },
+  "changeLogSettings": {
+    "message": "更新日誌"
+  },
+  "changeLogDesc": {
+    "message": "版本歷史和功能更新"
+  },
+  "loadingChanges": {
+    "message": "載入更新日誌中..."
+  },
+  "failedToLoadChanges": {
+    "message": "載入更新日誌失敗"
+  },
+  "noChangesFound": {
+    "message": "未找到版本變更"
+  },
+  "version": {
+    "message": "版本"
+  },
+  "unreleased": {
+    "message": "尚未發布"
+  },
+  "description": {
+    "message": "說明"
+  },
+  "supportWebsite": {
+    "message": "網站"
+  },
+  "extDescription": {
+    "message": "休眠閒置分頁以節省瀏覽器記憶體 (使用原生丟棄或輕量靜態頁面)"
+  },
+  "comingSoon": {
+    "message": "即將推出"
+  },
+  "comingSoonDesc": {
+    "message": "更多進階設定功能正在開發中"
+  },
+  "privacyNotice": {
+    "message": "隱私聲明"
+  },
+  "privacyNoticeText": {
+    "message": "此擴展僅在本地處理數據，不會上傳任何資訊到外部伺服器"
+  },
+  "tabMigration": {
+    "message": "分頁遷移"
+  },
+  "tabMigrationDesc": {
+    "message": "從其他分頁休眠套件遷移已休眠的分頁"
+  },
+  "marvellousTabDetection": {
+    "message": "The Marvellous Suspender 分頁偵測"
+  },
+  "marvellousTabDetectionDesc": {
+    "message": "自動偵測並提供遷移 The Marvellous Suspender, The Great Suspender (notrack), The Great-er Tab Discarder, 及其他類似的已休眠分頁"
+  },
+  "scanForMarvellousTab": {
+    "message": "掃描 The Marvellous Suspender 分頁"
+  },
+  "noMarvellousTabFound": {
+    "message": "未找到 The Marvellous Suspender 分頁"
+  },
+  "foundMarvellousTab": {
+    "message": "找到 %d 個 The Marvellous Suspender 分頁"
+  },
+  "tabSuspenderDetection": {
+    "message": "Tab Suspender 分頁偵測"
+  },
+  "tabSuspenderDetectionDesc": {
+    "message": "自動偵測並提供遷移 Tab Suspender 的已休眠分頁"
+  },
+  "scanForTabSuspenderTab": {
+    "message": "掃描 Tab Suspender 分頁"
+  },
+  "noTabSuspenderTabFound": {
+    "message": "未找到 Tab Suspender 分頁"
+  },
+  "foundTabSuspenderTab": {
+    "message": "找到 %d 個 Tab Suspender 分頁"
+  },
+  "customTabDetection": {
+    "message": "自定義休眠分頁檢測"
+  },
+  "customTabDetectionDesc": {
+    "message": "配置自定義檢測模式以支援其他分頁休眠擴展"
+  },
+  "customPatternLabel": {
+    "message": "自定義 URL 模式："
+  },
+  "extensionIdLabel": {
+    "message": "擴展 ID："
+  },
+  "pathLabel": {
+    "message": "路徑："
+  },
+  "separatorLabel": {
+    "message": "分隔符號："
+  },
+  "titleParamLabel": {
+    "message": "標題參數："
+  },
+  "urlParamLabel": {
+    "message": "網址參數："
+  },
+  "testPattern": {
+    "message": "測試模式"
+  },
+  "scanCustomTabs": {
+    "message": "掃描自定義分頁"
+  },
+  "fillAllFields": {
+    "message": "請填寫所有欄位"
+  },
+  "patternTestSuccess": {
+    "message": "模式測試成功！範例 URL 解析正確。"
+  },
+  "patternTestFailed": {
+    "message": "模式測試失敗。請檢查您的配置。"
+  },
+  "migrateSelected": {
+    "message": "遷移選中的分頁"
+  },
+  "migrationComplete": {
+    "message": "分頁遷移完成！"
+  },
+  "migrationFailed": {
+    "message": "分頁遷移失敗"
+  },
+  "selectAllTabs": {
+    "message": "全選"
+  },
+  "deselectAllTabs": {
+    "message": "取消全選"
+  },
+  "tabMigrationHelp": {
+    "message": "此功能可以將其他分頁休眠套件（如 The Marvellous Suspender）的已休眠分頁轉換為 ZeroRAM Suspender 格式，讓您可以繼續使用這些分頁。"
+  },
+  "savedTabMigrationSettings": {
+    "message": "分頁遷移設定已儲存！"
+  },
+  "scanningTabs": {
+    "message": "正在掃描分頁..."
+  },
+  "noTabsSelected": {
+    "message": "未選擇要遷移的分頁"
+  },
+  "errorScanningTabs": {
+    "message": "掃描分頁時發生錯誤："
+  },
+  "tabsMigrated": {
+    "message": "個分頁已遷移"
+  },
+  "tabsFailed": {
+    "message": "個分頁遷移失敗"
+  },
+  "unknownVariant": {
+    "message": "未知版本"
+  },
+  "extensionId": {
+    "message": "擴展 ID"
+  },
+  "migrationTip": {
+    "message": "💡 提示："
+  },
+  "migrationTipDesc": {
+    "message": "此功能可以自動偵測並遷移來自其他分頁休眠套件的已休眠分頁。支援偵測已知和未知的版本變體。每次切換到此頁面時，會自動重設掃描狀態。"
+  },
+  "licenseCredits": {
+    "message": "授權"
+  },
+  "licenseText": {
+    "message": "此擴展依據 GNU 通用公共授權條款第三版（GPL v3）發布。您可以在 GPL v3 條款規範下自由使用、修改和分發此軟體。"
+  },
+  "copyright": {
+    "message": "版權："
+  },
+  "copyrightText": {
+    "message": "Copyright (C) Yu-Hsiung Chiu"
+  },
+  "keyboardShortcuts": {
+    "message": "鍵盤快捷鍵"
+  },
+  "keyboardShortcutsDesc": {
+    "message": "檢視和管理擴展的鍵盤快捷鍵"
+  },
+  "shortcutsList": {
+    "message": "可用快捷鍵"
+  },
+  "shortcutsHelp": {
+    "message": "以下是此擴展配置的鍵盤快捷鍵。若要修改快捷鍵，請點擊「管理快捷鍵」以開啟 Chrome 的擴展快捷鍵設定頁面。"
+  },
+  "loadingShortcuts": {
+    "message": "載入快捷鍵中..."
+  },
+  "errorLoadingShortcuts": {
+    "message": "載入快捷鍵時發生錯誤"
+  },
+  "noShortcutsFound": {
+    "message": "未找到快捷鍵"
+  },
+  "notAssigned": {
+    "message": "未設定"
+  },
+  "manageShortcuts": {
+    "message": "管理快捷鍵"
+  },
+  "shortcutsRefreshed": {
+    "message": "快捷鍵已重新載入！"
+  },
+  "shortcutToggleSuspend": {
+    "message": "休眠/喚醒目前分頁"
+  },
+  "migrationProgress": {
+    "message": "遷移進度"
+  },
+  "sessionManagement": {
+    "message": "紀錄管理"
+  },
+  "sessionManagementDesc": {
+    "message": "匯出和匯入所有視窗的所有分頁"
+  },
+  "exportSessions": {
+    "message": "匯出紀錄"
+  },
+  "exportSessionsDesc": {
+    "message": "匯出所有視窗的所有分頁以保存您當前的瀏覽紀錄"
+  },
+  "exportFormat": {
+    "message": "匯出格式："
+  },
+  "formatTxt": {
+    "message": "TXT"
+  },
+  "formatJson": {
+    "message": "JSON"
+  },
+  "export": {
+    "message": "匯出"
+  },
+  "preview": {
+    "message": "預覽"
+  },
+  "exportPreviewTitle": {
+    "message": "匯出預覽："
+  },
+  "exportHelpTxt": {
+    "message": "TXT 格式：每行一個網址，視窗間以空白行分隔"
+  },
+  "exportHelpJson": {
+    "message": "JSON 格式：包含每個分頁標題和網址的視窗陣列"
+  },
+  "importSessions": {
+    "message": "匯入紀錄"
+  },
+  "importSessionsDesc": {
+    "message": "從先前匯出的紀錄檔案匯入分頁"
+  },
+  "selectSessionFile": {
+    "message": "選擇紀錄檔案："
+  },
+  "importAsSuspended": {
+    "message": "以休眠方式匯入分頁（節省記憶體）"
+  },
+  "importAsSuspendedHelp": {
+    "message": "啟用時，匯入的分頁將立即休眠以節省記憶體"
+  },
+  "import": {
+    "message": "匯入"
+  },
+  "sessionPreviewTitle": {
+    "message": "紀錄預覽："
+  },
+  "importHelp": {
+    "message": "支援 TXT 和 JSON 格式。TXT 檔案應該每行一個網址，以空白行分隔視窗。JSON 檔案應該包含含有分頁物件的視窗陣列。"
+  },
+  "importProgressText": {
+    "message": "進度："
+  },
+  "exportingSession": {
+    "message": "正在匯出紀錄..."
+  },
+  "sessionExported": {
+    "message": "紀錄已匯出"
+  },
+  "exportFailed": {
+    "message": "匯出失敗"
+  },
+  "generatingPreview": {
+    "message": "正在產生預覽..."
+  },
+  "exportPreviewReady": {
+    "message": "匯出預覽已準備就緒"
+  },
+  "sessionPreviewed": {
+    "message": "紀錄預覽已準備就緒"
+  },
+  "previewFailed": {
+    "message": "預覽失敗：檔案格式無效"
+  },
+  "sessionImported": {
+    "message": "紀錄匯入成功"
+  },
+  "importFailed": {
+    "message": "匯入失敗"
+  },
+  "pleaseSelectFile": {
+    "message": "請先選擇檔案"
+  },
+  "window": {
+    "message": "視窗"
+  },
+  "tabs": {
+    "message": "分頁"
+  },
+  "settingsManagement": {
+    "message": "設定管理"
+  },
+  "settingsManagementDesc": {
+    "message": "備份和還原擴展設定"
+  },
+  "exportSettings": {
+    "message": "匯出設定"
+  },
+  "exportSettingsDesc": {
+    "message": "將所有目前的擴展設定匯出為 JSON 檔案進行備份"
+  },
+  "exportSettingsHelp": {
+    "message": "匯出包括自動休眠配置、白名單和其他偏好設定在內的所有設定"
+  },
+  "settingsPreviewTitle": {
+    "message": "設定預覽："
+  },
+  "importSettings": {
+    "message": "匯入設定"
+  },
+  "importSettingsDesc": {
+    "message": "匯入先前匯出的設定以還原您的配置"
+  },
+  "selectSettingsFile": {
+    "message": "選擇設定檔案："
+  },
+  "importSettingsHelp": {
+    "message": "從先前匯出的 JSON 檔案匯入設定。這將取代所有目前的設定。注意：鍵盤快速鍵無法匯入，需要手動設定。"
+  },
+  "importPreviewTitle": {
+    "message": "匯入預覽："
+  },
+  "resetSettings": {
+    "message": "重設設定"
+  },
+  "resetSettingsDesc": {
+    "message": "將所有設定重設為預設值"
+  },
+  "warning": {
+    "message": "警告"
+  },
+  "resetWarning": {
+    "message": "此操作將永久刪除您所有的目前設定並還原為預設值。此操作無法復原。"
+  },
+  "resetToDefaults": {
+    "message": "重設為預設值"
+  },
+  "resetHelp": {
+    "message": "在重設之前，建議先匯出您目前的設定，以防您稍後想要還原它們。"
+  },
+  "exportingSettings": {
+    "message": "正在匯出設定..."
+  },
+  "settingsExported": {
+    "message": "設定匯出成功"
+  },
+  "settingsPreviewReady": {
+    "message": "設定預覽已準備就緒"
+  },
+  "settingsImported": {
+    "message": "設定匯入成功"
+  },
+  "settingsReset": {
+    "message": "設定已重設為預設值"
+  },
+  "resetFailed": {
+    "message": "重設失敗"
+  },
+  "confirmResetSettings": {
+    "message": "您確定要將所有設定重設為預設值嗎？此操作無法復原。"
+  },
+  "settingsFileInfo": {
+    "message": "設定檔案資訊"
+  },
+  "exportedAt": {
+    "message": "匯出時間"
+  },
+  "settingsToImport": {
+    "message": "要匯入的設定"
+  },
+  "minutes": {
+    "message": "分鐘"
+  },
+  "enabled": {
+    "message": "已啟用"
+  },
+  "disabled": {
+    "message": "已停用"
+  },
+  "items": {
+    "message": "項目"
+  },
+  "whitelistItems": {
+    "message": "白名單項目"
+  },
+  "importPreviewReady": {
+    "message": "匯入預覽已準備就緒"
+  },
+  "reportIssue": {
+    "message": "回報錯誤或請求功能"
+  },
+  "rateUs": {
+    "message": "⭐ 在 Chrome 線上應用程式商店評分"
+  },
+  "themeSettings": {
+    "message": "主題設定"
+  },
+  "themeSettingsDesc": {
+    "message": "選擇休眠分頁的外觀主題"
+  },
+  "themeMode": {
+    "message": "主題模式："
+  },
+  "themeAuto": {
+    "message": "自動跟隨系統/瀏覽器主題"
+  },
+  "themeLight": {
+    "message": "淺色主題"
+  },
+  "themeDark": {
+    "message": "深色主題"
+  },
+  "themeHelpText": {
+    "message": "休眠分頁需要重新載入以套用主題。自動模式會跟隨您的系統深色/淺色主題偏好設定。"
+  },
+  "tabViewer": {
+    "message": "分頁檢視器"
+  },
+  "tabViewerDesc": {
+    "message": "檢視和管理所有已暫停的分頁"
+  },
+  "tabViewerFilterLabel": {
+    "message": "篩選："
+  },
+  "tabViewerFilterSuspendedAll": {
+    "message": "全部已暫停分頁"
+  },
+  "tabViewerFilterSuspendedUndiscarded": {
+    "message": "僅已暫停且未丟棄"
+  },
+  "tabViewerFilterNotSuspended": {
+    "message": "僅未暫停"
+  },
+  "suspendedTabsViewer": {
+    "message": "已暫停分頁檢視器"
+  },
+  "suspendedTabsViewerDesc": {
+    "message": "檢視所有視窗中的已暫停分頁並查看其丟棄狀態"
+  },
+  "suspendedTabsDiscardsHint": {
+    "message": "你也可以透過 chrome://discards 查看丟棄詳細資訊。"
+  },
+  "showSuspendedTabs": {
+    "message": "顯示已暫停的分頁"
+  },
+  "suspendedTabsTitle": {
+    "message": "已暫停分頁資訊："
+  },
+  "scanningSuspendedTabs": {
+    "message": "正在掃描已暫停的分頁..."
+  },
+  "noSuspendedTabs": {
+    "message": "未找到已暫停的分頁"
+  },
+  "suspendedTabsFound": {
+    "message": "找到 %d 個已暫停的分頁"
+  },
+  "suspendedUndiscardedTabsFound": {
+    "message": "找到 %d 個已暫停且未丟棄的分頁"
+  },
+  "notSuspendedTabsFound": {
+    "message": "找到 %d 個未暫停的分頁"
+  },
+  "noTabsMatchFilter": {
+    "message": "沒有符合目前篩選條件的分頁"
+  },
+  "totalTabsCount": {
+    "message": "總分頁數：%d"
+  },
+  "discardedTabsCount": {
+    "message": "（%d 個已丟棄）"
+  },
+  "noSuspendedTabsDesc": {
+    "message": "未找到已暫停的分頁。當 ZeroRAM Suspender 讓分頁休眠以節省記憶體時會建立已暫停的分頁。"
+  },
+  "suspendedTabsLoaded": {
+    "message": "已載入已暫停分頁資訊"
+  },
+  "errorLoadingSuspendedTabs": {
+    "message": "載入已暫停分頁時發生錯誤"
+  },
+  "errorOccurred": {
+    "message": "發生錯誤"
+  },
+  "discarded": {
+    "message": "已丟棄"
+  },
+  "suspended": {
+    "message": "已暫停"
+  },
+  "notSuspended": {
+    "message": "未暫停"
+  },
+  "unsuspend": {
+    "message": "取消暫停"
+  },
+  "unsuspending": {
+    "message": "取消暫停中..."
+  },
+  "tabUnsuspended": {
+    "message": "分頁取消暫停成功"
+  },
+  "unsuspendFailed": {
+    "message": "分頁取消暫停失敗"
+  },
+  "reactivate": {
+    "message": "重新啟用"
+  },
+  "reactivating": {
+    "message": "重新啟用中..."
+  },
+  "tabReactivated": {
+    "message": "分頁重新啟用成功"
+  },
+  "reactivationFailed": {
+    "message": "分頁重新啟用失敗"
+  },
+  "tabId": {
+    "message": "分頁 ID"
+  },
+  "windowId": {
+    "message": "視窗 ID"
+  },
+  "tab": {
+    "message": "分頁"
+  },
+  "loading": {
+    "message": "載入中..."
+  },
+  "bulkProgress": {
+    "message": "批次進度"
+  },
+  "suspendingAllTabs": {
+    "message": "正在休眠所有分頁"
+  },
+  "unsuspendingAllTabs": {
+    "message": "正在喚醒所有分頁"
+  },
+  "bulkDone": {
+    "message": "完成"
+  },
+  "bulkCancel": {
+    "message": "停止"
+  },
+  "bulkCancelled": {
+    "message": "已停止"
+  }
+}

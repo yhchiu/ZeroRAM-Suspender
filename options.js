@@ -264,6 +264,8 @@ function save() {
         updatedCfg.neverSuspendActive = neverSuspendActiveEl.checked;
         updatedCfg.rememberLastActiveTab = rememberLastActiveTabEl.checked;
         updatedCfg.clickAnywhereToUnsuspend = clickAnywhereToUnsuspendEl.checked;
+        break;
+      case 'advanced':
         updatedCfg.themeMode = normalizeThemeMode(themeModeEl.value);
         updatedCfg.fixFaviconEnabled = fixFaviconEnabledEl.checked;
         updatedCfg.fixFaviconBatchSize = parseInt(fixFaviconBatchSizeEl.value, 10) || 0;
@@ -313,6 +315,9 @@ function save() {
           break;
         case 'migration':
           saveMessage = getMessage('savedTabMigrationSettings');
+          break;
+        case 'advanced':
+          saveMessage = getMessage('savedAdvancedSettings');
           break;
         default:
           saveMessage = getMessage('savedNotice');
