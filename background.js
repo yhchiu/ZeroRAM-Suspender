@@ -28,6 +28,7 @@ const LAST_ACTIVE_TAB_KEY = 'utsLastActiveTab';
 const SUSPENDED_PREFIX = chrome.runtime.getURL('suspended.html');
 const DISCARD_READY_TIMEOUT_MS = 10000;
 const FAVICON_PROPAGATION_DELAY_MS = 200;
+const SUSPEND_BATCH_CONCURRENCY = 5;
 const EXTENSION_DEFAULT_FAVICON_URLS = new Set(
   getExtensionIconPaths().map(path => chrome.runtime.getURL(path))
 );
@@ -1294,6 +1295,8 @@ async function suspendOthersInWindow(currentTabId) {
   const tabs = await chrome.tabs.query({ windowId: currentTab.windowId });
   const settings = await getSettings();
   
+  // Build target list first
+  const targets = [];
   for (const tab of tabs) {
     if (tab.id !== currentTabId && !tab.active && !isInternalUrl(tab.url)) {
       // Skip if tab is already suspended by our extension
@@ -1303,9 +1306,15 @@ async function suspendOthersInWindow(currentTabId) {
       if (settings.neverSuspendAudio && tab.audible) continue;
       if (settings.neverSuspendPinned && tab.pinned) continue;
       if (!isWhitelisted(tab.url, settings)) {
-        await suspendTab(tab, settings);
+        targets.push(tab);
       }
     }
+  }
+
+  // Process in concurrent batches
+  for (let i = 0; i < targets.length; i += SUSPEND_BATCH_CONCURRENCY) {
+    const batch = targets.slice(i, i + SUSPEND_BATCH_CONCURRENCY);
+    await Promise.allSettled(batch.map(tab => suspendTab(tab, settings)));
   }
 }
 
@@ -1353,11 +1362,17 @@ async function suspendOthersInAllWindows(currentTabId, withProgress = false) {
   const cancelToken = newCancelToken();
   const total = targets.length;
   let processed = 0;
-  for (const tab of targets) {
+
+  // Process in concurrent batches
+  for (let i = 0; i < targets.length; i += SUSPEND_BATCH_CONCURRENCY) {
     if (cancelToken.cancelled) break;
-    await suspendTab(tab, settings);
-    processed += 1;
-    if (withProgress) postBulkProgress({ action: 'suspendAll', processed, total });
+    const batch = targets.slice(i, i + SUSPEND_BATCH_CONCURRENCY);
+    await Promise.allSettled(batch.map(tab =>
+      suspendTab(tab, settings).finally(() => {
+        processed += 1;
+        if (withProgress) postBulkProgress({ action: 'suspendAll', processed, total });
+      })
+    ));
   }
   if (withProgress) postBulkProgress({ action: 'suspendAll', processed, total, done: true, cancelled: cancelToken.cancelled });
 }
@@ -1405,15 +1420,24 @@ async function unsuspendAllTabsInWindow(windowId) {
 // Suspend selected tabs (force suspend, ignore whitelist but respect internal URLs)
 async function suspendSelectedTabs(tabIds) {
   const settings = await getSettings();
+
+  // Pre-fetch all tabs and filter valid ones
+  const targets = [];
   for (const tabId of tabIds) {
     try {
       const tab = await chrome.tabs.get(tabId);
       if (!isInternalUrl(tab.url)) {
-        await suspendTab(tab, settings);
+        targets.push(tab);
       }
     } catch (error) {
-      console.warn(`Failed to suspend tab ${tabId}:`, error);
+      console.warn(`Failed to get tab ${tabId}:`, error);
     }
+  }
+
+  // Process in concurrent batches
+  for (let i = 0; i < targets.length; i += SUSPEND_BATCH_CONCURRENCY) {
+    const batch = targets.slice(i, i + SUSPEND_BATCH_CONCURRENCY);
+    await Promise.allSettled(batch.map(tab => suspendTab(tab, settings)));
   }
 }
 
