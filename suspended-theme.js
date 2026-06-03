@@ -60,3 +60,9 @@ function applyTheme(themeMode) {
     }
 })();
 
+// Test-only export. Guarded so it is inert at runtime (Chrome loads this as a
+// classic script where `module` is undefined).
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { normalizeThemeMode, applyTheme, VALID_THEME_MODES };
+}
+

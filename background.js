@@ -1567,4 +1567,106 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
   } catch (error) {
     console.error('Failed to execute shortcut command:', error);
   }
-}); 
+});
+
+// ==== Test-only export ====
+// Guarded so it is inert at runtime: Chrome loads this as an ES-module service
+// worker where `module` is undefined, so the block is skipped. Under Jest it is
+// required as CommonJS, exposing the internals for unit testing.
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    // constants
+    DEFAULT_SETTINGS,
+    STORAGE_KEY,
+    TEMP_KEY,
+    LAST_ACTIVE_TAB_KEY,
+    SUSPENDED_PREFIX,
+    ALARM_PERIOD_MINUTES,
+    DISCARD_READY_TIMEOUT_MS,
+    FAVICON_PROPAGATION_DELAY_MS,
+    EXTENSION_DEFAULT_FAVICON_URLS,
+    // pure helpers
+    isInternalUrl,
+    isTabGoneError,
+    logUnexpectedTabError,
+    compileWhitelist,
+    ensureCompiledWhitelist,
+    isHostnameWhitelisted,
+    isWhitelisted,
+    isSuspendedTab,
+    getExtensionIconPaths,
+    stripFaviconUrlSuffix,
+    isExtensionDefaultFaviconUrl,
+    hasUsableSuspendedFavicon,
+    needsSuspendedFaviconFix,
+    parseOriginalUrlFromSuspended,
+    markTabSeen,
+    // settings / storage
+    getSettings,
+    getSettingsCached,
+    saveSettings,
+    setTempWhitelistFromStorageValue,
+    persistTempWhitelist,
+    saveLastActiveTab,
+    loadLastActiveTab,
+    setLastActiveTabInWindow,
+    removeLastActiveTabInWindow,
+    loadLastActiveTabPerWindow,
+    markWindowActiveTabSeen,
+    saveSeenTimestamps,
+    flushSeenTimestampsNow,
+    // suspend / discard lifecycle
+    suspendTab,
+    suspendWithPlaceholder,
+    beginSuspendedReadyWait,
+    waitForTabLoaded,
+    cancelPendingDiscardWait,
+    markSuspendedFaviconReady,
+    discardSuspendedTabWhenReady,
+    fixFaviconProcessor,
+    checkTabs,
+    scheduleCheckAlarm,
+    scheduleReDiscard,
+    processQueuedReDiscardTabs,
+    // bulk operations
+    postBulkProgress,
+    newCancelToken,
+    cancelBulkNow,
+    unsuspendTabById,
+    unsuspendTabWithUrl,
+    suspendOthersInWindow,
+    suspendOthersInAllWindows,
+    unsuspendAllTabs,
+    unsuspendAllTabsInWindow,
+    suspendSelectedTabs,
+    unsuspendSelectedTabs,
+    toggleTabSuspension,
+    // live state accessors for assertions
+    __getInternals: () => ({
+      tempWhitelist,
+      seenTimestamps,
+      unsuspendingTabs,
+      pendingDiscardTabs,
+      suspendedFaviconReadyTabs,
+      lastActiveTabId,
+      lastActiveTabPerWindow,
+      lastFocusedWindowId,
+      fixFaviconTabs,
+      fixFaviconRetryCounts,
+      pendingReDiscardTabIds,
+      reDiscardRetryCounts,
+      cachedSettings,
+      popupPorts,
+      bulkCancelToken,
+      running,
+    }),
+    __setState: (patch = {}) => {
+      if ('lastActiveTabId' in patch) lastActiveTabId = patch.lastActiveTabId;
+      if ('lastFocusedWindowId' in patch) lastFocusedWindowId = patch.lastFocusedWindowId;
+      if ('running' in patch) running = patch.running;
+      if ('cachedSettings' in patch) cachedSettings = patch.cachedSettings;
+      if ('cachedAtMs' in patch) cachedAtMs = patch.cachedAtMs;
+    },
+  };
+}
+

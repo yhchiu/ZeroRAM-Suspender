@@ -113,6 +113,30 @@ This extension:
 - Does not communicate with external servers
 - Only accesses tab information necessary for suspension functionality
 
+## Development
+
+### Running Tests
+
+The project uses [Jest](https://jestjs.io/) with a jsdom environment for unit and integration tests.
+
+```bash
+# Install dev dependencies (first time only)
+npm install
+
+# Run the full test suite
+npm test
+
+# Run tests in watch mode during development
+npm run test:watch
+
+# Run tests with a coverage report
+npm run test:coverage
+```
+
+After running with coverage, an HTML report is generated at `coverage/lcov-report/index.html`.
+
+Tests live in the `test/` directory and run automatically on every push and pull request via GitHub Actions (`.github/workflows/test.yml`).
+
 ## License
 
 This project is licensed under the GNU General Public License v3 (GPL v3).
