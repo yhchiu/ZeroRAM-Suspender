@@ -28,7 +28,15 @@ const LAST_ACTIVE_TAB_KEY = 'utsLastActiveTab';
 // Constant prefix for our suspended page URL to avoid repeated getURL calls
 const SUSPENDED_PREFIX = chrome.runtime.getURL('suspended.html');
 const DISCARD_READY_TIMEOUT_MS = 10000;
-const FAVICON_PROPAGATION_DELAY_MS = 200;
+// After suspended.js signals it set the favicon link, we poll tab.favIconUrl
+// to confirm Chrome's browser process actually registered a real favicon before
+// discarding. Verifying the captured favIconUrl — instead of blindly trusting a
+// single fixed delay — is what prevents discarding a tab before its icon lands,
+// which is what made Chrome fall back to the extension icon. After the bounded
+// number of attempts we mark ready anyway (best effort: the page likely has no
+// usable favicon, so waiting longer would not help).
+const FAVICON_CONFIRM_INTERVAL_MS = 200;
+const FAVICON_CONFIRM_MAX_ATTEMPTS = 15;
 const EXTENSION_DEFAULT_FAVICON_URLS = new Set(
   getExtensionIconPaths().map(path => chrome.runtime.getURL(path))
 );
@@ -611,6 +619,32 @@ function markSuspendedFaviconReady(tabId) {
   }
 }
 
+// suspended.js sends 'faviconReady' the instant it appends the <link rel="icon">,
+// but that only means the renderer set the DOM node — not that Chrome captured
+// the favicon into tab.favIconUrl (the value snapshotted on discard). Poll until
+// Chrome reports a real (non-default) favIconUrl, then mark ready. The onUpdated
+// favIconUrl listener usually wins this race; this is the fallback for cases
+// where that event does not arrive (e.g. data: URL favicon updates Chrome
+// coalesces, or a service-worker wake-up that missed the event).
+function confirmSuspendedFaviconReady(tabId, attempt = 0) {
+  if (typeof tabId !== 'number') return;
+  setTimeout(async () => {
+    if (suspendedFaviconReadyTabs.has(tabId)) return; // already confirmed elsewhere
+    let tab;
+    try {
+      tab = await chrome.tabs.get(tabId);
+    } catch (_) {
+      return; // tab gone
+    }
+    if (!isSuspendedTab(tab)) return; // navigated away; no longer our placeholder
+    if (hasUsableSuspendedFavicon(tab) || attempt + 1 >= FAVICON_CONFIRM_MAX_ATTEMPTS) {
+      markSuspendedFaviconReady(tabId);
+    } else {
+      confirmSuspendedFaviconReady(tabId, attempt + 1);
+    }
+  }, FAVICON_CONFIRM_INTERVAL_MS);
+}
+
 async function discardSuspendedTabWhenReady(tabId, context) {
   try {
     await waitForTabLoaded(tabId);
@@ -922,6 +956,20 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     }
   }
 
+  // Authoritative readiness signal: when Chrome's browser process reports a real
+  // (non-default) favicon for a suspended placeholder, the icon is guaranteed to
+  // be captured, so the tab is safe to discard with no arbitrary delay. The
+  // manifest/default icons Chrome auto-populates for chrome-extension:// pages
+  // are filtered out by isExtensionDefaultFaviconUrl, which is why an earlier
+  // attempt to gate on favIconUrl (commit e6cd75d2) had to be abandoned.
+  if (
+    changeInfo.favIconUrl &&
+    isSuspendedTab(tab) &&
+    !isExtensionDefaultFaviconUrl(changeInfo.favIconUrl)
+  ) {
+    markSuspendedFaviconReady(tabId);
+  }
+
   if (changeInfo.status === 'complete') {
     seenTimestamps[tabId] = Date.now();
     saveSeenTimestamps();
@@ -966,11 +1014,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     }
   }
   
-  // Note: changeInfo.favIconUrl is NOT used here for pending-discard logic.
-  // For chrome-extension:// pages, Chrome can report manifest icons; those are
-  // ignored unless suspended.js signals readiness or tab.favIconUrl is not a
-  // known extension default icon.
-
   if (changeInfo.active === false) {
     // Tab became inactive - update timestamp to track when it was last seen
     seenTimestamps[tabId] = Date.now();
@@ -1103,13 +1146,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         respond({ done: true });
       } else if (msg.command === 'faviconReady') {
         // Sent by suspended.js after it has set the <link rel="icon"> in the DOM.
-        // We delay slightly to give Chrome's browser process time to propagate
-        // the favicon from the renderer before we discard.
+        // Confirm Chrome actually registered the favicon (rather than trusting a
+        // fixed delay) before allowing the tab to be discarded. Skip entirely in
+        // placeholder-only mode, where tabs are never discarded and favicon
+        // readiness is irrelevant — avoids needless polling at large tab counts.
         const tabId = sender.tab ? sender.tab.id : null;
         if (typeof tabId === 'number') {
-          setTimeout(() => {
-            markSuspendedFaviconReady(tabId);
-          }, FAVICON_PROPAGATION_DELAY_MS);
+          const settings = await getSettingsCached();
+          if (settings.useNativeDiscard) {
+            confirmSuspendedFaviconReady(tabId);
+          }
         }
         respond({ done: true });
       } else if (msg.command === 'startUnsuspending') {
@@ -1583,7 +1629,8 @@ if (typeof module !== 'undefined' && module.exports) {
     SUSPENDED_PREFIX,
     ALARM_PERIOD_MINUTES,
     DISCARD_READY_TIMEOUT_MS,
-    FAVICON_PROPAGATION_DELAY_MS,
+    FAVICON_CONFIRM_INTERVAL_MS,
+    FAVICON_CONFIRM_MAX_ATTEMPTS,
     EXTENSION_DEFAULT_FAVICON_URLS,
     // pure helpers
     isInternalUrl,
@@ -1622,6 +1669,7 @@ if (typeof module !== 'undefined' && module.exports) {
     waitForTabLoaded,
     cancelPendingDiscardWait,
     markSuspendedFaviconReady,
+    confirmSuspendedFaviconReady,
     discardSuspendedTabWhenReady,
     fixFaviconProcessor,
     checkTabs,

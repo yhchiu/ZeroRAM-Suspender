@@ -504,13 +504,126 @@ describe('event listeners', () => {
     expect(bg.__getInternals().unsuspendingTabs.has(8)).toBe(true);
   });
 
-  test('onMessage: faviconReady marks the favicon ready after the propagation delay', async () => {
-    const { bg, chrome } = loadBackground();
-    bg.beginSuspendedReadyWait(9);
+  test('onMessage: faviconReady confirms readiness once Chrome reports a real favicon', async () => {
+    const extId = 'testextensionid';
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 9, url: suspendedUrl({ _extId: extId }, 'https://x.com'),
+               favIconUrl: 'https://x.com/f.ico', active: false, status: 'complete', windowId: 1 }],
+    });
     await sendMessage(chrome, { command: 'faviconReady' }, { tab: { id: 9 } });
     jest.advanceTimersByTime(200);
     await flush();
     expect(bg.__getInternals().suspendedFaviconReadyTabs.has(9)).toBe(true);
+  });
+
+  test('onMessage: faviconReady waits for the real favicon and does not mark ready while the extension default icon is showing', async () => {
+    const extId = 'testextensionid';
+    const defIcon = `chrome-extension://${extId}/icons/icon16.png`;
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 9, url: suspendedUrl({ _extId: extId }, 'https://x.com'),
+               favIconUrl: defIcon, active: false, status: 'complete', windowId: 1 }],
+    });
+    await sendMessage(chrome, { command: 'faviconReady' }, { tab: { id: 9 } });
+    jest.advanceTimersByTime(200);
+    await flush();
+    // Chrome has not captured a real favicon yet → must not be discarded.
+    expect(bg.__getInternals().suspendedFaviconReadyTabs.has(9)).toBe(false);
+    // The real favicon lands a little later; the next poll confirms it.
+    chrome._getTab(9).favIconUrl = 'https://x.com/f.ico';
+    jest.advanceTimersByTime(200);
+    await flush();
+    expect(bg.__getInternals().suspendedFaviconReadyTabs.has(9)).toBe(true);
+  });
+
+  test('onMessage: faviconReady marks ready as a best effort after the confirmation cap', async () => {
+    const extId = 'testextensionid';
+    const defIcon = `chrome-extension://${extId}/icons/icon16.png`;
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 9, url: suspendedUrl({ _extId: extId }, 'https://x.com'),
+               favIconUrl: defIcon, active: false, status: 'complete', windowId: 1 }],
+    });
+    await sendMessage(chrome, { command: 'faviconReady' }, { tab: { id: 9 } });
+    // Drive the async reschedule chain one interval at a time up to its cap.
+    for (let i = 0; i < bg.FAVICON_CONFIRM_MAX_ATTEMPTS; i++) {
+      await jest.advanceTimersByTimeAsync(bg.FAVICON_CONFIRM_INTERVAL_MS);
+    }
+    // Favicon never became usable, but the tab must still be allowed to discard.
+    expect(bg.__getInternals().suspendedFaviconReadyTabs.has(9)).toBe(true);
+  });
+
+  test('bulk faviconReady keeps confirm-polling bounded (one chain per tab) and stops once Chrome reports favicons', async () => {
+    const extId = 'testextensionid';
+    const N = 50; // a "bulk suspend" burst: many pages signal faviconReady at once
+    const defIcon = `chrome-extension://${extId}/icons/icon16.png`;
+    const tabs = [];
+    for (let i = 1; i <= N; i++) {
+      tabs.push({
+        id: i,
+        url: suspendedUrl({ _extId: extId }, `https://x${i}.com`),
+        favIconUrl: defIcon, // not a real favicon yet → a naive poll would keep retrying
+        active: false,
+        status: 'complete',
+        windowId: 1,
+      });
+    }
+    const { bg, chrome } = loadBackground({ tabs });
+
+    for (let i = 1; i <= N; i++) {
+      await sendMessage(chrome, { command: 'faviconReady' }, { tab: { id: i } });
+    }
+
+    // One poll tick issues exactly one chrome.tabs.get per chain: the number of
+    // concurrent chains is bounded by the count of signalling tabs (N), never
+    // multiplied — there is no per-chain fan-out, so it does not blow up at scale.
+    const beforeTick = chrome.tabs.get.mock.calls.length;
+    await jest.advanceTimersByTimeAsync(bg.FAVICON_CONFIRM_INTERVAL_MS);
+    expect(chrome.tabs.get.mock.calls.length - beforeTick).toBe(N);
+
+    // Chrome now reports a real favicon for every tab (the authoritative signal).
+    for (let i = 1; i <= N; i++) {
+      const real = `https://x${i}.com/f.ico`;
+      chrome._getTab(i).favIconUrl = real;
+      await chrome.tabs.onUpdated.trigger(i, { favIconUrl: real }, chrome._getTab(i));
+    }
+    expect(bg.__getInternals().suspendedFaviconReadyTabs.size).toBe(N);
+
+    // Every chain must now self-terminate at its guard: advancing far past the
+    // per-chain cap issues no further gets (they do NOT each keep polling to the
+    // cap once readiness is confirmed). This is what keeps cost ~0 at 5k+ tabs.
+    const afterReady = chrome.tabs.get.mock.calls.length;
+    await jest.advanceTimersByTimeAsync(
+      bg.FAVICON_CONFIRM_INTERVAL_MS * (bg.FAVICON_CONFIRM_MAX_ATTEMPTS + 1)
+    );
+    expect(chrome.tabs.get.mock.calls.length).toBe(afterReady);
+  });
+
+  test('onUpdated favIconUrl marks a suspended tab ready and resolves a pending discard', async () => {
+    const extId = 'testextensionid';
+    const susp = suspendedUrl({ _extId: extId }, 'https://x.com');
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 4, url: susp, favIconUrl: '', active: false, status: 'complete', windowId: 1 }],
+    });
+    bg.beginSuspendedReadyWait(4);
+    await flush();
+    const pending = bg.__getInternals().pendingDiscardTabs.get(4);
+    expect(pending.pageComplete).toBe(true);
+    expect(pending.faviconReady).toBe(false);
+    // Chrome's browser process reports the real favicon — the authoritative signal.
+    chrome._getTab(4).favIconUrl = 'https://x.com/f.ico';
+    await chrome.tabs.onUpdated.trigger(4, { favIconUrl: 'https://x.com/f.ico' }, chrome._getTab(4));
+    await expect(pending.promise).resolves.toEqual({ timedOut: false });
+    expect(bg.__getInternals().suspendedFaviconReadyTabs.has(4)).toBe(true);
+  });
+
+  test('onUpdated favIconUrl ignores the auto-populated extension default icon', async () => {
+    const extId = 'testextensionid';
+    const defIcon = `chrome-extension://${extId}/icons/icon16.png`;
+    const susp = suspendedUrl({ _extId: extId }, 'https://x.com');
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 4, url: susp, favIconUrl: defIcon, active: false, status: 'complete', windowId: 1 }],
+    });
+    await chrome.tabs.onUpdated.trigger(4, { favIconUrl: defIcon }, chrome._getTab(4));
+    expect(bg.__getInternals().suspendedFaviconReadyTabs.has(4)).toBe(false);
   });
 
   test('onMessage: unsuspendNavigate updates the tab url', async () => {
