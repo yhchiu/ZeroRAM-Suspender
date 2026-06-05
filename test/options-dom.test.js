@@ -13,6 +13,15 @@ async function flush(times = 20) {
   for (let i = 0; i < times; i++) await Promise.resolve();
 }
 
+function readBlobText(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsText(blob);
+  });
+}
+
 function suspendedUrl(original, title = 'T') {
   return `chrome-extension://${EXT_ID}/suspended.html?uri=${encodeURIComponent(original)}&ttl=${encodeURIComponent(title)}`;
 }
@@ -176,9 +185,16 @@ describe('settings flows', () => {
   test('exportSettings downloads a settings file', async () => {
     const { options, chrome } = loadOptions();
     chrome.i18n.getMessage.mockImplementation((k) => k);
+    chrome.storage.sync._store[STORAGE_KEY] = { autoSuspendMinutes: 12 };
     const clickSpy = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     await options.exportSettings();
     await flush();
+    const blob = global.URL.createObjectURL.mock.calls[0][0];
+    const exportedSettings = JSON.parse(await readBlobText(blob));
+    const missingSettingKeys = Object.keys(options.getDefaultSettings())
+      .filter(key => !(key in exportedSettings));
+    expect(missingSettingKeys).toEqual([]);
+    expect(exportedSettings.autoSuspendMinutes).toBe(12);
     expect(clickSpy).toHaveBeenCalled();
     clickSpy.mockRestore();
   });

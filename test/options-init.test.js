@@ -131,15 +131,29 @@ describe('settings import', () => {
     expect(document.getElementById('importSettingsPreview').style.display).not.toBe('block');
   });
 
-  test('importSettings persists imported values and reloads the form', async () => {
+  test('importSettings persists every exported setting key and reloads the form', async () => {
     const { options, chrome } = loadOptions();
     chrome.i18n.getMessage.mockImplementation((k) => k);
     options.initializeElements();
-    setInputFiles('settingsFileInput', [fileWith('settings.json', JSON.stringify(validSettings))]);
+    const expectedSettings = {
+      ...options.getDefaultSettings(),
+      autoSuspendMinutes: 25,
+      whitelist: ['x.com'],
+      themeMode: 'dark',
+    };
+    const exportedSettings = {
+      ...expectedSettings,
+      version: '1.6.0',
+      exportedAt: '2024-01-01T00:00:00Z',
+      shortcuts: [{ name: '01-toggle-suspend', shortcut: 'Ctrl+Shift+Z' }],
+    };
+    setInputFiles('settingsFileInput', [fileWith('settings.json', JSON.stringify(exportedSettings))]);
     await options.importSettings();
     await flush();
-    expect(chrome.storage.sync._store[STORAGE_KEY].autoSuspendMinutes).toBe(25);
-    expect(chrome.storage.sync._store[STORAGE_KEY].whitelist).toEqual(['x.com']);
+    const storedSettings = chrome.storage.sync._store[STORAGE_KEY];
+    expect(Object.keys(storedSettings).sort()).toEqual(Object.keys(options.getDefaultSettings()).sort());
+    expect(storedSettings).toEqual(expectedSettings);
+    expect(document.getElementById('autoSuspend').value).toBe('25');
   });
 
   test('importSettings reports an error for a malformed file', async () => {
