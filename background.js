@@ -41,6 +41,9 @@ const DISCARD_READY_TIMEOUT_MS = 10000;
 // usable favicon, so waiting longer would not help).
 const FAVICON_CONFIRM_INTERVAL_MS = 200;
 const FAVICON_CONFIRM_MAX_ATTEMPTS = 15;
+// Chrome needs time to process the image internally after the favicon URL is
+// updated before the tab can be safely discarded.
+const FAVICON_CAPTURE_DELAY_MS = 200;
 const EXTENSION_DEFAULT_FAVICON_URLS = new Set(
   getExtensionIconPaths().map(path => chrome.runtime.getURL(path))
 );
@@ -619,7 +622,13 @@ function markSuspendedFaviconReady(tabId) {
   const pendingInfo = pendingDiscardTabs.get(tabId);
   if (pendingInfo) {
     pendingInfo.faviconReady = true;
-    pendingInfo.tryResolve();
+    setTimeout(() => {
+      // Re-fetch pendingInfo in case it was cancelled/recreated during the delay
+      const currentPendingInfo = pendingDiscardTabs.get(tabId);
+      if (currentPendingInfo && currentPendingInfo === pendingInfo) {
+        currentPendingInfo.tryResolve();
+      }
+    }, FAVICON_CAPTURE_DELAY_MS);
   }
 }
 
@@ -1635,6 +1644,7 @@ if (typeof module !== 'undefined' && module.exports) {
     DISCARD_READY_TIMEOUT_MS,
     FAVICON_CONFIRM_INTERVAL_MS,
     FAVICON_CONFIRM_MAX_ATTEMPTS,
+    FAVICON_CAPTURE_DELAY_MS,
     EXTENSION_DEFAULT_FAVICON_URLS,
     // pure helpers
     isInternalUrl,

@@ -300,12 +300,13 @@ describe('suspendTab lifecycle', () => {
   });
 
   test('markSuspendedFaviconReady resolves a pending discard wait', async () => {
-    const { bg } = loadBackground();
+    const { bg } = loadBackground({ tabs: [{ id: 5, url: 'placeholder', windowId: 1 }] });
     bg.beginSuspendedReadyWait(5);
     const internals = bg.__getInternals();
     const pending = internals.pendingDiscardTabs.get(5);
     pending.pageComplete = true; // page already done; favicon is the missing piece
     bg.markSuspendedFaviconReady(5);
+    jest.advanceTimersByTime(bg.FAVICON_CAPTURE_DELAY_MS);
     await expect(pending.promise).resolves.toEqual({ timedOut: false });
     expect(internals.suspendedFaviconReadyTabs.has(5)).toBe(true);
   });
@@ -610,7 +611,10 @@ describe('event listeners', () => {
     expect(pending.faviconReady).toBe(false);
     // Chrome's browser process reports the real favicon — the authoritative signal.
     chrome._getTab(4).favIconUrl = 'https://x.com/f.ico';
-    await chrome.tabs.onUpdated.trigger(4, { favIconUrl: 'https://x.com/f.ico' }, chrome._getTab(4));
+    const triggerPromise = chrome.tabs.onUpdated.trigger(4, { favIconUrl: 'https://x.com/f.ico' }, chrome._getTab(4));
+    await flush();
+    jest.advanceTimersByTime(bg.FAVICON_CAPTURE_DELAY_MS);
+    await triggerPromise;
     await expect(pending.promise).resolves.toEqual({ timedOut: false });
     expect(bg.__getInternals().suspendedFaviconReadyTabs.has(4)).toBe(true);
   });
