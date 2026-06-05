@@ -152,4 +152,18 @@ describe('normalizeThemeMode / getDefaultSettings under empty i18n', () => {
     const s = await options.getCurrentSettings();
     expect(s.themeMode).toBe('auto');
   });
+
+  test('getCurrentSettings normalizes an invalid suspendedIndicatorMode to favicon', async () => {
+    const { options, chrome } = loadOptions();
+    chrome.storage.sync._store.utsSettings = { suspendedIndicatorMode: 'bogus' };
+    const s = await options.getCurrentSettings();
+    expect(s.suspendedIndicatorMode).toBe('favicon');
+  });
+
+  test('getCurrentSettings preserves a valid titlePrefix indicator', async () => {
+    const { options, chrome } = loadOptions();
+    chrome.storage.sync._store.utsSettings = { suspendedIndicatorMode: 'titlePrefix' };
+    const s = await options.getCurrentSettings();
+    expect(s.suspendedIndicatorMode).toBe('titlePrefix');
+  });
 });

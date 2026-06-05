@@ -14,6 +14,10 @@ const DEFAULT_SETTINGS = {
   neverSuspendActive: false, // never suspend active tab in each window
   rememberLastActiveTab: true, // remember last active tab when browser loses focus
   clickAnywhereToUnsuspend: false, // allow clicking anywhere on the suspended page to unsuspend
+  // How a suspended tab is marked in the tab strip:
+  //   'favicon'     = render the site favicon 50% transparent (default)
+  //   'titlePrefix' = keep the favicon at full opacity, prefix the title with 💤
+  suspendedIndicatorMode: 'favicon',
   // Favicon fix processor settings
   fixFaviconEnabled: true, // enable suspended favicon fixing
   fixFaviconBatchSize: FAVICON_FIX_DEFAULT_BATCH_SIZE, // 0 = unlimited per checkTabs batch

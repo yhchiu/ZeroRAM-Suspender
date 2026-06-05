@@ -54,6 +54,32 @@ describe('suspended.js', () => {
     expect(chrome.runtime.sendMessage).toHaveBeenCalledWith({ command: 'faviconReady' });
   });
 
+  test('title-prefix mode adds the sleep emoji and keeps the real favicon (no transparency)', async () => {
+    const chrome = await loadSuspendedWith(
+      { uri: ORIG, ttl: 'My Page', favicon: 'https://example.com/fav.ico' },
+      { settings: { suspendedIndicatorMode: 'titlePrefix' } }
+    );
+    await flush();
+    // Tab strip title gets the sleep prefix; the page still shows the clean title.
+    expect(document.title).toBe('💤 My Page');
+    expect(document.getElementById('origTitle').textContent).toBe('My Page');
+    const link = document.querySelector('link[rel="icon"]');
+    expect(link).toBeTruthy();
+    // Real favicon via the _favicon API, never a transparent canvas data: URL.
+    expect(link.href).toContain('/_favicon/');
+    expect(link.href).not.toContain('data:image/png');
+    expect(chrome.runtime.sendMessage).toHaveBeenCalledWith({ command: 'faviconReady' });
+  });
+
+  test('favicon mode is the default when no indicator setting is stored', async () => {
+    global.__MockImage.mode = 'load';
+    await loadSuspendedWith({ uri: ORIG, ttl: 'Y' }); // no settings → default
+    await flush();
+    expect(document.title).toBe('Y'); // no sleep prefix
+    const link = document.querySelector('link[rel="icon"]');
+    expect(link.href).toContain('data:image/png'); // transparent favicon
+  });
+
   test('falls back to provided favicon when fetch fails', async () => {
     const chrome = await loadSuspendedWith(
       { uri: ORIG, ttl: 'X', favicon: 'https://example.com/fav.ico' },

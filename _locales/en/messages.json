@@ -644,6 +644,24 @@
   "themeHelpText": {
     "message": "The suspended tab page needs to be reloaded to apply the theme. Auto mode will follow your system's dark/light theme preference."
   },
+  "suspendedIndicatorTitle": {
+    "message": "Suspended Tab Indicator"
+  },
+  "suspendedIndicatorDesc": {
+    "message": "Choose how a suspended tab is marked in the tab strip"
+  },
+  "suspendedIndicatorLabel": {
+    "message": "Suspended tab indicator:"
+  },
+  "suspendedIndicatorFavicon": {
+    "message": "Semi-transparent favicon (default)"
+  },
+  "suspendedIndicatorTitlePrefix": {
+    "message": "Title 💤 prefix"
+  },
+  "suspendedIndicatorHelp": {
+    "message": "Semi-transparent favicon dims the site's icon as the cue: it keeps the site identity but is subtle on tiny tabs and slightly heavier. Title 💤 prefix adds a sleep emoji before the tab title and keeps the favicon at full opacity: it is lighter, but the cue is hidden on very narrow or pinned tabs that show no title."
+  },
   "tabViewer": {
     "message": "Tab Viewer"
   },

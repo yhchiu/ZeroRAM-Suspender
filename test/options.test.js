@@ -19,6 +19,14 @@ describe('pure helpers', () => {
     expect(options.normalizeThemeMode(undefined)).toBe('auto');
   });
 
+  test('normalizeIndicatorMode keeps valid values and defaults to favicon', () => {
+    const { options } = load();
+    expect(options.normalizeIndicatorMode('favicon')).toBe('favicon');
+    expect(options.normalizeIndicatorMode('titlePrefix')).toBe('titlePrefix');
+    expect(options.normalizeIndicatorMode('bogus')).toBe('favicon');
+    expect(options.normalizeIndicatorMode(undefined)).toBe('favicon');
+  });
+
   test('escapeHtml escapes markup', () => {
     const { options } = load();
     expect(options.escapeHtml('<b>&"\'</b>')).toBe('&lt;b&gt;&amp;"\'&lt;/b&gt;');
@@ -44,6 +52,7 @@ describe('pure helpers', () => {
       clickAnywhereToUnsuspend: false,
       whitelist: [],
       themeMode: 'auto',
+      suspendedIndicatorMode: 'favicon',
       fixFaviconEnabled: true,
       fixFaviconMaxRetries: 5,
       suspendBatchConcurrency: 5,

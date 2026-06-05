@@ -644,6 +644,24 @@
   "themeHelpText": {
     "message": "休眠分頁需要重新載入以套用主題。自動模式會跟隨您的系統深色/淺色主題偏好設定。"
   },
+  "suspendedIndicatorTitle": {
+    "message": "休眠分頁標示方式"
+  },
+  "suspendedIndicatorDesc": {
+    "message": "選擇已休眠分頁在分頁列上的標示方式"
+  },
+  "suspendedIndicatorLabel": {
+    "message": "休眠分頁標示："
+  },
+  "suspendedIndicatorFavicon": {
+    "message": "半透明網站圖示（預設）"
+  },
+  "suspendedIndicatorTitlePrefix": {
+    "message": "標題加上 💤 前綴"
+  },
+  "suspendedIndicatorHelp": {
+    "message": "半透明網站圖示：把網站圖示調淡作為提示，保留網站辨識度，但在極窄分頁上較不明顯，且稍微較耗資源。標題 💤 前綴：在分頁標題前加上睡眠表情符號，圖示維持原樣，較輕量，但在過窄或釘選、不顯示標題的分頁上看不到提示。"
+  },
   "tabViewer": {
     "message": "分頁檢視器"
   },

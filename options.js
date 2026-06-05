@@ -2,6 +2,7 @@
 const STORAGE_KEY = 'utsSettings';
 const CACHE_THEME_KEY = 'utsCacheThemeMode';
 const VALID_THEME_MODES = new Set(['auto', 'light', 'dark']);
+const VALID_INDICATOR_MODES = new Set(['favicon', 'titlePrefix']);
 const FAVICON_FIX_DEFAULT_BATCH_SIZE = 50;
 
 // Shared command description map for i18n lookups
@@ -33,7 +34,7 @@ const suspendedTabsViewerState = {
 
 // Initialize DOM elements after DOM is loaded
 let autoSuspendEl, discardEl, whitelistEl, neverSuspendAudioEl, neverSuspendPinnedEl, neverSuspendActiveEl, rememberLastActiveTabEl, clickAnywhereToUnsuspendEl, themeModeEl;
-let fixFaviconEnabledEl, fixFaviconBatchSizeEl, fixFaviconMaxRetriesEl, suspendBatchConcurrencyEl;
+let fixFaviconEnabledEl, fixFaviconBatchSizeEl, fixFaviconMaxRetriesEl, suspendBatchConcurrencyEl, suspendedIndicatorModeEl;
 
 function initializeElements() {
   autoSuspendEl = document.getElementById('autoSuspend');
@@ -45,6 +46,7 @@ function initializeElements() {
   rememberLastActiveTabEl = document.getElementById('rememberLastActiveTab');
   clickAnywhereToUnsuspendEl = document.getElementById('clickAnywhereToUnsuspend');
   themeModeEl = document.getElementById('themeMode');
+  suspendedIndicatorModeEl = document.getElementById('suspendedIndicatorMode');
   fixFaviconEnabledEl = document.getElementById('fixFaviconEnabled');
   fixFaviconBatchSizeEl = document.getElementById('fixFaviconBatchSize');
   fixFaviconMaxRetriesEl = document.getElementById('fixFaviconMaxRetries');
@@ -53,6 +55,10 @@ function initializeElements() {
 
 function normalizeThemeMode(themeMode) {
   return VALID_THEME_MODES.has(themeMode) ? themeMode : 'auto';
+}
+
+function normalizeIndicatorMode(mode) {
+  return VALID_INDICATOR_MODES.has(mode) ? mode : 'favicon';
 }
 
 function cacheThemeMode(themeMode) {
@@ -222,6 +228,8 @@ function load() {
     clickAnywhereToUnsuspendEl.checked = cfg.clickAnywhereToUnsuspend === true; // default false
     // Load theme settings with default to 'auto'
     themeModeEl.value = normalizeThemeMode(cfg.themeMode); // default to auto (follow system)
+    // Suspended-tab indicator with default to transparent favicon
+    suspendedIndicatorModeEl.value = normalizeIndicatorMode(cfg.suspendedIndicatorMode);
     // Favicon fix settings
     fixFaviconEnabledEl.checked = cfg.fixFaviconEnabled !== false;
     fixFaviconBatchSizeEl.value = (typeof cfg.fixFaviconBatchSize === 'number' ? cfg.fixFaviconBatchSize : FAVICON_FIX_DEFAULT_BATCH_SIZE);
@@ -269,6 +277,7 @@ function save() {
         break;
       case 'advanced':
         updatedCfg.themeMode = normalizeThemeMode(themeModeEl.value);
+        updatedCfg.suspendedIndicatorMode = normalizeIndicatorMode(suspendedIndicatorModeEl.value);
         updatedCfg.fixFaviconEnabled = fixFaviconEnabledEl.checked;
         updatedCfg.fixFaviconBatchSize = parseInt(fixFaviconBatchSizeEl.value, 10) || 0;
         updatedCfg.fixFaviconMaxRetries = parseInt(fixFaviconMaxRetriesEl.value, 10);
@@ -295,6 +304,7 @@ function save() {
           rememberLastActiveTab: rememberLastActiveTabEl.checked,
           clickAnywhereToUnsuspend: clickAnywhereToUnsuspendEl.checked,
           themeMode: normalizeThemeMode(themeModeEl.value),
+          suspendedIndicatorMode: normalizeIndicatorMode(suspendedIndicatorModeEl.value),
           fixFaviconEnabled: fixFaviconEnabledEl.checked,
           fixFaviconBatchSize: parseInt(fixFaviconBatchSizeEl.value, 10) || 0,
           fixFaviconMaxRetries: parseInt(fixFaviconMaxRetriesEl.value, 10),
@@ -2150,6 +2160,7 @@ function getDefaultSettings() {
     clickAnywhereToUnsuspend: false,
     whitelist: [],
     themeMode: 'auto',
+    suspendedIndicatorMode: 'favicon',
     fixFaviconEnabled: true,
     fixFaviconBatchSize: FAVICON_FIX_DEFAULT_BATCH_SIZE,
     fixFaviconMaxRetries: 5,
@@ -2172,6 +2183,7 @@ async function getCurrentSettings() {
         clickAnywhereToUnsuspend: cfg.clickAnywhereToUnsuspend === true,
         whitelist: cfg.whitelist || [],
         themeMode: normalizeThemeMode(cfg.themeMode),
+        suspendedIndicatorMode: normalizeIndicatorMode(cfg.suspendedIndicatorMode),
         fixFaviconEnabled: cfg.fixFaviconEnabled !== false,
         fixFaviconBatchSize: typeof cfg.fixFaviconBatchSize === 'number' ? cfg.fixFaviconBatchSize : FAVICON_FIX_DEFAULT_BATCH_SIZE,
         fixFaviconMaxRetries: typeof cfg.fixFaviconMaxRetries === 'number' ? cfg.fixFaviconMaxRetries : 5,
@@ -2409,6 +2421,7 @@ async function importSettings() {
       clickAnywhereToUnsuspend: settingsData.clickAnywhereToUnsuspend === true,
       whitelist: Array.isArray(settingsData.whitelist) ? settingsData.whitelist : [],
       themeMode: normalizeThemeMode(settingsData.themeMode),
+      suspendedIndicatorMode: normalizeIndicatorMode(settingsData.suspendedIndicatorMode),
       fixFaviconEnabled: settingsData.fixFaviconEnabled !== false,
       fixFaviconBatchSize: typeof settingsData.fixFaviconBatchSize === 'number' ? settingsData.fixFaviconBatchSize : FAVICON_FIX_DEFAULT_BATCH_SIZE,
       fixFaviconMaxRetries: typeof settingsData.fixFaviconMaxRetries === 'number' ? settingsData.fixFaviconMaxRetries : 5,
@@ -3139,6 +3152,7 @@ if (typeof module !== 'undefined' && module.exports) {
     suspendedTabsViewerState,
     // pure helpers
     normalizeThemeMode,
+    normalizeIndicatorMode,
     cacheThemeMode,
     escapeHtml,
     getMessage,

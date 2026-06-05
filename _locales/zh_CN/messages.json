@@ -644,6 +644,24 @@
   "themeHelpText": {
     "message": "挂起标签页面需要重新加载以应用主题。自动模式会跟随您的系统深色/浅色主题偏好设置。"
   },
+  "suspendedIndicatorTitle": {
+    "message": "挂起标签页标示方式"
+  },
+  "suspendedIndicatorDesc": {
+    "message": "选择已挂起标签页在标签栏上的标示方式"
+  },
+  "suspendedIndicatorLabel": {
+    "message": "挂起标签页标示："
+  },
+  "suspendedIndicatorFavicon": {
+    "message": "半透明网站图标（默认）"
+  },
+  "suspendedIndicatorTitlePrefix": {
+    "message": "标题加上 💤 前缀"
+  },
+  "suspendedIndicatorHelp": {
+    "message": "半透明网站图标：把网站图标调淡作为提示，保留网站辨识度，但在极窄标签页上较不明显，且稍微较耗资源。标题 💤 前缀：在标签页标题前加上睡眠表情符号，图标保持原样，较轻量，但在过窄或固定、不显示标题的标签页上看不到提示。"
+  },
   "tabViewer": {
     "message": "标签页查看器"
   },

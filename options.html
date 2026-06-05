@@ -1298,6 +1298,26 @@
 
         <div class="card">
           <div class="card-title">
+            <span>💤</span>
+            <span data-i18n="suspendedIndicatorTitle">Suspended Tab Indicator</span>
+          </div>
+          <div class="card-description" data-i18n="suspendedIndicatorDesc">
+            Choose how a suspended tab is marked in the tab strip
+          </div>
+          <div class="form-group">
+            <label for="suspendedIndicatorMode" data-i18n="suspendedIndicatorLabel">Suspended tab indicator:</label>
+            <select id="suspendedIndicatorMode" style="padding: 10px 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: all 0.2s ease; min-width: 180px;">
+              <option value="favicon" data-i18n="suspendedIndicatorFavicon">Semi-transparent favicon (default)</option>
+              <option value="titlePrefix" data-i18n="suspendedIndicatorTitlePrefix">Title 💤 prefix</option>
+            </select>
+            <div class="help-text" data-i18n="suspendedIndicatorHelp">
+              Semi-transparent favicon dims the site's icon as the cue: it keeps the site identity but is subtle on tiny tabs and slightly heavier. Title 💤 prefix adds a sleep emoji before the tab title and keeps the favicon at full opacity: it is lighter, but the cue is hidden on very narrow or pinned tabs that show no title.
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
             <span>🖼️</span>
             <span data-i18n="fixFaviconSectionTitle">Suspended Favicon Fix</span>
           </div>

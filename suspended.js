@@ -1,6 +1,7 @@
 // suspended.js - handle unsuspend
 (function() {
   const STORAGE_KEY = 'utsSettings';
+  const SUSPENDED_TITLE_PREFIX = '💤 ';
   let clickAnywhereToUnsuspend = false;
   let unsuspending = false;
 
@@ -9,46 +10,52 @@
   const originalUrl = params.get('uri');
   const title = params.get('ttl');
   const favicon = params.get('favicon');
-  
+
   if (title) {
     document.title = title;
     const titleEl = document.getElementById('origTitle');
     if (titleEl) titleEl.textContent = title;
   }
-  
-  // Set favicon if available using original URL
-  if (originalUrl) {
-    // Remove existing favicon links
-    const existingLinks = document.querySelectorAll('link[rel*="icon"]');
-    existingLinks.forEach(link => link.remove());
-    
-    // Create transparent version of favicon using page URL
-    createTransparentFavicon(originalUrl, favicon);
-  }
-  
-  // Function to create a transparent version of the favicon using Chrome Extension favicon API
-  function createTransparentFavicon(pageUrl, fallbackFaviconUrl) {
-    // Construct favicon URL using Chrome Extension favicon API
-    function getFaviconURL(url) {
-      const faviconUrl = new URL(chrome.runtime.getURL("/_favicon/"));
-      faviconUrl.searchParams.set("pageUrl", url);
-      faviconUrl.searchParams.set("size", "32");
-      return faviconUrl.toString();
-    }
 
-    const faviconUrl = getFaviconURL(pageUrl);
-    
-    function setFavicon(url) {
-      const link = document.createElement('link');
-      link.rel = 'icon';
-      link.href = url;
-      document.head.appendChild(link);
-      // Notify background script that favicon has been set in the DOM,
-      // so it can safely discard the tab without losing the icon.
-      try {
-        chrome.runtime.sendMessage({ command: 'faviconReady' });
-      } catch (_) {}
+  // Build the Chrome Extension favicon API URL for a page.
+  function getFaviconURL(url) {
+    const faviconUrl = new URL(chrome.runtime.getURL("/_favicon/"));
+    faviconUrl.searchParams.set("pageUrl", url);
+    faviconUrl.searchParams.set("size", "32");
+    return faviconUrl.toString();
+  }
+
+  // Replace the page's icon link, then notify the background script that the
+  // favicon is set in the DOM so it can safely discard the tab without losing it.
+  function setFavicon(url) {
+    document.querySelectorAll('link[rel*="icon"]').forEach(link => link.remove());
+    const link = document.createElement('link');
+    link.rel = 'icon';
+    link.href = url;
+    document.head.appendChild(link);
+    try {
+      chrome.runtime.sendMessage({ command: 'faviconReady' });
+    } catch (_) {}
+  }
+
+  // Apply the chosen suspended-tab indicator. Deferred until settings load so we
+  // know which one the user picked.
+  //   'titlePrefix' = real favicon at full opacity + a 💤 prefix on the title
+  //   'favicon' (default) = render the favicon 50% transparent
+  function applySuspendedIndicator(mode) {
+    if (!originalUrl) return;
+    if (mode === 'titlePrefix') {
+      document.title = SUSPENDED_TITLE_PREFIX + (title || '');
+      setFavicon(getFaviconURL(originalUrl));
+    } else {
+      applyTransparentFavicon(originalUrl, favicon);
     }
+  }
+
+  // Create a 50% transparent version of the favicon using the Chrome Extension
+  // favicon API. Fetched as a Blob first to avoid tainted-canvas errors.
+  function applyTransparentFavicon(pageUrl, fallbackFaviconUrl) {
+    const faviconUrl = getFaviconURL(pageUrl);
 
     function setFallbackFavicon() {
       setFavicon(fallbackFaviconUrl || faviconUrl);
@@ -130,9 +137,12 @@
       clickAnywhereToUnsuspend = cfg.clickAnywhereToUnsuspend === true;
       document.body.classList.toggle('click-anywhere-unsuspend', clickAnywhereToUnsuspend);
       setClickAnywhereInstruction();
+      applySuspendedIndicator(cfg.suspendedIndicatorMode === 'titlePrefix' ? 'titlePrefix' : 'favicon');
     });
   } catch (e) {
-    console.warn('[ZeroRAM Suspender] Failed to load suspended page click settings:', e);
+    console.warn('[ZeroRAM Suspender] Failed to load suspended page settings:', e);
+    // Still show an indicator so the tab does not fall back to the extension icon.
+    applySuspendedIndicator('favicon');
   }
 
   function unsuspend() {
