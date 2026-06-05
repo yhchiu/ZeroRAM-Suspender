@@ -1,12 +1,78 @@
 [
 {
-  "sha": "432440aa01d237bfc0ba3267c06ea2eea9395f2d",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/432440aa01d237bfc0ba3267c06ea2eea9395f2d",
+  "sha": "51e9f035b0012b3a0f76c50e3f7f6ed59673bc85",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/51e9f035b0012b3a0f76c50e3f7f6ed59673bc85",
+  "commit": {
+    "message": "chore: update version to 1.7.0",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-05T17:50:40+08:00"
+    }
+  }
+},
+{
+  "sha": "ab87acfbbef936a13bcebbda71513856cc12bea9",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/ab87acfbbef936a13bcebbda71513856cc12bea9",
+  "commit": {
+    "message": "fix: add capture delay after favicon URL confirmation to prevent race condition",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-05T17:07:05+08:00"
+    }
+  }
+},
+{
+  "sha": "8e8276cc2822f9f389f317ad8c7dd287aa121671",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8e8276cc2822f9f389f317ad8c7dd287aa121671",
+  "commit": {
+    "message": "test: cover settings import export key parity",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-05T16:10:37+08:00"
+    }
+  }
+},
+{
+  "sha": "5e5b9aaebda30f5d340cfa90efb3f49ca29cddf0",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/5e5b9aaebda30f5d340cfa90efb3f49ca29cddf0",
+  "commit": {
+    "message": "feat: add suspended tab indicator setting",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-05T15:45:33+08:00"
+    }
+  }
+},
+{
+  "sha": "c36aeb581678620045aa76c03f69a53a366da307",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/c36aeb581678620045aa76c03f69a53a366da307",
+  "commit": {
+    "message": "fix: discard suspended tabs only after Chrome registers the real favicon",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-04T20:50:16+08:00"
+    }
+  }
+},
+{
+  "sha": "86798b0cbf210d1bce717368c686b05def11b8b7",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/86798b0cbf210d1bce717368c686b05def11b8b7",
+  "commit": {
+    "message": "test: add Jest test suite with coverage and CI",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-03T23:09:58+08:00"
+    }
+  }
+},
+{
+  "sha": "e6be2ead9bfb1d0a876669c3f83813c23aebd9c2",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/e6be2ead9bfb1d0a876669c3f83813c23aebd9c2",
   "commit": {
     "message": "chore: update version to 1.6.6",
     "author": {
       "name": "Arthur Chiu",
-      "date": "2026-05-27T12:22:51+08:00"
+      "date": "2026-05-27T12:23:13+08:00"
     }
   }
 },
