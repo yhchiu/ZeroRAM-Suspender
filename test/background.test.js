@@ -301,6 +301,55 @@ describe('suspendTab lifecycle', () => {
     ).rejects.toBeTruthy();
   });
 
+  test('revalidation skips a tab that became audible after the snapshot', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 1, url: 'https://x.com', active: false, audible: true, windowId: 1 }],
+    });
+    // Snapshot taken before the audio started playing.
+    const snapshot = { id: 1, url: 'https://x.com', active: false, audible: false };
+    await bg.suspendTab(snapshot, { useNativeDiscard: false, neverSuspendAudio: true, whitelist: [] }, true);
+    expect(chrome._getTab(1).url).toBe('https://x.com');
+  });
+
+  test('revalidation skips a tab that became the focused window\'s active tab', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 1, url: 'https://x.com', active: true, windowId: 1 }],
+      windows: [{ id: 1, focused: true }],
+    });
+    const snapshot = { id: 1, url: 'https://x.com', active: false };
+    await bg.suspendTab(snapshot, { useNativeDiscard: false, whitelist: [] }, true);
+    expect(chrome._getTab(1).url).toBe('https://x.com');
+  });
+
+  test('revalidation still suspends an active tab in an unfocused window', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 1, url: 'https://x.com', title: 'X', active: true, windowId: 2 }],
+      windows: [{ id: 2, focused: false }],
+    });
+    const snapshot = { id: 1, url: 'https://x.com', active: true };
+    await bg.suspendTab(snapshot, { useNativeDiscard: false, whitelist: [] }, true);
+    expect(chrome._getTab(1).url).toContain('suspended.html');
+  });
+
+  test('revalidation silently skips a closed tab instead of throwing', async () => {
+    const { bg, chrome } = loadBackground();
+    await bg.suspendTab(
+      { id: 99, url: 'https://x.com', active: false },
+      { useNativeDiscard: false, whitelist: [] },
+      true
+    );
+    expect(chrome.tabs.update).not.toHaveBeenCalled();
+  });
+
+  test('revalidation skips a tab that navigated to a whitelisted url', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 1, url: 'https://safe.com/page', active: false, windowId: 1 }],
+    });
+    const snapshot = { id: 1, url: 'https://other.com', active: false };
+    await bg.suspendTab(snapshot, { useNativeDiscard: false, whitelist: ['safe.com'] }, true);
+    expect(chrome._getTab(1).url).toBe('https://safe.com/page');
+  });
+
   test('markSuspendedFaviconReady resolves a pending discard wait', async () => {
     const { bg } = loadBackground({ tabs: [{ id: 5, url: 'placeholder', windowId: 1 }] });
     bg.beginSuspendedReadyWait(5);

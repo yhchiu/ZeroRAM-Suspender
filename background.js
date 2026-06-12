@@ -510,7 +510,41 @@ let fixFaviconProcessor = {
 };
 
 // === Suspension Logic ===
-async function suspendTab(tab, settings) {
+// Re-fetch a tab and re-check dynamic protections right before suspending it.
+// Auto/bulk suspension decides on a snapshot that can be stale by the time a
+// tab's turn comes (each discard wait can take seconds at scale); the user may
+// have activated the tab, started audio, pinned it, or navigated in the
+// meantime. Returns the fresh tab when still eligible, or null to skip.
+async function revalidateTabForSuspend(tabId, settings) {
+  let fresh;
+  try {
+    fresh = await chrome.tabs.get(tabId);
+  } catch (_) {
+    return null; // tab is gone
+  }
+  if (isSuspendedTab(fresh) || fresh.discarded) return null;
+  if (unsuspendingTabs.has(tabId)) return null;
+  if (isWhitelisted(fresh.url, settings)) return null; // also covers internal URLs
+  if (settings.neverSuspendAudio && fresh.audible) return null;
+  if (settings.neverSuspendPinned && fresh.pinned) return null;
+  if (fresh.active) {
+    if (settings.neverSuspendActive) return null;
+    // The user is looking at it right now if its window is focused. Active
+    // tabs of unfocused windows stay eligible, matching checkTabs semantics.
+    try {
+      const win = await chrome.windows.get(fresh.windowId);
+      if (win && win.focused) return null;
+    } catch (_) {}
+  }
+  return fresh;
+}
+
+async function suspendTab(tab, settings, revalidate = false) {
+  if (revalidate) {
+    const fresh = await revalidateTabForSuspend(tab.id, settings);
+    if (!fresh) return;
+    tab = fresh;
+  }
   if (isInternalUrl(tab.url)) return; // skip internal pages
 
   const shouldDiscard = settings.useNativeDiscard && !tab.active;
@@ -813,7 +847,7 @@ async function checkTabs() {
 
     if (last < (Date.now() - autoSuspendTime)) {
       try {
-        await suspendTab(tab, settings);
+        await suspendTab(tab, settings, true);
       } catch (error) {
         // Tabs can disappear between query and update/discard operations.
         logUnexpectedTabError('Failed to suspend tab during checkTabs', error);
@@ -1422,7 +1456,7 @@ async function suspendOthersInWindow(currentTabId) {
   const concurrency = settings.suspendBatchConcurrency || 5;
   for (let i = 0; i < targets.length; i += concurrency) {
     const batch = targets.slice(i, i + concurrency);
-    await Promise.allSettled(batch.map(tab => suspendTab(tab, settings)));
+    await Promise.allSettled(batch.map(tab => suspendTab(tab, settings, true)));
   }
 }
 
@@ -1477,7 +1511,7 @@ async function suspendOthersInAllWindows(currentTabId, withProgress = false) {
     if (cancelToken.cancelled) break;
     const batch = targets.slice(i, i + concurrency);
     await Promise.allSettled(batch.map(tab =>
-      suspendTab(tab, settings).finally(() => {
+      suspendTab(tab, settings, true).finally(() => {
         processed += 1;
         if (withProgress) postBulkProgress({ action: 'suspendAll', processed, total });
       })
@@ -1729,6 +1763,7 @@ if (typeof module !== 'undefined' && module.exports) {
     saveSeenTimestamps,
     flushSeenTimestampsNow,
     // suspend / discard lifecycle
+    revalidateTabForSuspend,
     suspendTab,
     suspendWithPlaceholder,
     beginSuspendedReadyWait,
