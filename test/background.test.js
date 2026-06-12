@@ -745,6 +745,27 @@ describe('event listeners', () => {
     expect(after.lastActiveTabPerWindow.has(2)).toBe(false);
   });
 
+  test('onDetached drops the per-window entry for the moved tab', async () => {
+    const { bg, chrome } = loadBackground({ windows: [{ id: 1 }] });
+    bg.setLastActiveTabInWindow(1, { tabId: 7, timestamp: 1 });
+    await chrome.tabs.onDetached.trigger(7, { oldWindowId: 1, oldPosition: 0 });
+    expect(bg.__getInternals().lastActiveTabPerWindow.has(1)).toBe(false);
+  });
+
+  test('onDetached keeps the entry when a different tab was moved', async () => {
+    const { bg, chrome } = loadBackground({ windows: [{ id: 1 }] });
+    bg.setLastActiveTabInWindow(1, { tabId: 7, timestamp: 1 });
+    await chrome.tabs.onDetached.trigger(8, { oldWindowId: 1, oldPosition: 0 });
+    expect(bg.__getInternals().lastActiveTabPerWindow.get(1).tabId).toBe(7);
+  });
+
+  test('windows.onRemoved drops the per-window entry for the closed window', async () => {
+    const { bg, chrome } = loadBackground({ windows: [{ id: 2 }] });
+    bg.setLastActiveTabInWindow(2, { tabId: 9, timestamp: 1 });
+    await chrome.windows.onRemoved.trigger(2);
+    expect(bg.__getInternals().lastActiveTabPerWindow.has(2)).toBe(false);
+  });
+
   test('onFocusChanged WINDOW_ID_NONE persists last active tab', async () => {
     const { chrome } = loadBackground();
     await chrome.windows.onFocusChanged.trigger(-1);

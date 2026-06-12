@@ -1194,6 +1194,27 @@ chrome.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
   saveSeenTimestamps();
 });
 
+// A tab dragged out of a window leaves the source window's per-window entry
+// pointing at a tab that is no longer there; markWindowActiveTabSeen would
+// then stamp the moved tab instead of the source window's real active tab.
+// Drop the stale entry so the next lookup falls back to a live query.
+chrome.tabs.onDetached.addListener(async (tabId, detachInfo) => {
+  if (!initDone) await initPromise;
+  const tracked = lastActiveTabPerWindow.get(detachInfo.oldWindowId);
+  if (tracked && tracked.tabId === tabId) {
+    removeLastActiveTabInWindow(detachInfo.oldWindowId);
+  }
+});
+
+// Closing a window drops its per-window tracking entry immediately;
+// previously stale entries were only pruned on the next cold start.
+chrome.windows.onRemoved.addListener(async (windowId) => {
+  if (!initDone) await initPromise;
+  if (lastActiveTabPerWindow.has(windowId)) {
+    removeLastActiveTabInWindow(windowId);
+  }
+});
+
 // Receive commands from popup/options
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   const respond = (payload) => {

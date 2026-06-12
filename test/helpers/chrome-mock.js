@@ -253,6 +253,8 @@ function createChromeMock(initialState = {}) {
       onUpdated: makeEvent(),
       onCreated: makeEvent(),
       onRemoved: makeEvent(),
+      onDetached: makeEvent(),
+      onReplaced: makeEvent(),
     },
 
     windows: {
@@ -272,6 +274,7 @@ function createChromeMock(initialState = {}) {
         return w ? Promise.resolve(w) : Promise.reject(new Error('No window'));
       }),
       onFocusChanged: makeEvent(),
+      onRemoved: makeEvent(),
     },
 
     alarms: {
