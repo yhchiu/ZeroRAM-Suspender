@@ -765,6 +765,60 @@ describe('checkTabs', () => {
     expect(chrome._getTab(1).url).toBe('https://active.com');
   });
 
+  test('audible protection refreshes the idle timestamp so a flicker does not suspend', async () => {
+    const old = Date.now() - 60 * 60 * 1000;
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 1, url: 'https://music.com', active: false, audible: true, windowId: 1, lastAccessed: old }],
+      windows: [{ id: 1, focused: true }],
+    });
+    chrome.storage.sync._store[STORAGE_KEY] = { autoSuspendMinutes: 30, useNativeDiscard: false, fixFaviconEnabled: false };
+
+    await bg.checkTabs();
+    expect(chrome._getTab(1).url).toBe('https://music.com'); // protected by audio
+    expect(bg.__getInternals().seenTimestamps[1]).toBeGreaterThan(old);
+
+    // Audio flickers off (e.g. between tracks): the refreshed timestamp must
+    // start a fresh idle countdown instead of suspending immediately.
+    chrome._getTab(1).audible = false;
+    await bg.checkTabs();
+    expect(chrome._getTab(1).url).toBe('https://music.com');
+
+    // Once genuinely idle past the deadline, it suspends normally.
+    jest.advanceTimersByTime(31 * 60 * 1000);
+    await bg.checkTabs();
+    expect(chrome._getTab(1).url).toContain('suspended.html');
+  });
+
+  test('the focused window\'s active tab is stamped on every scan', async () => {
+    const old = Date.now() - 60 * 60 * 1000;
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 1, url: 'https://work.com', active: true, windowId: 1, lastAccessed: old }],
+      windows: [{ id: 1, focused: true }],
+    });
+    chrome.storage.sync._store[STORAGE_KEY] = { autoSuspendMinutes: 30, useNativeDiscard: false, fixFaviconEnabled: false };
+    await bg.checkTabs();
+    expect(chrome._getTab(1).url).toBe('https://work.com');
+    expect(bg.__getInternals().seenTimestamps[1]).toBeGreaterThan(old);
+  });
+
+  test('the remembered last active tab is stamped while the browser is unfocused', async () => {
+    const old = Date.now() - 60 * 60 * 1000;
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 42, url: 'https://keep.com', active: true, windowId: 1, lastAccessed: old }],
+      windows: [{ id: 1, focused: false }],
+    });
+    chrome.storage.sync._store[STORAGE_KEY] = {
+      autoSuspendMinutes: 30,
+      useNativeDiscard: false,
+      fixFaviconEnabled: false,
+      rememberLastActiveTab: true,
+    };
+    chrome.storage.session._store.utsLastActiveTab = 42;
+    await chrome.alarms.onAlarm.trigger({ name: 'utsAutoCheck' });
+    expect(chrome._getTab(42).url).toBe('https://keep.com');
+    expect(bg.__getInternals().seenTimestamps[42]).toBeGreaterThan(old);
+  });
+
   async function bgCheck(chrome) {
     // helper to run checkTabs via the exported function on a freshly loaded module
     const mod = require('../background.js');

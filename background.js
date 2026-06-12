@@ -752,29 +752,39 @@ async function checkTabs() {
     
     if (isWhitelisted(tab.url, settings)) continue;
 
-    // Check new suspension prevention settings
+    // Dynamic protections below also refresh the tab's seen timestamp: while
+    // a tab is protected its timestamps would otherwise stay frozen at the
+    // last activation, so the moment the protection lapses (audio pausing
+    // between tracks, the focused tab being switched away from) the tab would
+    // instantly be hours past the idle deadline. Stamping each scan restarts
+    // a full idle countdown from when the protection ends. Static protections
+    // (whitelist, pinned) intentionally do not stamp.
     if (settings.neverSuspendAudio && tab.audible) {
+      seenTimestamps[tab.id] = Date.now();
       continue; // Skip tabs that are playing audio
     }
-    
+
     if (settings.neverSuspendPinned && tab.pinned) {
       continue; // Skip pinned tabs
     }
-    
+
     // Check if this is the last remembered active tab when browser lost focus
     // This should be checked first, regardless of current active state
     if (settings.rememberLastActiveTab && tab.id === lastActiveTabId && !focusedWindow) {
+      seenTimestamps[tab.id] = Date.now();
       continue;
     }
-    
+
     // Handle active tab protection based on settings
     if (tab.active) {
       if (settings.neverSuspendActive) {
         // If neverSuspendActive is enabled, protect active tabs in all windows
+        seenTimestamps[tab.id] = Date.now();
         continue;
       } else {
         // Default behavior: only protect active tab in the currently focused window
         if (tab.id === focusedWindowActiveTabId) {
+          seenTimestamps[tab.id] = Date.now();
           continue;
         }
         // Active tabs in non-focused windows can be suspended
