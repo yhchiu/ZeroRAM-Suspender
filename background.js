@@ -771,8 +771,9 @@ async function checkTabs() {
     }
   }
   
-  // This variable is no longer needed as we handle active tab protection in the main loop
-  
+  // Collect eligible tabs first, then suspend in concurrent batches below.
+  const suspendTargets = [];
+
   for (const tab of tabs) {
     // Ignore discarded, placeholder or internal pages
     if (tab.discarded || isSuspendedTab(tab) || isInternalUrl(tab.url)) {
@@ -846,13 +847,24 @@ async function checkTabs() {
     }
 
     if (last < (Date.now() - autoSuspendTime)) {
-      try {
-        await suspendTab(tab, settings, true);
-      } catch (error) {
+      suspendTargets.push(tab);
+    }
+  }
+
+  // Suspend in concurrent batches (same pattern as the bulk operations):
+  // sequentially, each discard-readiness wait can take seconds, so a large
+  // idle backlog would stretch one scan to minutes while its snapshot grows
+  // stale. Revalidation inside suspendTab handles per-tab staleness; batching
+  // bounds the total wall-clock time.
+  const concurrency = settings.suspendBatchConcurrency || 5;
+  for (let i = 0; i < suspendTargets.length; i += concurrency) {
+    const batch = suspendTargets.slice(i, i + concurrency);
+    await Promise.allSettled(batch.map(tab =>
+      suspendTab(tab, settings, true).catch(error => {
         // Tabs can disappear between query and update/discard operations.
         logUnexpectedTabError('Failed to suspend tab during checkTabs', error);
-      }
-    }
+      })
+    ));
   }
   // Persist any updates
   saveSeenTimestamps();

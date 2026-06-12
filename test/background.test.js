@@ -838,6 +838,25 @@ describe('checkTabs', () => {
     expect(chrome._getTab(1).url).toContain('suspended.html');
   });
 
+  test('suspends a large idle backlog fully, processed in concurrent batches', async () => {
+    const old = Date.now() - 60 * 60 * 1000;
+    const tabs = [];
+    for (let i = 1; i <= 12; i++) {
+      tabs.push({ id: i, url: `https://idle${i}.com`, active: false, windowId: 1, lastAccessed: old });
+    }
+    const { bg, chrome } = loadBackground({ tabs, windows: [{ id: 1, focused: true }] });
+    chrome.storage.sync._store[STORAGE_KEY] = {
+      autoSuspendMinutes: 30,
+      useNativeDiscard: false,
+      fixFaviconEnabled: false,
+      suspendBatchConcurrency: 5, // 12 targets -> batches of 5, 5, 2
+    };
+    await bg.checkTabs();
+    for (let i = 1; i <= 12; i++) {
+      expect(chrome._getTab(i).url).toContain('suspended.html');
+    }
+  });
+
   test('the focused window\'s active tab is stamped on every scan', async () => {
     const old = Date.now() - 60 * 60 * 1000;
     const { bg, chrome } = loadBackground({
