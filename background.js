@@ -1194,6 +1194,41 @@ chrome.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
   saveSeenTimestamps();
 });
 
+// Chrome can replace a tab's id without a remove/create pair (e.g. a
+// prerendered page swapping in). Carry the idle timestamp and unsuspend
+// tracking over to the new id so the tab is neither instantly idle-expired
+// nor stuck protected, and drop per-renderer state tied to the old id.
+chrome.tabs.onReplaced.addListener(async (addedTabId, removedTabId) => {
+  if (!initDone) await initPromise;
+  if (removedTabId in seenTimestamps) {
+    seenTimestamps[addedTabId] = seenTimestamps[removedTabId];
+    delete seenTimestamps[removedTabId];
+    saveSeenTimestamps();
+  }
+  const unsuspendingAt = unsuspendingTabs.get(removedTabId);
+  if (unsuspendingAt !== undefined) {
+    unsuspendingTabs.set(addedTabId, unsuspendingAt);
+    unsuspendingTabs.delete(removedTabId);
+  }
+  // Favicon/discard state belongs to the old renderer and cannot carry over.
+  fixFaviconTabs.delete(removedTabId);
+  fixFaviconRetryCounts.delete(removedTabId);
+  suspendedFaviconReadyTabs.delete(removedTabId);
+  pendingReDiscardTabIds.delete(removedTabId);
+  reDiscardRetryCounts.delete(removedTabId);
+  cancelPendingDiscardWait(removedTabId);
+  // Keep tracking maps pointing at the live id.
+  for (const [windowId, tracked] of lastActiveTabPerWindow) {
+    if (tracked && tracked.tabId === removedTabId) {
+      setLastActiveTabInWindow(windowId, { tabId: addedTabId, timestamp: tracked.timestamp });
+    }
+  }
+  if (lastActiveTabId === removedTabId) {
+    lastActiveTabId = addedTabId;
+    await saveLastActiveTab();
+  }
+});
+
 // A tab dragged out of a window leaves the source window's per-window entry
 // pointing at a tab that is no longer there; markWindowActiveTabSeen would
 // then stamp the moved tab instead of the source window's real active tab.
