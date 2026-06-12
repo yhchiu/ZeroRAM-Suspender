@@ -814,6 +814,31 @@ describe('cold-start initialization gate', () => {
     expect(chrome._getTab(42).url).toBe('https://keep.com');
   });
 
+  test('onFocusChanged persists the focused window id', async () => {
+    const { chrome } = loadBackground({ windows: [{ id: 5 }] });
+    await chrome.windows.onFocusChanged.trigger(5);
+    expect(chrome.storage.session._store.utsLastFocusedWindow).toBe(5);
+  });
+
+  test('cold-started focus switch stamps the previously focused window\'s active tab', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [
+        { id: 10, url: 'https://a.com', active: true, windowId: 1 },
+        { id: 20, url: 'https://b.com', active: true, windowId: 2 },
+      ],
+      // By the time the worker wakes, Chrome already reports window 2 focused.
+      windows: [{ id: 1, focused: false }, { id: 2, focused: true }],
+    });
+    // The previous worker life recorded window 1 as the focused window.
+    chrome.storage.session._store.utsLastFocusedWindow = 1;
+    await chrome.windows.onFocusChanged.trigger(2);
+    const internals = bg.__getInternals();
+    // Window 1's active tab must be stamped as just-left; only the persisted
+    // focused-window id can identify window 1 (the live query reports 2).
+    expect(internals.seenTimestamps[10]).toBeGreaterThan(0);
+    expect(internals.lastFocusedWindowId).toBe(2);
+  });
+
   test('a failed restore opens the gate so handlers still run', async () => {
     const chrome = installChrome({});
     chrome.storage.session.get.mockImplementation(() => Promise.reject(new Error('boom')));

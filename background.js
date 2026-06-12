@@ -28,6 +28,7 @@ const DEFAULT_SETTINGS = {
 const STORAGE_KEY = 'utsSettings';
 const TEMP_KEY = 'utsTempWhitelist';
 const LAST_ACTIVE_TAB_KEY = 'utsLastActiveTab';
+const LAST_FOCUSED_WINDOW_KEY = 'utsLastFocusedWindow';
 
 // Constant prefix for our suspended page URL to avoid repeated getURL calls
 const SUSPENDED_PREFIX = chrome.runtime.getURL('suspended.html');
@@ -843,6 +844,19 @@ async function initializeState() {
     await loadLastActiveTab();
     await loadLastActiveTabPerWindow();
 
+    // Restore the previously focused window before falling back to the live
+    // focus query below: when a focus switch wakes the worker, the live query
+    // already reports the NEW window, so only the persisted value can tell us
+    // which window just lost focus.
+    const { [LAST_FOCUSED_WINDOW_KEY]: savedFocusedWindowId } =
+      await chrome.storage.session.get(LAST_FOCUSED_WINDOW_KEY);
+    if (
+      lastFocusedWindowId === chrome.windows.WINDOW_ID_NONE &&
+      typeof savedFocusedWindowId === 'number'
+    ) {
+      lastFocusedWindowId = savedFocusedWindowId;
+    }
+
     // Initialize per-window active tab tracking
     const windows = await chrome.windows.getAll();
     const currentWindowIds = new Set(windows.map(w => w.id));
@@ -939,6 +953,10 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
   const previousFocusedWindowId = lastFocusedWindowId;
   // Update immediately to avoid races between rapid consecutive focus events.
   lastFocusedWindowId = windowId;
+  // Persist so a cold-started worker still knows which window lost focus.
+  // Without this, the focus switch that wakes the worker sees WINDOW_ID_NONE
+  // and the previous window's active tab never gets stamped as just-left.
+  chrome.storage.session.set({ [LAST_FOCUSED_WINDOW_KEY]: windowId });
 
   try {
     let seenUpdated = false;
@@ -1660,6 +1678,7 @@ if (typeof module !== 'undefined' && module.exports) {
     STORAGE_KEY,
     TEMP_KEY,
     LAST_ACTIVE_TAB_KEY,
+    LAST_FOCUSED_WINDOW_KEY,
     SUSPENDED_PREFIX,
     ALARM_PERIOD_MINUTES,
     DISCARD_READY_TIMEOUT_MS,
