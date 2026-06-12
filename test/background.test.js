@@ -3,11 +3,13 @@
  * Each test re-loads the module with a fresh chrome mock so module-level state
  * is isolated. Fake timers drive the various debounce/timeout paths.
  */
-const { loadBackground } = require('./helpers/load-source');
+const { loadBackground, installChrome, requireSource } = require('./helpers/load-source');
 
 const STORAGE_KEY = 'utsSettings';
 
-async function flush(times = 14) {
+// Generous default: handlers now await the cold-start init gate, whose restore
+// chain adds ~10 microtask generations in front of each handler body.
+async function flush(times = 40) {
   for (let i = 0; i < times; i++) await Promise.resolve();
 }
 
@@ -482,6 +484,7 @@ describe('event listeners', () => {
 
   test('onMessage: checkTempWhitelist reports membership', async () => {
     const { bg, chrome } = loadBackground();
+    await flush(); // let the cold-start restore finish before seeding state
     bg.setTempWhitelistFromStorageValue(['https://t.com']);
     const r = await sendMessage(chrome, { command: 'checkTempWhitelist', url: 'https://t.com' });
     expect(r).toHaveBeenCalledWith({ whitelisted: true });
@@ -638,7 +641,9 @@ describe('event listeners', () => {
   });
 
   test('onActivated updates timestamps and tracking', async () => {
-    const { bg, chrome } = loadBackground();
+    // Window 1 must exist: the init gate runs before the handler and prunes
+    // per-window entries whose window is gone.
+    const { bg, chrome } = loadBackground({ windows: [{ id: 1 }] });
     bg.setLastActiveTabInWindow(1, { tabId: 100, timestamp: 1 });
     await chrome.tabs.onActivated.trigger({ tabId: 200, windowId: 1 });
     const internals = bg.__getInternals();
@@ -673,17 +678,21 @@ describe('event listeners', () => {
   });
 
   test('onRemoved cleans up all tracking for the tab', async () => {
-    const { bg, chrome } = loadBackground();
+    // Window 2 must exist so the init gate keeps the per-window entry and the
+    // handler's own cleanup path is what removes it.
+    const { bg, chrome } = loadBackground({ windows: [{ id: 2 }] });
     const internals = bg.__getInternals();
     internals.unsuspendingTabs.add(7);
     internals.fixFaviconTabs.add(7);
     internals.seenTimestamps[7] = 1;
     bg.setLastActiveTabInWindow(2, { tabId: 7, timestamp: 1 });
     await chrome.tabs.onRemoved.trigger(7, { windowId: 2 });
-    expect(internals.unsuspendingTabs.has(7)).toBe(false);
-    expect(internals.fixFaviconTabs.has(7)).toBe(false);
-    expect(7 in internals.seenTimestamps).toBe(false);
-    expect(internals.lastActiveTabPerWindow.has(2)).toBe(false);
+    // Re-fetch internals: the restore swaps in a fresh per-window map object.
+    const after = bg.__getInternals();
+    expect(after.unsuspendingTabs.has(7)).toBe(false);
+    expect(after.fixFaviconTabs.has(7)).toBe(false);
+    expect(7 in after.seenTimestamps).toBe(false);
+    expect(after.lastActiveTabPerWindow.has(2)).toBe(false);
   });
 
   test('onFocusChanged WINDOW_ID_NONE persists last active tab', async () => {
@@ -761,6 +770,58 @@ describe('checkTabs', () => {
     const mod = require('../background.js');
     await mod.checkTabs();
   }
+});
+
+describe('cold-start initialization gate', () => {
+  test('onActivated stamps the previous tab using state restored from session', async () => {
+    const oldTs = Date.now() - 60 * 60 * 1000;
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 100, url: 'https://a.com', active: true, windowId: 1 }],
+      windows: [{ id: 1, focused: true }],
+    });
+    // Persisted state from the previous service worker life: tab 100 was the
+    // active tab of window 1, last seen an hour ago. The activation event that
+    // wakes the worker arrives before the async restore has finished.
+    chrome.storage.session._store.utsSeen = { 100: oldTs };
+    chrome.storage.session._store.utsLastActiveTabPerWindow = {
+      1: { tabId: 100, timestamp: oldTs },
+    };
+    await chrome.tabs.onActivated.trigger({ tabId: 200, windowId: 1 });
+    const internals = bg.__getInternals();
+    expect(internals.initDone).toBe(true);
+    // The handler must have seen the restored per-window map and stamped the
+    // previously active tab as just-left — not left it an hour stale.
+    expect(internals.seenTimestamps[100]).toBeGreaterThan(oldTs);
+    expect(internals.lastActiveTabId).toBe(200);
+  });
+
+  test('alarm-driven checkTabs sees the restored last active tab when no window is focused', async () => {
+    const old = Date.now() - 60 * 60 * 1000;
+    const { chrome } = loadBackground({
+      tabs: [{ id: 42, url: 'https://keep.com', active: true, windowId: 1, lastAccessed: old }],
+      windows: [{ id: 1, focused: false }], // user is in another application
+    });
+    chrome.storage.sync._store[STORAGE_KEY] = {
+      autoSuspendMinutes: 30,
+      useNativeDiscard: false,
+      fixFaviconEnabled: false,
+      rememberLastActiveTab: true,
+    };
+    chrome.storage.session._store.utsLastActiveTab = 42;
+    await chrome.alarms.onAlarm.trigger({ name: 'utsAutoCheck' });
+    // Without the gate checkTabs raced the restore, saw lastActiveTabId=null,
+    // and suspended the remembered tab.
+    expect(chrome._getTab(42).url).toBe('https://keep.com');
+  });
+
+  test('a failed restore opens the gate so handlers still run', async () => {
+    const chrome = installChrome({});
+    chrome.storage.session.get.mockImplementation(() => Promise.reject(new Error('boom')));
+    const bg = requireSource('background.js');
+    await chrome.tabs.onActivated.trigger({ tabId: 1, windowId: 1 });
+    expect(bg.__getInternals().initDone).toBe(true);
+    expect(bg.__getInternals().seenTimestamps[1]).toBeGreaterThan(0);
+  });
 });
 
 describe('re-discard queue & favicon processor', () => {

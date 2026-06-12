@@ -82,6 +82,14 @@ const ALARM_PERIOD_MINUTES = 1; // must be >=1 for chrome.alarms
 
 let running = false;
 
+// Cold-start initialization gate. Event handlers await initPromise (via the
+// initDone fast-path) before reading state restored from session storage
+// (seenTimestamps, lastActiveTabId, lastActiveTabPerWindow). Without the gate,
+// the very event that wakes the service worker races the async restore and
+// runs against empty maps — which is how a long-idle active tab could get
+// suspended right after the user switched away from it.
+let initDone = false;
+
 // Keep popup ports to stream bulk progress
 const popupPorts = new Set();
 
@@ -816,26 +824,26 @@ chrome.runtime.onInstalled.addListener(async () => {
   await loadLastActiveTab();
 });
 
-// Also load on service worker startup (cold start)
-(async () => {
-  const { [TEMP_KEY]: tmp = [] } = await chrome.storage.session.get(TEMP_KEY);
-  setTempWhitelistFromStorageValue(tmp);
-  const { utsSeen = {} } = await chrome.storage.session.get('utsSeen');
-  // Merge persisted timestamps instead of replacing the object.
-  // Event handlers (e.g. onActivated) may have already written fresh
-  // timestamps into seenTimestamps during the async gap above; a plain
-  // assignment would silently discard those writes.
-  for (const [key, value] of Object.entries(utsSeen)) {
-    if (!(key in seenTimestamps) || seenTimestamps[key] < value) {
-      seenTimestamps[key] = value;
-    }
-  }
-  // Load last active tab ID and per-window active tab map from session storage.
-  await loadLastActiveTab();
-  await loadLastActiveTabPerWindow();
-
-  // Initialize per-window active tab tracking
+// Restore persisted state on service worker startup (cold start).
+async function initializeState() {
   try {
+    const { [TEMP_KEY]: tmp = [] } = await chrome.storage.session.get(TEMP_KEY);
+    setTempWhitelistFromStorageValue(tmp);
+    const { utsSeen = {} } = await chrome.storage.session.get('utsSeen');
+    // Merge persisted timestamps instead of replacing the object.
+    // Event handlers (e.g. onActivated) may have already written fresh
+    // timestamps into seenTimestamps during the async gap above; a plain
+    // assignment would silently discard those writes.
+    for (const [key, value] of Object.entries(utsSeen)) {
+      if (!(key in seenTimestamps) || seenTimestamps[key] < value) {
+        seenTimestamps[key] = value;
+      }
+    }
+    // Load last active tab ID and per-window active tab map from session storage.
+    await loadLastActiveTab();
+    await loadLastActiveTabPerWindow();
+
+    // Initialize per-window active tab tracking
     const windows = await chrome.windows.getAll();
     const currentWindowIds = new Set(windows.map(w => w.id));
 
@@ -883,11 +891,17 @@ chrome.runtime.onInstalled.addListener(async () => {
       await saveLastActiveTab();
     }
   } catch (error) {
-    console.warn('Failed to initialize per-window active tab tracking:', error);
+    console.warn('Failed to initialize service worker state:', error);
+  } finally {
+    // Never leave the gate closed: a failed restore must not deadlock every
+    // event handler, so handlers proceed with defaults in that case.
+    initDone = true;
   }
-})();
+}
+const initPromise = initializeState();
 
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
+  if (!initDone) await initPromise;
   const now = Date.now();
   const { tabId, windowId } = activeInfo;
   let previousTabId = null;
@@ -920,6 +934,7 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
 
 // Track last active tab on focus changes to avoid periodic updates in checkTabs
 chrome.windows.onFocusChanged.addListener(async (windowId) => {
+  if (!initDone) await initPromise;
   const now = Date.now();
   const previousFocusedWindowId = lastFocusedWindowId;
   // Update immediately to avoid races between rapid consecutive focus events.
@@ -959,7 +974,8 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
   }
 });
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  if (!initDone) await initPromise;
   if (changeInfo.url) {
     if (changeInfo.url.startsWith(SUSPENDED_PREFIX)) {
       suspendedFaviconReadyTabs.delete(tabId);
@@ -1041,6 +1057,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 // proactively update the seen timestamp of the opener/previous active tab so it
 // won’t be considered idle immediately after focus shifts.
 chrome.tabs.onCreated.addListener(async (tab) => {
+  if (!initDone) await initPromise;
   const now = Date.now();
   try {
     // 1) If Chrome provides an opener, stamp it as recently seen
@@ -1074,7 +1091,8 @@ chrome.tabs.onCreated.addListener(async (tab) => {
 });
 
 // Clean up tracking when tabs are closed
-chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
+chrome.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
+  if (!initDone) await initPromise;
   unsuspendingTabs.delete(tabId);
   fixFaviconTabs.delete(tabId);
   fixFaviconRetryCounts.delete(tabId);
@@ -1105,6 +1123,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   };
 
   (async () => {
+    if (!initDone) await initPromise;
     try {
       if (msg.command === 'suspendTab') {
         const tab = await chrome.tabs.get(msg.tabId);
@@ -1216,6 +1235,7 @@ chrome.runtime.onStartup.addListener(scheduleCheckAlarm);
 
 chrome.alarms.onAlarm.addListener(async ({ name }) => {
   if (name !== 'utsAutoCheck') return;
+  if (!initDone) await initPromise;
   if (running) return;          // if running, skip this alarm
   running = true;
   try {
@@ -1597,7 +1617,8 @@ function scheduleReDiscard(tabId = null, delayMs = 500) {
 // Handle keyboard shortcuts from commands API
 chrome.commands.onCommand.addListener(async (command, tab) => {
   if (!tab || !tab.id) return;
-  
+  if (!initDone) await initPromise;
+
   try {
     switch (command) {
       case '01-toggle-suspend':
@@ -1662,6 +1683,8 @@ if (typeof module !== 'undefined' && module.exports) {
     needsSuspendedFaviconFix,
     parseOriginalUrlFromSuspended,
     markTabSeen,
+    // lifecycle
+    initPromise,
     // settings / storage
     getSettings,
     getSettingsCached,
@@ -1705,6 +1728,7 @@ if (typeof module !== 'undefined' && module.exports) {
     toggleTabSuspension,
     // live state accessors for assertions
     __getInternals: () => ({
+      initDone,
       tempWhitelist,
       seenTimestamps,
       unsuspendingTabs,
