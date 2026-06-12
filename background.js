@@ -55,8 +55,28 @@ let tempWhitelist = new Set();
 // Map<tabId, lastSeenTimestamp> persisted across restarts
 let seenTimestamps = {};
 
-// Track tabs that are currently being unsuspended to prevent re-suspension
-let unsuspendingTabs = new Set();
+// Track tabs that are currently being unsuspended to prevent re-suspension.
+// Map<tabId, addedAtMs>: entries expire after a TTL so a failed unsuspend
+// navigation (offline, blocked scheme) cannot exempt a tab from
+// auto-suspension forever. Successful unsuspends are removed when the page
+// reaches status complete in onUpdated.
+let unsuspendingTabs = new Map();
+const UNSUSPENDING_TTL_MS = 5 * 60 * 1000;
+
+function markTabUnsuspending(tabId) {
+  unsuspendingTabs.set(tabId, Date.now());
+}
+
+// Lazy-expiring membership check.
+function isTabUnsuspending(tabId) {
+  const addedAt = unsuspendingTabs.get(tabId);
+  if (addedAt === undefined) return false;
+  if (Date.now() - addedAt > UNSUSPENDING_TTL_MS) {
+    unsuspendingTabs.delete(tabId);
+    return false;
+  }
+  return true;
+}
 
 // Track tabs that are being suspended and waiting for discard
 let pendingDiscardTabs = new Map(); // tabId -> pending favicon/page readiness state
@@ -524,7 +544,7 @@ async function revalidateTabForSuspend(tabId, settings) {
     return null; // tab is gone
   }
   if (isSuspendedTab(fresh) || fresh.discarded) return null;
-  if (unsuspendingTabs.has(tabId)) return null;
+  if (isTabUnsuspending(tabId)) return null;
   if (isWhitelisted(fresh.url, settings)) return null; // also covers internal URLs
   if (settings.neverSuspendAudio && fresh.audible) return null;
   if (settings.neverSuspendPinned && fresh.pinned) return null;
@@ -782,7 +802,7 @@ async function checkTabs() {
     }
     
     // Skip tabs that are currently being unsuspended
-    if (unsuspendingTabs.has(tab.id)) {
+    if (isTabUnsuspending(tab.id)) {
       continue;
     }
     
@@ -1254,7 +1274,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         // Get the current tab ID from sender
         const tabId = sender.tab ? sender.tab.id : msg.tabId;
         if (tabId) {
-          unsuspendingTabs.add(tabId);
+          markTabUnsuspending(tabId);
         }
         respond({ done: true });
       } else if (msg.command === 'unsuspendNavigate') {
@@ -1343,7 +1363,7 @@ async function processQueuedReDiscardTabs() {
     pendingReDiscardTabIds.delete(tabId);
 
     // Skip tabs that are currently being unsuspended.
-    if (unsuspendingTabs.has(tabId)) {
+    if (isTabUnsuspending(tabId)) {
       reDiscardRetryCounts.delete(tabId);
       continue;
     }
@@ -1407,7 +1427,7 @@ async function unsuspendTabById(tabId) {
   if (isSuspendedTab(tab)) {
     const original = parseOriginalUrlFromSuspended(tab.url);
     if (original) {
-      unsuspendingTabs.add(tabId);
+      markTabUnsuspending(tabId);
       // Update timestamp immediately to prevent re-suspension
       seenTimestamps[tabId] = Date.now();
       saveSeenTimestamps();
@@ -1420,7 +1440,7 @@ async function unsuspendTabById(tabId) {
 
 // Unsuspend a tab using original URL (for message handler)
 async function unsuspendTabWithUrl(tabId, originalUrl) {
-  unsuspendingTabs.add(tabId);
+  markTabUnsuspending(tabId);
   // Update timestamp immediately to prevent re-suspension
   seenTimestamps[tabId] = Date.now();
   saveSeenTimestamps();
@@ -1529,7 +1549,7 @@ async function unsuspendAllTabs(withProgress = false) {
     if (cancelToken.cancelled) break;
     const original = parseOriginalUrlFromSuspended(tab.url);
     if (original) {
-      unsuspendingTabs.add(tab.id);
+      markTabUnsuspending(tab.id);
       // Update timestamp immediately to prevent re-suspension
       seenTimestamps[tab.id] = Date.now();
       await chrome.tabs.update(tab.id, { url: original });
@@ -1548,7 +1568,7 @@ async function unsuspendAllTabsInWindow(windowId) {
     if (isSuspendedTab(tab)) {
       const original = parseOriginalUrlFromSuspended(tab.url);
       if (original) {
-        unsuspendingTabs.add(tab.id);
+        markTabUnsuspending(tab.id);
         // Update timestamp immediately to prevent re-suspension
         seenTimestamps[tab.id] = Date.now();
         await chrome.tabs.update(tab.id, { url: original });
@@ -1744,6 +1764,8 @@ if (typeof module !== 'undefined' && module.exports) {
     needsSuspendedFaviconFix,
     parseOriginalUrlFromSuspended,
     markTabSeen,
+    markTabUnsuspending,
+    isTabUnsuspending,
     // lifecycle
     initPromise,
     // settings / storage

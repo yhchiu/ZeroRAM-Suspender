@@ -705,7 +705,7 @@ describe('event listeners', () => {
 
   test('onUpdated complete stamps the tab and clears unsuspending tracking', async () => {
     const { bg, chrome } = loadBackground({ tabs: [{ id: 1, url: 'https://x.com', windowId: 1 }] });
-    bg.__getInternals().unsuspendingTabs.add(1);
+    bg.markTabUnsuspending(1);
     await chrome.tabs.onUpdated.trigger(1, { status: 'complete' }, chrome._getTab(1));
     expect(bg.__getInternals().seenTimestamps[1]).toBeGreaterThan(0);
     expect(bg.__getInternals().unsuspendingTabs.has(1)).toBe(false);
@@ -732,7 +732,7 @@ describe('event listeners', () => {
     // handler's own cleanup path is what removes it.
     const { bg, chrome } = loadBackground({ windows: [{ id: 2 }] });
     const internals = bg.__getInternals();
-    internals.unsuspendingTabs.add(7);
+    bg.markTabUnsuspending(7);
     internals.fixFaviconTabs.add(7);
     internals.seenTimestamps[7] = 1;
     bg.setLastActiveTabInWindow(2, { tabId: 7, timestamp: 1 });
@@ -856,6 +856,23 @@ describe('checkTabs', () => {
     for (let i = 1; i <= 12; i++) {
       expect(chrome._getTab(i).url).toContain('suspended.html');
     }
+  });
+
+  test('unsuspending protection expires after its TTL', async () => {
+    const old = Date.now() - 60 * 60 * 1000;
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 1, url: 'https://x.com', active: false, windowId: 1, lastAccessed: old }],
+      windows: [{ id: 1, focused: true }],
+    });
+    chrome.storage.sync._store[STORAGE_KEY] = { autoSuspendMinutes: 30, useNativeDiscard: false, fixFaviconEnabled: false };
+    // A failed unsuspend navigation left the tab marked: protected while fresh.
+    bg.markTabUnsuspending(1);
+    await bg.checkTabs();
+    expect(chrome._getTab(1).url).toBe('https://x.com');
+    // After the TTL the stale mark no longer exempts the idle tab.
+    jest.advanceTimersByTime(6 * 60 * 1000);
+    await bg.checkTabs();
+    expect(chrome._getTab(1).url).toContain('suspended.html');
   });
 
   test('the focused window\'s active tab is stamped on every scan', async () => {
