@@ -1,12 +1,144 @@
 [
 {
-  "sha": "51e9f035b0012b3a0f76c50e3f7f6ed59673bc85",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/51e9f035b0012b3a0f76c50e3f7f6ed59673bc85",
+  "sha": "06d8d46d0fbf33fe9add7ca6db717b77094f4b20",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/06d8d46d0fbf33fe9add7ca6db717b77094f4b20",
+  "commit": {
+    "message": "chore: update version to 1.7.1",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-12T15:12:30+08:00"
+    }
+  }
+},
+{
+  "sha": "0ab2d96aa9b99700f90d1916c5d3acecb3b2276e",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/0ab2d96aa9b99700f90d1916c5d3acecb3b2276e",
+  "commit": {
+    "message": "chore: minor cleanups in placeholder URL and worker lifecycle hooks",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-12T14:07:19+08:00"
+    }
+  }
+},
+{
+  "sha": "741f5b10f15597b29751d6d78e151a78fd73f065",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/741f5b10f15597b29751d6d78e151a78fd73f065",
+  "commit": {
+    "message": "fix: migrate tab tracking state on tab replacement",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-12T13:37:31+08:00"
+    }
+  }
+},
+{
+  "sha": "82f735195bb7c72b77c5f7b87f1541dacf3b0098",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/82f735195bb7c72b77c5f7b87f1541dacf3b0098",
+  "commit": {
+    "message": "fix: clean up per-window tracking on tab detach and window close",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-12T13:36:09+08:00"
+    }
+  }
+},
+{
+  "sha": "583656847b7b96a786ad00f608ca238a78dff624",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/583656847b7b96a786ad00f608ca238a78dff624",
+  "commit": {
+    "message": "fix: expire stale unsuspending tab tracking",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-12T13:34:35+08:00"
+    }
+  }
+},
+{
+  "sha": "570edfbc4abddc8dba61c59aa1ba4505efab4eff",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/570edfbc4abddc8dba61c59aa1ba4505efab4eff",
+  "commit": {
+    "message": "chore: remove dead inactive-tab branch in onUpdated",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-12T13:31:28+08:00"
+    }
+  }
+},
+{
+  "sha": "97c816c4eeb05d1e9002d24f975a4a45e59ebf98",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/97c816c4eeb05d1e9002d24f975a4a45e59ebf98",
+  "commit": {
+    "message": "fix: treat about: scheme URLs as internal",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-12T13:30:26+08:00"
+    }
+  }
+},
+{
+  "sha": "48bf38dac9ed828fe0a968de97439b111875e1e2",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/48bf38dac9ed828fe0a968de97439b111875e1e2",
+  "commit": {
+    "message": "perf: batch checkTabs suspensions with configured concurrency",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-12T13:29:44+08:00"
+    }
+  }
+},
+{
+  "sha": "3822f9b307020f0c5922e54c82514a0cf8b540b8",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/3822f9b307020f0c5922e54c82514a0cf8b540b8",
+  "commit": {
+    "message": "fix: revalidate tab state before auto suspending",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-12T13:28:08+08:00"
+    }
+  }
+},
+{
+  "sha": "8c2ec555b4a118909767ed74d3a3f432c485c80e",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8c2ec555b4a118909767ed74d3a3f432c485c80e",
+  "commit": {
+    "message": "fix: refresh timestamps for audio and active tab protections",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-12T13:25:53+08:00"
+    }
+  }
+},
+{
+  "sha": "8f035eaf2a15b2ccef0ffcf716077e3e220fded9",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8f035eaf2a15b2ccef0ffcf716077e3e220fded9",
+  "commit": {
+    "message": "fix: persist last focused window id across service worker restarts",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-12T13:23:30+08:00"
+    }
+  }
+},
+{
+  "sha": "01133a4bace9bacd4ce36861338e235107010357",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/01133a4bace9bacd4ce36861338e235107010357",
+  "commit": {
+    "message": "fix: gate event handlers behind service worker state initialization",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-12T13:21:59+08:00"
+    }
+  }
+},
+{
+  "sha": "bba076782e6f7085784e009763a854e0dedb9fda",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/bba076782e6f7085784e009763a854e0dedb9fda",
   "commit": {
     "message": "chore: update version to 1.7.0",
     "author": {
       "name": "Arthur Chiu",
-      "date": "2026-06-05T17:50:40+08:00"
+      "date": "2026-06-05T17:53:57+08:00"
     }
   }
 },
