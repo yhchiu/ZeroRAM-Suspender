@@ -41,6 +41,7 @@ describe('pure helpers', () => {
     for (const u of [
       'chrome://settings',
       'edge://flags',
+      'about:blank',
       'about://blank',
       'view-source:https://a.com',
       'devtools://x',

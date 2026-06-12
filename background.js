@@ -226,7 +226,8 @@ function isInternalUrl(url) {
   return (
     url.startsWith('chrome://') ||
     url.startsWith('edge://') ||
-    url.startsWith('about://') ||
+    // Note: about pages use a single colon with no slashes (about:blank).
+    url.startsWith('about:') ||
     url.startsWith('view-source:') ||
     url.startsWith('devtools://') ||
     url.startsWith('chrome-extension://') ||
