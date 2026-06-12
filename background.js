@@ -1111,21 +1111,6 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     }
   }
   
-  // Track tabs that are being unsuspended (URL changed from suspended.html to original URL)
-  if (changeInfo.url && unsuspendingTabs.has(tabId)) {
-    if (!changeInfo.url.startsWith(SUSPENDED_PREFIX)) {
-      // URL has changed from suspended.html to original URL, keep tracking until complete
-    }
-  }
-  
-  if (changeInfo.active === false) {
-    // Tab became inactive - update timestamp to track when it was last seen
-    seenTimestamps[tabId] = Date.now();
-    saveSeenTimestamps();
-    if (!pendingDiscardTabs.has(tabId)) {
-      scheduleReDiscard(tabId);
-    }
-  }
 });
 
 // When a new tab is created (e.g., gesture/drag-to-search or open-in-new-tab),
