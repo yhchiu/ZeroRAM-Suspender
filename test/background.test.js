@@ -172,6 +172,15 @@ describe('pure helpers', () => {
     expect(new Set(paths).size).toBe(paths.length);
   });
 
+  test('suspendWithPlaceholder omits a missing title instead of encoding undefined', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 1, url: 'https://x.com/a', windowId: 1 }],
+    });
+    await bg.suspendWithPlaceholder(chrome._getTab(1));
+    expect(chrome._getTab(1).url).toContain('suspended.html?uri=');
+    expect(chrome._getTab(1).url).not.toContain('undefined');
+  });
+
   test('suspendWithPlaceholder builds the suspended URL and updates the tab', async () => {
     const { bg, chrome } = loadBackground({
       tabs: [{ id: 1, url: 'https://x.com/a', title: 'Title', favIconUrl: 'https://x.com/f.ico', windowId: 1 }],

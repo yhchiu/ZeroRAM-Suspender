@@ -739,7 +739,7 @@ async function discardSuspendedTabWhenReady(tabId, context) {
 
 async function suspendWithPlaceholder(tab) {
   const suspendedUrl = SUSPENDED_PREFIX +
-    `?uri=${encodeURIComponent(tab.url)}&ttl=${encodeURIComponent(tab.title)}` +
+    `?uri=${encodeURIComponent(tab.url)}&ttl=${encodeURIComponent(tab.title || '')}` +
     (tab.favIconUrl ? `&favicon=${encodeURIComponent(tab.favIconUrl)}` : '');
   await chrome.tabs.update(tab.id, { url: suspendedUrl });
 }
@@ -1383,13 +1383,10 @@ chrome.alarms.onAlarm.addListener(async ({ name }) => {
   }
 });
 
-// Handle service worker lifecycle - clean up processor on termination
-self.addEventListener('beforeunload', () => {
-  fixFaviconProcessor.stop();
-  flushSeenTimestampsNow();
-});
-
-// Handle service worker lifecycle - ensure processor continues on background events
+// Best-effort flush before the worker is suspended. onSuspend is not reliably
+// delivered to MV3 service workers (and beforeunload never fires for them),
+// so nothing critical may depend on this: seen-timestamp writes are debounced
+// at 2s and the worker stays alive well past that after any event.
 chrome.runtime.onSuspend?.addListener(() => {
   fixFaviconProcessor.stop();
   flushSeenTimestampsNow();
