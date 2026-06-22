@@ -1,12 +1,34 @@
 [
 {
-  "sha": "06d8d46d0fbf33fe9add7ca6db717b77094f4b20",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/06d8d46d0fbf33fe9add7ca6db717b77094f4b20",
+  "sha": "d41efb5c66d88d8ea68f023206531d1517a561df",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/d41efb5c66d88d8ea68f023206531d1517a561df",
+  "commit": {
+    "message": "chore: update version to 1.7.2",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-22T19:02:40+08:00"
+    }
+  }
+},
+{
+  "sha": "e037f9709fca6cfee1a5bef32c3bbd07b0f3969a",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/e037f9709fca6cfee1a5bef32c3bbd07b0f3969a",
+  "commit": {
+    "message": "style(ui): modernize user interface and integrate new brand identity",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-22T18:57:39+08:00"
+    }
+  }
+},
+{
+  "sha": "5281e00fedcfd34c628bfb9fc87736c8a28f0a71",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/5281e00fedcfd34c628bfb9fc87736c8a28f0a71",
   "commit": {
     "message": "chore: update version to 1.7.1",
     "author": {
       "name": "Arthur Chiu",
-      "date": "2026-06-12T15:12:30+08:00"
+      "date": "2026-06-12T15:13:00+08:00"
     }
   }
 },
