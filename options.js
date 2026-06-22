@@ -1611,7 +1611,7 @@ function renderChangelog(changelog, container) {
             <div style="flex: 1;">
               <span style="font-weight: 500; color: ${getChangeColor(change.type)}; text-transform: capitalize;">${change.type}:</span>
               <span style="margin-left: 4px;">${escapeHtml(change.description)}</span>
-              <a href="${change.url}" target="_blank" style="margin-left: 8px; color: #667eea; text-decoration: none; font-size: 11px; opacity: 0.7;">${change.sha}</a>
+              <a href="${change.url}" target="_blank" style="margin-left: 8px; color: #0F766E; text-decoration: none; font-size: 11px; opacity: 0.7;">${change.sha}</a>
             </div>
           </li>
         `;
@@ -1974,7 +1974,7 @@ async function previewSession() {
     let previewHtml = '';
     sessionData.forEach((windowTabs, windowIndex) => {
       previewHtml += `<div style="margin-bottom: 16px;">`;
-      previewHtml += `<div style="font-weight: bold; color: #667eea; margin-bottom: 8px;">${getMessage('window') || 'Window'} ${windowIndex + 1} (${windowTabs.length} ${getMessage('tabs') || 'tabs'})</div>`;
+      previewHtml += `<div style="font-weight: bold; color: #0F766E; margin-bottom: 8px;">${getMessage('window') || 'Window'} ${windowIndex + 1} (${windowTabs.length} ${getMessage('tabs') || 'tabs'})</div>`;
       
       windowTabs.forEach((tab, tabIndex) => {
         previewHtml += `<div style="margin-left: 16px; margin-bottom: 4px;">`;

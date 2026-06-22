@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">ZeroRAM Suspender toolbar icon</title>
+  <desc id="desc">Bold rounded-badge Z mark optimized for small toolbar sizes.</desc>
+  <defs>
+    <linearGradient id="g" x1="160" y1="160" x2="864" y2="864" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0D9488"></stop>
+      <stop offset="0.55" stop-color="#0891B2"></stop>
+      <stop offset="1" stop-color="#2563EB"></stop>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="232" fill="url(#g)"></rect>
+  <path d="M270 312h484L282 712h484" fill="none" stroke="#FFFFFF" stroke-width="168" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">ZeroRAM Suspender symbol</title>
+  <desc id="desc">A browser tab with a zero-shaped mark and a Z-shaped suspension cut.</desc>
+  <defs>
+    <linearGradient id="tabFill" x1="224" y1="172" x2="792" y2="820" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ECFEFF"/>
+      <stop offset="0.52" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E0F2FE"/>
+    </linearGradient>
+    <linearGradient id="zeroFill" x1="323" y1="344" x2="704" y2="690" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0D9488"/>
+      <stop offset="0.55" stop-color="#0891B2"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+    <filter id="softShadow" x="90" y="115" width="844" height="820" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="28" stdDeviation="34" flood-color="#0F172A" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#softShadow)">
+    <path fill="#B6F0EF" opacity="0.46" d="M246 250h520c45.3 0 82 36.7 82 82v400c0 45.3-36.7 82-82 82H246c-45.3 0-82-36.7-82-82V332c0-45.3 36.7-82 82-82Z"/>
+    <path fill="url(#tabFill)" stroke="#7DD3FC" stroke-width="20" d="M194 184h636c47.5 0 86 38.5 86 86v484c0 47.5-38.5 86-86 86H194c-47.5 0-86-38.5-86-86V270c0-47.5 38.5-86 86-86Z"/>
+    <path fill="#CFFAFE" d="M194 184h636c47.5 0 86 38.5 86 86v88H108v-88c0-47.5 38.5-86 86-86Z" opacity="0.82"/>
+    <circle cx="208" cy="270" r="24" fill="#0D9488" opacity="0.34"/>
+    <circle cx="284" cy="270" r="24" fill="#0891B2" opacity="0.28"/>
+    <circle cx="360" cy="270" r="24" fill="#2563EB" opacity="0.22"/>
+  </g>
+
+  <g>
+    <ellipse cx="512" cy="552" rx="222" ry="184" fill="url(#zeroFill)"/>
+    <ellipse cx="512" cy="552" rx="118" ry="94" fill="#FFFFFF"/>
+    <path d="M376 441h281L392 666h286" fill="none" stroke="#FFFFFF" stroke-width="78" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M402 448h229L420 656h232" fill="none" stroke="#22D3EE" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

@@ -130,7 +130,8 @@
   bannerEl.appendChild(bannerTextEl);
   let actionLink = document.createElement('a');
   actionLink.href = '#';
-  actionLink.style.color = '#fff';
+  actionLink.style.color = '#0D9488';
+  actionLink.style.fontWeight = '700';
   actionLink.style.marginLeft = '4px';
   bannerEl.appendChild(actionLink);
 

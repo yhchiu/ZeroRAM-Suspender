@@ -1,5 +1,7 @@
 # ZeroRAM Suspender
 
+![ZeroRAM Suspender brand mark](design/zeroram-banner.png)
+
 A browser tab suspender that saves memory by using native discarding to achieve almost zero memory usage.
 
 [Available in the Chrome Web Store](https://chromewebstore.google.com/detail/zeroram-suspender/nlnebbghnncihbiabpnhemjamfmjappo)
