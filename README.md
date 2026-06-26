@@ -30,8 +30,8 @@ ZeroRAM Suspender dramatically reduces your browser's memory usage by intelligen
 ### Suspended Page
 ![Suspended Page](screenshots/02-suspended-page.png)
 
-### Whitelist Management
-![Whitelist Management](screenshots/03-whitelist.png)
+### Basic Settings
+![Basic Settings](screenshots/03-basic_settings.png)
 
 ### Tab Migration
 ![Tab Migration](screenshots/04-tab-migration.png)
