@@ -36,7 +36,6 @@
 body {
   margin: 0;
   font-family: var(--font-sans);
-  text-align: center;
 }
 button {
   padding: 6px 12px;
