@@ -1626,12 +1626,12 @@ function renderChangelog(changelog, container) {
     
     return `
       <div class="card" style="margin-bottom: 20px;">
-        <div class="card-title" style="margin-bottom: 16px;">
+        <h3 class="card-title" style="margin-bottom: 16px;">
           <span style="font-size: 18px; font-weight: 600;">${version.version}</span>
           <span style="margin-left: auto; color: var(--text-muted); font-size: 12px; font-weight: normal;">
             ${version.date.toLocaleDateString()}
           </span>
-        </div>
+        </h3>
         <ul style="list-style: none; padding: 0; margin: 0;">
           ${changesHtml}
         </ul>
