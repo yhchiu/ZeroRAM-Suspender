@@ -1007,7 +1007,7 @@ async function scanForExtensionTabs(extensionKey) {
       }
       
       statusDiv.textContent = statusText;
-      statusDiv.style.color = 'var(--success)';
+      statusDiv.style.color = 'var(--success-strong)';
       
       // Display tabs list
       displayExtensionTabs(foundTabs, tabsContainer);
@@ -1658,13 +1658,14 @@ function getChangeIcon(type) {
 
 // Get color for change type
 function getChangeColor(type) {
+  // Text colors on white must clear WCAG AA (4.5:1) — use the strong variants
   const colors = {
-    added: 'var(--success)',
+    added: 'var(--success-strong)',
     fixed: 'var(--danger)',
-    changed: 'var(--info)',
+    changed: 'var(--info-strong)',
     removed: 'var(--text-muted)',
-    improved: 'var(--warning)',
-    security: 'var(--warning-strong)'
+    improved: '#B45309',
+    security: 'var(--danger-strong)'
   };
   return colors[type] || 'var(--text-muted)';
 }
@@ -2753,7 +2754,7 @@ function updateSuspendedTabsCountDisplay() {
   }
 
   suspendedTabsCount.textContent = buildSuspendedTabsCountText(suspendedTabsViewerState.stats);
-  suspendedTabsCount.style.color = suspendedTabsViewerState.stats.matchedCount > 0 ? 'var(--success)' : 'var(--text-muted)';
+  suspendedTabsCount.style.color = suspendedTabsViewerState.stats.matchedCount > 0 ? 'var(--success-strong)' : 'var(--text-muted)';
 }
 
 function createSuspendedWindowSection(windowData, messages) {

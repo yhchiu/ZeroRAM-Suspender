@@ -9,11 +9,15 @@
   --accent-cyan: #22D3EE;
   --accent-blue: #2563EB;
 
+  --brand-deep: #115E59;
+
   /* Semantic colors */
   --info: #0891B2;
   --info-strong: #0E7490;
+  --info-deep: #155E75;
   --success: #059669;
   --success-strong: #047857;
+  --success-deep: #065F46;
   --warning: #F59E0B;
   --warning-strong: #D97706;
   --danger: #DC2626;

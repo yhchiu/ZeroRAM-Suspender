@@ -86,7 +86,7 @@ describe('pure helpers', () => {
     // Unknown types fall back to the default document icon
     expect(options.getChangeIcon('mystery')).toContain('<svg');
     expect(options.getChangeIcon('mystery')).toBe(options.getChangeIcon('unknown'));
-    expect(options.getChangeColor('added')).toBe('var(--success)');
+    expect(options.getChangeColor('added')).toBe('var(--success-strong)');
     expect(options.getChangeColor('mystery')).toBe('var(--text-muted)');
   });
 });
