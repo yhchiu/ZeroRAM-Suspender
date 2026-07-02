@@ -2,6 +2,35 @@
   /* Typography (locally installed fonts with system fallbacks) */
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', SFMono-Regular, Consolas, Menlo, monospace;
+
+  /* Brand colors */
+  --brand: #0D9488;
+  --brand-strong: #0F766E;
+  --accent-cyan: #22D3EE;
+  --accent-blue: #2563EB;
+
+  /* Semantic colors */
+  --info: #0891B2;
+  --info-strong: #0E7490;
+  --success: #059669;
+  --success-strong: #047857;
+  --warning: #F59E0B;
+  --warning-strong: #D97706;
+  --danger: #DC2626;
+  --danger-strong: #B91C1C;
+
+  /* Slate text scale */
+  --text: #0F172A;
+  --text-body: #1E293B;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --text-faint: #94A3B8;
+
+  /* Surfaces and borders */
+  --border: #E2E8F0;
+  --border-soft: #EEF2F6;
+  --surface: #F8FAFC;
+  --surface-hover: #F1F5F9;
 }
 
 body {
@@ -9,24 +38,7 @@ body {
   font-family: var(--font-sans);
   text-align: center;
 }
-.center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 80vh;
-  flex-direction: column;
-}
-.banner {
-  padding: 8px 12px;
-  color: #fff;
-}
-.banner.blue {
-  background: #2196f3;
-}
-.banner.gray {
-  background: #757575;
-}
 button {
   padding: 6px 12px;
   cursor: pointer;
-} 
+}

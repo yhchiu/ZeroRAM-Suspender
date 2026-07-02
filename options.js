@@ -424,7 +424,7 @@ async function loadKeyboardShortcuts() {
   } catch (error) {
     console.error('Error loading keyboard shortcuts:', error);
     container.innerHTML = `
-      <div style="text-align: center; padding: 20px; color: #dc3545;">
+      <div style="text-align: center; padding: 20px; color: var(--danger);">
         <span data-i18n="errorLoadingShortcuts">Error loading shortcuts</span>
       </div>
     `;
@@ -435,7 +435,7 @@ async function loadKeyboardShortcuts() {
 function displayKeyboardShortcuts(commands, container) {
   if (!commands || commands.length === 0) {
     container.innerHTML = `
-      <div style="text-align: center; padding: 20px; color: #666;">
+      <div style="text-align: center; padding: 20px; color: var(--text-muted);">
         <span data-i18n="noShortcutsFound">No shortcuts found</span>
       </div>
     `;
@@ -449,7 +449,7 @@ function displayKeyboardShortcuts(commands, container) {
   
   if (filteredCommands.length === 0) {
     container.innerHTML = `
-      <div style="text-align: center; padding: 20px; color: #666;">
+      <div style="text-align: center; padding: 20px; color: var(--text-muted);">
         <span data-i18n="noShortcutsFound">No shortcuts found</span>
       </div>
     `;
@@ -466,12 +466,12 @@ function displayKeyboardShortcuts(commands, container) {
     const isAssigned = !!command.shortcut;
     
     return `
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; margin-bottom: 8px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; margin-bottom: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px;">
         <div style="flex: 1;">
-          <div style="font-weight: 500; color: #333;">${escapeHtml(displayName)}</div>
+          <div style="font-weight: 500; color: var(--text-body);">${escapeHtml(displayName)}</div>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="padding: 6px 12px; background: ${isAssigned ? '#e7f3ff' : '#f0f0f0'}; color: ${isAssigned ? '#0066cc' : '#666'}; border-radius: 4px; font-size: 13px; font-weight: 500; font-family: var(--font-mono); min-width: 120px; text-align: center;">
+          <span style="padding: 6px 12px; background: ${isAssigned ? '#ECFEFF' : 'var(--surface-hover)'}; color: ${isAssigned ? 'var(--info-strong)' : 'var(--text-muted)'}; border-radius: 4px; font-size: 13px; font-weight: 500; font-family: var(--font-mono); min-width: 120px; text-align: center;">
             ${escapeHtml(shortcut)}
           </span>
         </div>
@@ -915,7 +915,7 @@ async function scanForExtensionTabs(extensionKey) {
   scanBtn.disabled = true;
   scanBtn.style.opacity = '0.6';
   statusDiv.textContent = getMessage('scanningTabs');
-  statusDiv.style.color = '#666';
+  statusDiv.style.color = 'var(--text-muted)';
   resultsDiv.style.display = 'block';
   tabsListDiv.style.display = 'none';
   
@@ -991,7 +991,7 @@ async function scanForExtensionTabs(extensionKey) {
     if (foundTabs.length === 0) {
       const noTabsFoundKey = extensionKey === 'marvellous' ? 'noMarvellousTabFound' : 'noTabSuspenderTabFound';
       statusDiv.textContent = getMessage(noTabsFoundKey) || `No ${config.name} tabs found`;
-      statusDiv.style.color = '#666';
+      statusDiv.style.color = 'var(--text-muted)';
     } else {
       const knownVariants = foundTabs.filter(tab => !tab.isUnknownVariant).length;
       const unknownVariants = foundTabs.filter(tab => tab.isUnknownVariant).length;
@@ -1003,7 +1003,7 @@ async function scanForExtensionTabs(extensionKey) {
       }
       
       statusDiv.textContent = statusText;
-      statusDiv.style.color = '#27ae60';
+      statusDiv.style.color = 'var(--success)';
       
       // Display tabs list
       displayExtensionTabs(foundTabs, tabsContainer);
@@ -1012,7 +1012,7 @@ async function scanForExtensionTabs(extensionKey) {
   } catch (error) {
     console.error(`[ZeroRAM Suspender] Error scanning ${config.name} tabs:`, error);
     statusDiv.textContent = (getMessage('errorScanningTabs') || 'Error scanning tabs: ') + error.message;
-    statusDiv.style.color = '#dc3545';
+    statusDiv.style.color = 'var(--danger)';
   } finally {
     // Re-enable scan button
     scanBtn.disabled = false;
@@ -1033,12 +1033,12 @@ function displayExtensionTabs(tabs, container) {
       margin-bottom: 8px;
       background: white;
       border-radius: 6px;
-      border: 1px solid #e1e5e9;
+      border: 1px solid var(--border);
       transition: all 0.2s ease;
     `;
     
     const variantBadge = tabData.isUnknownVariant 
-      ? `<span style="background: #ffc107; color: #333; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 8px;">${getMessage('unknownVariant') || 'Unknown Variant'}</span>`
+      ? `<span style="background: var(--warning); color: var(--text-body); padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 8px;">${getMessage('unknownVariant') || 'Unknown Variant'}</span>`
       : '';
     
     tabItem.innerHTML = `
@@ -1051,13 +1051,13 @@ function displayExtensionTabs(tabs, container) {
              checked
              style="margin-right: 12px; width: 16px; height: 16px;">
       <div style="flex: 1; min-width: 0;">
-        <div style="font-weight: 500; color: #333; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center;">
+        <div style="font-weight: 500; color: var(--text-body); margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center;">
           ${tabData.favIconUrl ? `<img class="migration-tab-favicon-img" src="${escapeHtml(tabData.favIconUrl)}" style="width: 16px; height: 16px; margin-right: 8px; flex-shrink: 0;">` : ''}${escapeHtml(tabData.title)}${variantBadge}
         </div>
-        <div style="font-size: 12px; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+        <div style="font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
           ${escapeHtml(tabData.originalUrl)}
         </div>
-        <div style="font-size: 10px; color: #999; margin-top: 2px;">
+        <div style="font-size: 10px; color: var(--text-faint); margin-top: 2px;">
           ${getMessage('extensionId') || 'Extension ID'}: ${tabData.extensionId}
         </div>
       </div>
@@ -1380,7 +1380,7 @@ async function loadChangelog() {
   try {
     // Show loading state
     changelogContent.innerHTML = `
-      <div class="loading-state" style="text-align: center; padding: 40px; color: #666;">
+      <div class="loading-state" style="text-align: center; padding: 40px; color: var(--text-muted);">
         <div style="margin-bottom: 12px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></div>
         <span data-i18n="loadingChanges">Loading change log...</span>
       </div>
@@ -1416,7 +1416,7 @@ async function loadChangelog() {
       <div class="empty-state">
         <div class="icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M15 9l-6 6M9 9l6 6"></path></svg></div>
         <h3 data-i18n="failedToLoadChanges">Failed to load change log</h3>
-        <p style="color: #999; font-size: 12px;">${error.message}</p>
+        <p style="color: var(--text-faint); font-size: 12px;">${error.message}</p>
       </div>
     `;
   }
@@ -1611,7 +1611,7 @@ function renderChangelog(changelog, container) {
             <div style="flex: 1;">
               <span style="font-weight: 500; color: ${getChangeColor(change.type)}; text-transform: capitalize;">${change.type}:</span>
               <span style="margin-left: 4px;">${escapeHtml(change.description)}</span>
-              <a href="${change.url}" target="_blank" style="margin-left: 8px; color: #0F766E; text-decoration: none; font-size: 11px; opacity: 0.7;">${change.sha}</a>
+              <a href="${change.url}" target="_blank" style="margin-left: 8px; color: var(--brand-strong); text-decoration: none; font-size: 11px; opacity: 0.7;">${change.sha}</a>
             </div>
           </li>
         `;
@@ -1624,7 +1624,7 @@ function renderChangelog(changelog, container) {
       <div class="card" style="margin-bottom: 20px;">
         <div class="card-title" style="margin-bottom: 16px;">
           <span style="font-size: 18px; font-weight: 600;">${version.version}</span>
-          <span style="margin-left: auto; color: #666; font-size: 12px; font-weight: normal;">
+          <span style="margin-left: auto; color: var(--text-muted); font-size: 12px; font-weight: normal;">
             ${version.date.toLocaleDateString()}
           </span>
         </div>
@@ -1655,14 +1655,14 @@ function getChangeIcon(type) {
 // Get color for change type
 function getChangeColor(type) {
   const colors = {
-    added: '#28a745',
-    fixed: '#dc3545',
-    changed: '#17a2b8',
-    removed: '#6c757d',
-    improved: '#ffc107',
-    security: '#fd7e14'
+    added: 'var(--success)',
+    fixed: 'var(--danger)',
+    changed: 'var(--info)',
+    removed: 'var(--text-muted)',
+    improved: 'var(--warning)',
+    security: 'var(--warning-strong)'
   };
-  return colors[type] || '#6c757d';
+  return colors[type] || 'var(--text-muted)';
 }
 
 /* ---------- End Change Log Functions ---------- */
@@ -1975,13 +1975,13 @@ async function previewSession() {
     let previewHtml = '';
     sessionData.forEach((windowTabs, windowIndex) => {
       previewHtml += `<div style="margin-bottom: 16px;">`;
-      previewHtml += `<div style="font-weight: bold; color: #0F766E; margin-bottom: 8px;">${getMessage('window') || 'Window'} ${windowIndex + 1} (${windowTabs.length} ${getMessage('tabs') || 'tabs'})</div>`;
+      previewHtml += `<div style="font-weight: bold; color: var(--brand-strong); margin-bottom: 8px;">${getMessage('window') || 'Window'} ${windowIndex + 1} (${windowTabs.length} ${getMessage('tabs') || 'tabs'})</div>`;
       
       windowTabs.forEach((tab, tabIndex) => {
         previewHtml += `<div style="margin-left: 16px; margin-bottom: 4px;">`;
-        previewHtml += `<span style="color: #666; font-size: 11px;">${tabIndex + 1}.</span> `;
+        previewHtml += `<span style="color: var(--text-muted); font-size: 11px;">${tabIndex + 1}.</span> `;
         previewHtml += `<span style="font-weight: 500;">${escapeHtml(tab.title)}</span><br/>`;
-        previewHtml += `<span style="margin-left: 16px; color: #888; font-size: 11px;">${escapeHtml(tab.url)}</span>`;
+        previewHtml += `<span style="margin-left: 16px; color: var(--text-faint); font-size: 11px;">${escapeHtml(tab.url)}</span>`;
         previewHtml += `</div>`;
       });
       
@@ -2749,7 +2749,7 @@ function updateSuspendedTabsCountDisplay() {
   }
 
   suspendedTabsCount.textContent = buildSuspendedTabsCountText(suspendedTabsViewerState.stats);
-  suspendedTabsCount.style.color = suspendedTabsViewerState.stats.matchedCount > 0 ? '#27ae60' : '#666';
+  suspendedTabsCount.style.color = suspendedTabsViewerState.stats.matchedCount > 0 ? 'var(--success)' : 'var(--text-muted)';
 }
 
 function createSuspendedWindowSection(windowData, messages) {
@@ -3120,9 +3120,9 @@ async function showSuspendedTabs() {
     showNotice(getMessage('errorLoadingSuspendedTabs') || 'Error loading suspended tabs: ' + error.message, 'error', 4000);
 
     suspendedTabsCount.textContent = getMessage('errorOccurred') || 'An error occurred';
-    suspendedTabsCount.style.color = '#dc3545';
+    suspendedTabsCount.style.color = 'var(--danger)';
     suspendedTabsList.innerHTML = `
-      <div style="text-align: center; padding: 20px; color: #dc3545;">
+      <div style="text-align: center; padding: 20px; color: var(--danger);">
         <div style="margin-top: 8px;">${escapeHtml(error.message)}</div>
       </div>
     `;
