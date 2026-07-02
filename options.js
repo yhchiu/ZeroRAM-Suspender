@@ -79,6 +79,9 @@ function getNoticeContainer() {
     container = document.createElement('div');
     container.id = 'notice-container';
     container.className = 'notice-container';
+    // Announce notices to screen readers without stealing focus
+    container.setAttribute('role', 'status');
+    container.setAttribute('aria-live', 'polite');
     document.body.appendChild(container);
   }
   return container;
@@ -144,11 +147,15 @@ function initNavigation() {
       e.preventDefault();
       
       // Remove active class from all links and sections
-      navLinks.forEach(l => l.classList.remove('active'));
+      navLinks.forEach(l => {
+        l.classList.remove('active');
+        l.removeAttribute('aria-current');
+      });
       sections.forEach(s => s.classList.remove('active'));
-      
+
       // Add active class to clicked link
       link.classList.add('active');
+      link.setAttribute('aria-current', 'page');
       
       // Show corresponding section
       const sectionId = link.getAttribute('data-section');

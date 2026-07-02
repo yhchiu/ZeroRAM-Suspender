@@ -130,6 +130,18 @@
       background: #E8EDF2;
     }
 
+    li:focus-visible {
+      outline: 2px solid var(--brand);
+      outline-offset: -2px;
+    }
+
+    #banner a:focus-visible,
+    #bulkCancelBtn:focus-visible {
+      outline: 2px solid var(--brand);
+      outline-offset: 2px;
+      border-radius: 3px;
+    }
+
     li::before {
       content: '';
       width: 18px;
@@ -182,7 +194,7 @@
       padding: 10px 8px 13px;
       font-size: 11px;
       font-family: var(--font-mono);
-      color: #94A3B8;
+      color: var(--text-muted);
       background: #ffffff;
       border-top: 1px solid #EEF2F6;
     }
@@ -280,7 +292,7 @@
       <div id="bulkProgressText" class="progress-text">0/0</div>
     </div>
     
-    <ul id="menu"></ul>
+    <ul id="menu" role="menu"></ul>
     
     <div class="footer">
       <span id="version">v1.0.0</span>

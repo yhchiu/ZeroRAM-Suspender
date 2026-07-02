@@ -209,13 +209,22 @@
   function addItem(text, onClick, iconType = '', closeOnClick = true) {
     const li = document.createElement('li');
     li.textContent = text;
+    li.setAttribute('role', 'menuitem');
+    li.tabIndex = 0;
     if (iconType) {
       li.setAttribute('data-icon', iconType);
     }
-    li.addEventListener('click', async () => {
+    const activate = async () => {
       await onClick();
       if (closeOnClick) {
         window.close();
+      }
+    };
+    li.addEventListener('click', activate);
+    li.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        await activate();
       }
     });
     menuEl.appendChild(li);
