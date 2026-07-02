@@ -471,7 +471,7 @@ function displayKeyboardShortcuts(commands, container) {
           <div style="font-weight: 500; color: #333;">${escapeHtml(displayName)}</div>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="padding: 6px 12px; background: ${isAssigned ? '#e7f3ff' : '#f0f0f0'}; color: ${isAssigned ? '#0066cc' : '#666'}; border-radius: 4px; font-size: 13px; font-weight: 500; font-family: monospace; min-width: 120px; text-align: center;">
+          <span style="padding: 6px 12px; background: ${isAssigned ? '#e7f3ff' : '#f0f0f0'}; color: ${isAssigned ? '#0066cc' : '#666'}; border-radius: 4px; font-size: 13px; font-weight: 500; font-family: var(--font-mono); min-width: 120px; text-align: center;">
             ${escapeHtml(shortcut)}
           </span>
         </div>
