@@ -107,11 +107,14 @@ button {
 }
 
 /* Honor the user's OS-level motion preference: collapse all
-   animations and transitions to effectively instant. */
+   animations and transitions to effectively instant.
+   .notice-progress is exempt: its shrinking width is the countdown
+   for the notice (essential information, not decoration), so it must
+   keep its JS-driven width transition. */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *:not(.notice-progress),
+  *:not(.notice-progress)::before,
+  *:not(.notice-progress)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
