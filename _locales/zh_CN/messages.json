@@ -627,7 +627,7 @@
     "message": "主题设置"
   },
   "themeSettingsDesc": {
-    "message": "选择挂起标签页面的外观主题"
+    "message": "选择扩展页面（弹出窗口、设置页与挂起页面）的外观主题"
   },
   "themeMode": {
     "message": "主题模式："
@@ -642,7 +642,7 @@
     "message": "深色主题"
   },
   "themeHelpText": {
-    "message": "挂起标签页面需要重新加载以应用主题。自动模式会跟随您的系统深色/浅色主题偏好设置。"
+    "message": "主题会应用于弹出窗口、设置页与挂起页面；已挂起的标签页需要重新加载才会应用。自动模式会跟随您的系统深色/浅色主题偏好设置。"
   },
   "suspendedIndicatorTitle": {
     "message": "挂起标签页标示方式"

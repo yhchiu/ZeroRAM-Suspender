@@ -627,7 +627,7 @@
     "message": "主題設定"
   },
   "themeSettingsDesc": {
-    "message": "選擇休眠分頁的外觀主題"
+    "message": "選擇擴充功能頁面（彈出視窗、設定頁與休眠分頁）的外觀主題"
   },
   "themeMode": {
     "message": "主題模式："
@@ -642,7 +642,7 @@
     "message": "深色主題"
   },
   "themeHelpText": {
-    "message": "休眠分頁需要重新載入以套用主題。自動模式會跟隨您的系統深色/淺色主題偏好設定。"
+    "message": "主題會套用於彈出視窗、設定頁與休眠分頁；已休眠的分頁需要重新載入才會套用。自動模式會跟隨您的系統深色/淺色主題偏好設定。"
   },
   "suspendedIndicatorTitle": {
     "message": "休眠分頁標示方式"

@@ -69,6 +69,15 @@ function cacheThemeMode(themeMode) {
   }
 }
 
+// Apply the theme to this page immediately (theme-boot.js only runs on load).
+function applyDocumentTheme(themeMode) {
+  const mode = normalizeThemeMode(themeMode);
+  const resolved = mode === 'auto'
+    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+    : mode;
+  document.documentElement.setAttribute('data-theme', resolved);
+}
+
 /* ---------- Overlay Notice mechanism ---------- */
 /**
  * Create or retrieve the global notice container.
@@ -318,6 +327,7 @@ function save() {
 
     // Keep the suspended page cache valid even when saving non-theme sections.
     cacheThemeMode(updatedCfg.themeMode);
+    applyDocumentTheme(updatedCfg.themeMode);
 
     chrome.storage.sync.set({ [STORAGE_KEY]: updatedCfg }, () => {
       chrome.runtime.sendMessage({ command: 'updateSettings', settings: updatedCfg });
@@ -428,7 +438,7 @@ async function loadKeyboardShortcuts() {
   } catch (error) {
     console.error('Error loading keyboard shortcuts:', error);
     container.innerHTML = `
-      <div style="text-align: center; padding: 20px; color: var(--danger);">
+      <div style="text-align: center; padding: 20px; color: var(--danger-text);">
         <span data-i18n="errorLoadingShortcuts">Error loading shortcuts</span>
       </div>
     `;
@@ -475,7 +485,7 @@ function displayKeyboardShortcuts(commands, container) {
           <div style="font-weight: 500; color: var(--text-body);">${escapeHtml(displayName)}</div>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="padding: 6px 12px; background: ${isAssigned ? '#ECFEFF' : 'var(--surface-hover)'}; color: ${isAssigned ? 'var(--info-strong)' : 'var(--text-muted)'}; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; font-family: var(--font-mono); min-width: 120px; text-align: center;">
+          <span style="padding: 6px 12px; background: ${isAssigned ? 'var(--tint-info-bg)' : 'var(--surface-hover)'}; color: ${isAssigned ? 'var(--tint-info-text)' : 'var(--text-muted)'}; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; font-family: var(--font-mono); min-width: 120px; text-align: center;">
             ${escapeHtml(shortcut)}
           </span>
         </div>
@@ -1007,7 +1017,7 @@ async function scanForExtensionTabs(extensionKey) {
       }
       
       statusDiv.textContent = statusText;
-      statusDiv.style.color = 'var(--success-strong)';
+      statusDiv.style.color = 'var(--success-text)';
       
       // Display tabs list
       displayExtensionTabs(foundTabs, tabsContainer);
@@ -1016,7 +1026,7 @@ async function scanForExtensionTabs(extensionKey) {
   } catch (error) {
     console.error(`[ZeroRAM Suspender] Error scanning ${config.name} tabs:`, error);
     statusDiv.textContent = (getMessage('errorScanningTabs') || 'Error scanning tabs: ') + error.message;
-    statusDiv.style.color = 'var(--danger)';
+    statusDiv.style.color = 'var(--danger-text)';
   } finally {
     // Re-enable scan button
     scanBtn.disabled = false;
@@ -1042,7 +1052,7 @@ function displayExtensionTabs(tabs, container) {
     `;
     
     const variantBadge = tabData.isUnknownVariant 
-      ? `<span style="background: var(--warning); color: var(--text-body); padding: 2px 6px; border-radius: var(--radius-sm); font-size: 10px; margin-left: 8px;">${getMessage('unknownVariant') || 'Unknown Variant'}</span>`
+      ? `<span style="background: var(--warning); color: #1E293B; padding: 2px 6px; border-radius: var(--radius-sm); font-size: 10px; margin-left: 8px;">${getMessage('unknownVariant') || 'Unknown Variant'}</span>`
       : '';
     
     tabItem.innerHTML = `
@@ -1615,7 +1625,7 @@ function renderChangelog(changelog, container) {
             <div style="flex: 1;">
               <span style="font-weight: 500; color: ${getChangeColor(change.type)}; text-transform: capitalize;">${change.type}:</span>
               <span style="margin-left: 4px;">${escapeHtml(change.description)}</span>
-              <a href="${change.url}" target="_blank" style="margin-left: 8px; color: var(--brand-strong); text-decoration: none; font-size: 11px; opacity: 0.7;">${change.sha}</a>
+              <a href="${change.url}" target="_blank" style="margin-left: 8px; color: var(--brand-text); text-decoration: none; font-size: 11px; opacity: 0.7;">${change.sha}</a>
             </div>
           </li>
         `;
@@ -1658,14 +1668,14 @@ function getChangeIcon(type) {
 
 // Get color for change type
 function getChangeColor(type) {
-  // Text colors on white must clear WCAG AA (4.5:1) — use the strong variants
+  // Semantic -text tokens clear WCAG AA on the page surface in both themes
   const colors = {
-    added: 'var(--success-strong)',
-    fixed: 'var(--danger)',
-    changed: 'var(--info-strong)',
+    added: 'var(--success-text)',
+    fixed: 'var(--danger-text)',
+    changed: 'var(--info-text)',
     removed: 'var(--text-muted)',
-    improved: '#B45309',
-    security: 'var(--danger-strong)'
+    improved: 'var(--tint-warning-text)',
+    security: 'var(--danger-text)'
   };
   return colors[type] || 'var(--text-muted)';
 }
@@ -1980,7 +1990,7 @@ async function previewSession() {
     let previewHtml = '';
     sessionData.forEach((windowTabs, windowIndex) => {
       previewHtml += `<div style="margin-bottom: 16px;">`;
-      previewHtml += `<div style="font-weight: bold; color: var(--brand-strong); margin-bottom: 8px;">${getMessage('window') || 'Window'} ${windowIndex + 1} (${windowTabs.length} ${getMessage('tabs') || 'tabs'})</div>`;
+      previewHtml += `<div style="font-weight: bold; color: var(--brand-text); margin-bottom: 8px;">${getMessage('window') || 'Window'} ${windowIndex + 1} (${windowTabs.length} ${getMessage('tabs') || 'tabs'})</div>`;
       
       windowTabs.forEach((tab, tabIndex) => {
         previewHtml += `<div style="margin-left: 16px; margin-bottom: 4px;">`;
@@ -2436,6 +2446,7 @@ async function importSettings() {
     
     // Save theme mode to localStorage for suspended page caching
     cacheThemeMode(newSettings.themeMode);
+    applyDocumentTheme(newSettings.themeMode);
 
     // Save to storage
     await new Promise((resolve, reject) => {
@@ -2754,7 +2765,7 @@ function updateSuspendedTabsCountDisplay() {
   }
 
   suspendedTabsCount.textContent = buildSuspendedTabsCountText(suspendedTabsViewerState.stats);
-  suspendedTabsCount.style.color = suspendedTabsViewerState.stats.matchedCount > 0 ? 'var(--success-strong)' : 'var(--text-muted)';
+  suspendedTabsCount.style.color = suspendedTabsViewerState.stats.matchedCount > 0 ? 'var(--success-text)' : 'var(--text-muted)';
 }
 
 function createSuspendedWindowSection(windowData, messages) {
@@ -3125,9 +3136,9 @@ async function showSuspendedTabs() {
     showNotice(getMessage('errorLoadingSuspendedTabs') || 'Error loading suspended tabs: ' + error.message, 'error', 4000);
 
     suspendedTabsCount.textContent = getMessage('errorOccurred') || 'An error occurred';
-    suspendedTabsCount.style.color = 'var(--danger)';
+    suspendedTabsCount.style.color = 'var(--danger-text)';
     suspendedTabsList.innerHTML = `
-      <div style="text-align: center; padding: 20px; color: var(--danger);">
+      <div style="text-align: center; padding: 20px; color: var(--danger-text);">
         <div style="margin-top: 8px;">${escapeHtml(error.message)}</div>
       </div>
     `;

@@ -1,27 +1,44 @@
 :root {
+  color-scheme: light;
+
   /* Typography (locally installed fonts with system fallbacks) */
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', SFMono-Regular, Consolas, Menlo, monospace;
 
-  /* Brand colors */
+  /* Brand colors. The -strong/-deep steps are backgrounds for filled
+     controls (constant across themes); the -text steps are for colored
+     text on page surfaces and flip in dark mode. */
   --brand: #0D9488;
   --brand-strong: #0F766E;
+  --brand-deep: #115E59;
+  --brand-text: #0F766E;
   --accent-cyan: #22D3EE;
   --accent-blue: #2563EB;
-
-  --brand-deep: #115E59;
 
   /* Semantic colors */
   --info: #0891B2;
   --info-strong: #0E7490;
   --info-deep: #155E75;
+  --info-text: #0E7490;
   --success: #059669;
   --success-strong: #047857;
   --success-deep: #065F46;
+  --success-text: #047857;
   --warning: #F59E0B;
   --warning-strong: #D97706;
   --danger: #DC2626;
   --danger-strong: #B91C1C;
+  --danger-text: #DC2626;
+
+  /* Soft tinted surfaces (banners, callouts, badges) */
+  --tint-info-bg: #ECFEFF;
+  --tint-info-border: #CFF6FB;
+  --tint-info-text: #155E75;
+  --tint-warning-bg: #FFFBEB;
+  --tint-warning-border: #FDE68A;
+  --tint-warning-text: #B45309;
+  --tint-danger-bg: #FEF2F2;
+  --tint-danger-border: #FECACA;
 
   /* Slate text scale */
   --text: #0F172A;
@@ -36,10 +53,48 @@
   --radius-lg: 12px;
 
   /* Surfaces and borders */
+  --bg-page: #EEF2F6;
+  --bg-elevated: #ffffff;
   --border: #E2E8F0;
   --border-soft: #EEF2F6;
   --surface: #F8FAFC;
   --surface-hover: #F1F5F9;
+}
+
+/* Dark theme: applied via data-theme set by theme-boot.js (popup/options)
+   following the extension's themeMode setting; auto resolves to the system
+   preference. Filled-control colors (semantic bases and -strong/-deep)
+   intentionally stay the same in both themes. */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --brand: #2DD4BF;
+  --brand-text: #5EEAD4;
+  --info-text: #67E8F9;
+  --success-text: #34D399;
+  --danger-text: #F87171;
+
+  --tint-info-bg: #0C3B49;
+  --tint-info-border: #155E75;
+  --tint-info-text: #A5F3FC;
+  --tint-warning-bg: #3B2A08;
+  --tint-warning-border: #92610C;
+  --tint-warning-text: #FCD34D;
+  --tint-danger-bg: #450A0A;
+  --tint-danger-border: #7F1D1D;
+
+  --text: #F1F5F9;
+  --text-body: #E2E8F0;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --text-faint: #64748B;
+
+  --bg-page: #0F172A;
+  --bg-elevated: #1E293B;
+  --border: #3B4A61;
+  --border-soft: #2C394E;
+  --surface: #24324A;
+  --surface-hover: #2C3B55;
 }
 
 body {

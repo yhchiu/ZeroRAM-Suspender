@@ -627,7 +627,7 @@
     "message": "Theme Settings"
   },
   "themeSettingsDesc": {
-    "message": "Choose the appearance theme for the suspended tab page"
+    "message": "Choose the appearance theme for the extension pages (popup, options, and suspended page)"
   },
   "themeMode": {
     "message": "Theme mode:"
@@ -642,7 +642,7 @@
     "message": "Dark theme"
   },
   "themeHelpText": {
-    "message": "The suspended tab page needs to be reloaded to apply the theme. Auto mode will follow your system's dark/light theme preference."
+    "message": "The theme applies to the popup, options, and suspended pages. Already-suspended tabs need to be reloaded to pick up the change. Auto mode follows your system's dark/light theme preference."
   },
   "suspendedIndicatorTitle": {
     "message": "Suspended Tab Indicator"

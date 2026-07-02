@@ -4,6 +4,8 @@
   <meta charset="utf-8" />
       <title data-i18n="titleOptions">ZeroRAM Suspender – Options</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <!-- Resolve the theme before CSS paints to avoid a light-mode flash -->
+  <script src="theme-boot.js"></script>
   <link rel="stylesheet" href="style.css">
   <style>
     * {
@@ -14,9 +16,9 @@
 
     body {
       font-family: var(--font-sans);
-      background: #EEF2F6;
+      background: var(--bg-page);
       min-height: 100vh;
-      color: #1E293B;
+      color: var(--text-body);
     }
 
     .container {
@@ -24,29 +26,29 @@
       min-height: 100vh;
       max-width: 1200px;
       margin: 0 auto;
-      background: #ffffff;
+      background: var(--bg-elevated);
       box-shadow: 0 0 40px rgba(15, 23, 42, 0.06);
     }
 
     /* Sidebar Navigation */
     .sidebar {
       width: 264px;
-      background: #F8FAFC;
-      color: #475569;
+      background: var(--surface);
+      color: var(--text-secondary);
       padding: 0;
-      border-right: 1px solid #EEF2F6;
+      border-right: 1px solid var(--border-soft);
     }
 
     .sidebar-header {
       padding: 20px 18px 16px;
-      border-bottom: 1px solid #EEF2F6;
+      border-bottom: 1px solid var(--border-soft);
     }
 
     .sidebar-header h1 {
       font-size: 16px;
       font-weight: 700;
       letter-spacing: -0.01em;
-      color: #0F172A;
+      color: var(--text);
       display: flex;
       align-items: center;
       gap: 11px;
@@ -79,7 +81,7 @@
       align-items: center;
       gap: 11px;
       padding: 9px 12px;
-      color: #475569;
+      color: var(--text-secondary);
       text-decoration: none;
       border-radius: var(--radius-md);
       transition: background 0.15s ease, color 0.15s ease;
@@ -89,13 +91,13 @@
     }
 
     .nav-link:hover {
-      background: #EEF2F6;
-      color: #0F172A;
+      background: var(--surface-hover);
+      color: var(--text);
     }
 
     .nav-link.active {
-      background: #ECFEFF;
-      color: #0F172A;
+      background: var(--tint-info-bg);
+      color: var(--text);
       font-weight: 700;
     }
 
@@ -122,7 +124,7 @@
     .nav-icon svg {
       width: 18px;
       height: 18px;
-      stroke: #64748B;
+      stroke: var(--text-muted);
       fill: none;
       stroke-width: 1.6;
       stroke-linecap: round;
@@ -159,31 +161,31 @@
       font-size: 22px;
       font-weight: 700;
       letter-spacing: -0.015em;
-      color: #0F172A;
+      color: var(--text);
       margin-bottom: 6px;
     }
 
     .section-header p {
-      color: #64748B;
+      color: var(--text-muted);
       font-size: 14px;
       line-height: 1.5;
     }
 
     /* Cards */
     .card {
-      background: white;
+      background: var(--bg-elevated);
       border-radius: var(--radius-lg);
       padding: 22px 24px;
       margin-bottom: 16px;
       box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
-      border: 1px solid #EEF2F6;
+      border: 1px solid var(--border-soft);
       text-align: left;
     }
 
     .card-title {
       font-size: 15px;
       font-weight: 700;
-      color: #0F172A;
+      color: var(--text);
       margin-bottom: 6px;
       display: flex;
       align-items: center;
@@ -219,7 +221,7 @@
     }
 
     .card-description {
-      color: #64748B;
+      color: var(--text-muted);
       font-size: 13px;
       margin-bottom: 16px;
       line-height: 1.5;
@@ -258,7 +260,7 @@
       border: 2px solid var(--border);
       border-radius: var(--radius-md);
       font-size: 14px;
-      background: #fff;
+      background: var(--bg-elevated);
       color: var(--text-body);
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
@@ -330,7 +332,7 @@
 
     .suspended-window-header {
       font-weight: 600;
-      color: var(--brand-strong);
+      color: var(--brand-text);
       margin-bottom: 12px;
       padding-bottom: 8px;
       border-bottom: 1px solid var(--border);
@@ -341,7 +343,7 @@
       align-items: center;
       padding: 10px 12px;
       margin-bottom: 8px;
-      background: #fff;
+      background: var(--bg-elevated);
       border-radius: var(--radius-sm);
       border: 1px solid var(--border);
       transition: background-color 0.2s ease, border-color 0.2s ease;
@@ -354,7 +356,7 @@
 
     .suspended-tab-index {
       margin-right: 12px;
-      color: var(--brand-strong);
+      color: var(--brand-text);
       font-weight: 500;
       min-width: 20px;
       flex-shrink: 0;
@@ -409,7 +411,8 @@
 
     .suspended-tab-badge-discarded {
       background: var(--warning);
-      color: var(--text-body);
+      /* Fixed dark ink: the amber badge stays the same in both themes */
+      color: #1E293B;
     }
 
     .suspended-tab-badge-not-suspended {
@@ -496,7 +499,7 @@
     .action-bar {
       position: sticky;
       bottom: 0;
-      background: white;
+      background: var(--bg-elevated);
       padding: 20px 32px;
       border-top: 1px solid var(--border);
       display: flex;
@@ -570,7 +573,7 @@
     }
 
     .status-message {
-      color: var(--success-strong);
+      color: var(--success-text);
       font-size: 14px;
       font-weight: 500;
       opacity: 0;
@@ -668,7 +671,7 @@
 
     .notice-success { background: var(--success-strong); }
     .notice-error   { background: var(--danger); }
-    .notice-warning { background: var(--warning); color: var(--text); }
+    .notice-warning { background: var(--warning); color: #0F172A; }
     .notice-info    { background: var(--info-strong); }
 
     .notice-progress {
@@ -956,9 +959,9 @@
             Reset all settings to their default values
           </div>
           <div class="form-group">
-            <div style="padding: 12px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: var(--radius-md); margin-bottom: 16px;">
-              <div style="color: #B45309; font-weight: 500; margin-bottom: 4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><path d="M12 9v4M12 17h.01"></path></svg><span data-i18n="warning">Warning</span></div>
-              <div style="color: #B45309; font-size: 13px;" data-i18n="resetWarning">
+            <div style="padding: 12px; background: var(--tint-warning-bg); border: 1px solid var(--tint-warning-border); border-radius: var(--radius-md); margin-bottom: 16px;">
+              <div style="color: var(--tint-warning-text); font-weight: 500; margin-bottom: 4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><path d="M12 9v4M12 17h.01"></path></svg><span data-i18n="warning">Warning</span></div>
+              <div style="color: var(--tint-warning-text); font-size: 13px;" data-i18n="resetWarning">
                 This action will permanently delete all your current settings and restore defaults. This cannot be undone.
               </div>
             </div>
@@ -1166,7 +1169,7 @@
           <p data-i18n="tabMigrationDesc">Migrate suspended tabs from other tab suspension extensions</p>
         </div>
 
-        <div class="help-text" style="margin: 0 0 24px 0; padding: 12px; background: #ECFEFF; border-left: 3px solid var(--accent-blue); font-size: 13px; border-radius: 0 var(--radius-md) var(--radius-md) 0;">
+        <div class="help-text" style="margin: 0 0 24px 0; padding: 12px; background: var(--tint-info-bg); border-left: 3px solid var(--accent-blue); font-size: 13px; border-radius: 0 var(--radius-md) var(--radius-md) 0;">
           <div class="help-text" data-i18n="tabMigrationHelp">This feature allows you to convert suspended tabs from other tab suspension extensions (like The Marvellous Suspender) to ZeroRAM Suspender format, so you can continue using those tabs.</div>
           <div class="help-text" style="margin-top: 8px;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 2px;" aria-hidden="true"><path d="M9 18h6M10 21h4"></path><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.2 1.4 1.4 2.2h4.4c.2-.8.7-1.6 1.4-2.2A6 6 0 0 0 12 3z"></path></svg><strong data-i18n="migrationTip">Tip:</strong> <span data-i18n="migrationTipDesc">This tool can automatically detect both known and unknown versions of The Marvellous Suspender. If you find tabs from other similar extensions, they may also be detected.</span>
@@ -1363,7 +1366,7 @@
             <span data-i18n="themeSettings">Theme Settings</span>
           </h3>
           <div class="card-description" data-i18n="themeSettingsDesc">
-            Choose the appearance theme for the suspended tab page
+            Choose the appearance theme for the extension pages (popup, options, and suspended page)
           </div>
           <div class="form-group">
             <label for="themeMode" data-i18n="themeMode">Theme mode:</label>
@@ -1373,7 +1376,7 @@
               <option value="dark" data-i18n="themeDark">Dark theme</option>
             </select>
             <div class="help-text" data-i18n="themeHelpText">
-              The theme setting only applies to the suspended tab page. Auto mode will follow your system's dark/light theme preference.
+              The theme applies to the popup, options, and suspended pages. Already-suspended tabs need to be reloaded to pick up the change. Auto mode follows your system's dark/light theme preference.
             </div>
           </div>
         </div>
@@ -1466,9 +1469,9 @@
           <div class="card-description">
             <p><span class="item-title"><span data-i18n="version">Version</span>:</span> <span id="version"></span></p>
             <p><span class="item-title"><span data-i18n="description">Description</span>:</span> <span data-i18n="extDescription">Save memory by suspending idle tabs</span></p>
-            <p><span class="item-title"><span data-i18n="supportWebsite">Website</span>:</span> <a href="https://github.com/yhchiu/ZeroRAM-Suspender" target="_blank" style="color: var(--brand-strong); text-decoration: none;">github.com/yhchiu/ZeroRAM-Suspender</a></p>
-            <p><a href="https://github.com/yhchiu/ZeroRAM-Suspender/issues" target="_blank" style="color: var(--brand-strong); text-decoration: none; background-color: var(--surface); border: 1px solid var(--brand); padding: 8px 16px; border-radius: var(--radius-sm); display: inline-block; font-size: 14px; margin-top: 8px;" data-i18n="reportIssue">Report Bug or Request Feature</a></p>
-            <p><a href="https://chromewebstore.google.com/detail/zeroram-suspender/nlnebbghnncihbiabpnhemjamfmjappo" target="_blank" style="color: var(--brand-strong); text-decoration: none; background-color: #ECFEFF; border: 1px solid var(--brand); padding: 8px 16px; border-radius: var(--radius-sm); display: inline-flex; align-items: center; gap: 6px; font-size: 14px; margin-top: 8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.2 9.4l6.1-.9z"></path></svg><span data-i18n="rateUs">Rate us on Chrome Web Store</span></a></p>
+            <p><span class="item-title"><span data-i18n="supportWebsite">Website</span>:</span> <a href="https://github.com/yhchiu/ZeroRAM-Suspender" target="_blank" style="color: var(--brand-text); text-decoration: none;">github.com/yhchiu/ZeroRAM-Suspender</a></p>
+            <p><a href="https://github.com/yhchiu/ZeroRAM-Suspender/issues" target="_blank" style="color: var(--brand-text); text-decoration: none; background-color: var(--surface); border: 1px solid var(--brand); padding: 8px 16px; border-radius: var(--radius-sm); display: inline-block; font-size: 14px; margin-top: 8px;" data-i18n="reportIssue">Report Bug or Request Feature</a></p>
+            <p><a href="https://chromewebstore.google.com/detail/zeroram-suspender/nlnebbghnncihbiabpnhemjamfmjappo" target="_blank" style="color: var(--brand-text); text-decoration: none; background-color: var(--tint-info-bg); border: 1px solid var(--brand); padding: 8px 16px; border-radius: var(--radius-sm); display: inline-flex; align-items: center; gap: 6px; font-size: 14px; margin-top: 8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.2 9.4l6.1-.9z"></path></svg><span data-i18n="rateUs">Rate us on Chrome Web Store</span></a></p>
           </div>
         </div>
 
