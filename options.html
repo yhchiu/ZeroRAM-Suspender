@@ -507,7 +507,9 @@
 
     .btn {
       padding: 10px 20px;
-      border: none;
+      /* Transparent border keeps all variants the same height as
+         .btn-secondary, which has a visible 1px border */
+      border: 1px solid transparent;
       border-radius: 8px;
       font-size: 14px;
       font-weight: 500;
