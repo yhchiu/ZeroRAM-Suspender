@@ -210,7 +210,8 @@
     const li = document.createElement('li');
     li.textContent = text;
     li.setAttribute('role', 'menuitem');
-    li.tabIndex = 0;
+    // Roving tabindex: only one menu item is a tab stop at a time
+    li.tabIndex = -1;
     if (iconType) {
       li.setAttribute('data-icon', iconType);
     }
@@ -228,6 +229,12 @@
       }
     });
     menuEl.appendChild(li);
+  }
+
+  function addSeparator() {
+    const hr = document.createElement('hr');
+    hr.setAttribute('role', 'separator');
+    menuEl.appendChild(hr);
   }
 
   // Menu items depending on state
@@ -249,7 +256,7 @@
 
   // Add separator before bulk actions if we have single tab actions
   if ((!isPlaceholder && !isInternal) || (!isInternal && !isWhitelistedUrl)) {
-    menuEl.appendChild(document.createElement('hr'));
+    addSeparator();
   }
 
   // Selected tabs actions (force suspend/unsuspend)
@@ -272,7 +279,7 @@
 
     // Add separator after selected tabs actions
     if (suspendableTabs.length > 0 || unsuspendableTabs.length > 0) {
-      menuEl.appendChild(document.createElement('hr'));
+      addSeparator();
     }
   }
 
@@ -307,10 +314,37 @@
     await chrome.runtime.sendMessage({ command: 'unsuspendAll', withProgress: true });
   }, 'wake', false);
 
-  menuEl.appendChild(document.createElement('hr'));
+  addSeparator();
   addItem(getMessage('settingsMenu'), async () => {
     await chrome.runtime.openOptionsPage();
   }, 'settings');
+
+  // ARIA menu pattern: single tab stop plus ArrowUp/ArrowDown/Home/End
+  // navigation between items (separators are skipped automatically).
+  const menuItems = [...menuEl.querySelectorAll('li[role="menuitem"]')];
+  if (menuItems.length > 0) {
+    menuItems[0].tabIndex = 0;
+  }
+  menuEl.addEventListener('keydown', (e) => {
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key) || menuItems.length === 0) {
+      return;
+    }
+    e.preventDefault();
+    const current = menuItems.indexOf(document.activeElement);
+    let next;
+    if (e.key === 'ArrowDown') {
+      next = current < 0 ? 0 : (current + 1) % menuItems.length;
+    } else if (e.key === 'ArrowUp') {
+      next = current < 0 ? menuItems.length - 1 : (current - 1 + menuItems.length) % menuItems.length;
+    } else if (e.key === 'Home') {
+      next = 0;
+    } else {
+      next = menuItems.length - 1;
+    }
+    menuItems.forEach(item => { item.tabIndex = -1; });
+    menuItems[next].tabIndex = 0;
+    menuItems[next].focus();
+  });
 
   // --- helper to add to whitelist ---
   async function modifyWhitelist(entry) {
