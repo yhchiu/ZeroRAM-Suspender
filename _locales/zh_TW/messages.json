@@ -366,7 +366,7 @@
     "message": "擴展 ID"
   },
   "migrationTip": {
-    "message": "💡 提示："
+    "message": "提示："
   },
   "migrationTipDesc": {
     "message": "此功能可以自動偵測並遷移來自其他分頁休眠套件的已休眠分頁。支援偵測已知和未知的版本變體。每次切換到此頁面時，會自動重設掃描狀態。"
@@ -621,7 +621,7 @@
     "message": "回報錯誤或請求功能"
   },
   "rateUs": {
-    "message": "⭐ 在 Chrome 線上應用程式商店評分"
+    "message": "在 Chrome 線上應用程式商店評分"
   },
   "themeSettings": {
     "message": "主題設定"

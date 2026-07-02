@@ -366,7 +366,7 @@
     "message": "Extension ID"
   },
   "migrationTip": {
-    "message": "💡 Tip:"
+    "message": "Tip:"
   },
   "migrationTipDesc": {
     "message": "This feature can automatically detect and migrate suspended tabs from other tab suspension extensions. It supports detecting both known and unknown variants. The scan state will be automatically reset each time you switch to this page."
@@ -621,7 +621,7 @@
     "message": "Report Bug or Request Feature"
   },
   "rateUs": {
-    "message": "⭐ Rate us on Chrome Web Store"
+    "message": "Rate us on Chrome Web Store"
   },
   "themeSettings": {
     "message": "Theme Settings"

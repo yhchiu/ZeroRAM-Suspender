@@ -1381,7 +1381,7 @@ async function loadChangelog() {
     // Show loading state
     changelogContent.innerHTML = `
       <div class="loading-state" style="text-align: center; padding: 40px; color: #666;">
-        <div style="font-size: 24px; margin-bottom: 12px;">⏳</div>
+        <div style="margin-bottom: 12px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></div>
         <span data-i18n="loadingChanges">Loading change log...</span>
       </div>
     `;
@@ -1400,7 +1400,7 @@ async function loadChangelog() {
     if (changelog.length === 0) {
       changelogContent.innerHTML = `
         <div class="empty-state">
-          <div class="icon">📝</div>
+          <div class="icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M9 13h6M9 17h4"></path></svg></div>
           <h3 data-i18n="noChangesFound">No version changes found</h3>
         </div>
       `;
@@ -1414,7 +1414,7 @@ async function loadChangelog() {
     console.error('Failed to load changelog:', error);
     changelogContent.innerHTML = `
       <div class="empty-state">
-        <div class="icon">❌</div>
+        <div class="icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M15 9l-6 6M9 9l6 6"></path></svg></div>
         <h3 data-i18n="failedToLoadChanges">Failed to load change log</h3>
         <p style="color: #999; font-size: 12px;">${error.message}</p>
       </div>
@@ -1607,7 +1607,7 @@ function renderChangelog(changelog, container) {
         const icon = getChangeIcon(change.type);
         return `
           <li class="changelog-item" style="margin-bottom: 8px; display: flex; align-items: flex-start; gap: 8px;">
-            <span style="font-size: 14px; margin-top: 2px; width: 16px; text-align: center; flex-shrink: 0;">${icon}</span>
+            <span style="display: inline-flex; margin-top: 2px; width: 16px; justify-content: center; flex-shrink: 0; color: ${getChangeColor(change.type)};">${icon}</span>
             <div style="flex: 1;">
               <span style="font-weight: 500; color: ${getChangeColor(change.type)}; text-transform: capitalize;">${change.type}:</span>
               <span style="margin-left: 4px;">${escapeHtml(change.description)}</span>
@@ -1638,17 +1638,18 @@ function renderChangelog(changelog, container) {
   container.innerHTML = html;
 }
 
-// Get icon for change type
+// Get icon for change type (inline SVG, stroke follows currentColor)
 function getChangeIcon(type) {
+  const svg = (paths) => `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
   const icons = {
-    added: '✨',
-    fixed: '🐛',
-    changed: '🔄',
-    removed: '🗑️',
-    improved: '⚡',
-    security: '🔒'
+    added: svg('<path d="M12 3l1.9 5.1 5.1 1.9-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"></path><path d="M19 15l.7 1.8 1.8.7-1.8.7L19 20l-.7-1.8-1.8-.7 1.8-.7z"></path>'),
+    fixed: svg('<circle cx="12" cy="13" r="6"></circle><path d="M12 7v12M12 7a3 3 0 0 1 3-3M12 7a3 3 0 0 0-3-3M6 13H3M21 13h-3M7.5 8.5L5 6M16.5 8.5L19 6M7.5 17.5L5 20M16.5 17.5L19 20"></path>'),
+    changed: svg('<path d="M4 12a8 8 0 0 1 13.7-5.6L20 8M20 4v4h-4"></path><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16M4 20v-4h4"></path>'),
+    removed: svg('<path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"></path>'),
+    improved: svg('<path d="M13 2L4.5 13H11l-1 9 8.5-11H12z"></path>'),
+    security: svg('<rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path>')
   };
-  return icons[type] || '📝';
+  return icons[type] || svg('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M9 13h6M9 17h4"></path>');
 }
 
 // Get color for change type
@@ -2865,7 +2866,7 @@ function renderNoSuspendedTabsState(container, filterMode) {
 
   container.innerHTML = `
     <div class="suspended-tabs-empty-state">
-      <span class="suspended-tabs-empty-icon">\uD83D\uDCA4</span>
+      <span class="suspended-tabs-empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></span>
       <div class="suspended-tabs-empty-desc">${escapeHtml(emptyDesc)}</div>
     </div>
   `;

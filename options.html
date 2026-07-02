@@ -192,6 +192,33 @@
       text-align: left;
     }
 
+    .card-icon {
+      display: inline-flex;
+      color: #0D9488;
+      flex-shrink: 0;
+    }
+
+    .card-icon svg {
+      width: 17px;
+      height: 17px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .btn svg {
+      width: 15px;
+      height: 15px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
     .card-description {
       color: #64748B;
       font-size: 13px;
@@ -704,7 +731,7 @@
 
         <div class="card">
           <div class="card-title">
-            <span style="display:inline-flex"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0D9488" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>
+            <span class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>
             <span data-i18n="autoSuspendTitle">Auto Suspend</span>
           </div>
           <div class="card-description" data-i18n="autoSuspendDesc">
@@ -755,7 +782,7 @@
 
         <div class="card">
           <div class="card-title">
-            <span style="display:inline-flex"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="11" rx="2"></rect><path d="M7 7V5M12 7V5M17 7V5M7 18v2M12 18v2M17 18v2"></path></svg></span>
+            <span class="card-icon" style="color: #2563EB"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="11" rx="2"></rect><path d="M7 7V5M12 7V5M17 7V5M7 18v2M12 18v2M17 18v2"></path></svg></span>
             <span data-i18n="memoryOptimization">Memory Optimization</span>
           </div>
           <div class="card-description" data-i18n="memoryOptimizationDesc">
@@ -784,7 +811,7 @@
 
         <div class="card">
           <div class="card-title">
-            <span>🚫</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.4-3 7.8-7 9-4-1.2-7-4.6-7-9V6z"></path><path d="M9.5 12l1.8 1.8L15 10"></path></svg></span>
             <span data-i18n="whitelistRules">Whitelist Rules</span>
           </div>
           <div class="card-description" data-i18n="whitelistHelp">
@@ -794,7 +821,7 @@
             <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
               <label for="whitelistList" data-i18n="whitelistLabel">URL or domain list:</label>
               <button id="refreshWhitelistBtn" class="btn" style="background: #e1e5e9; color: #333;">
-                <span>🔄</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8M20 4v4h-4"></path><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16M4 20v-4h4"></path></svg>
                 <span data-i18n="refresh">Refresh</span>
               </button>
             </div>
@@ -818,7 +845,7 @@
 
         <div class="card">
           <div class="card-title">
-            <span>📤</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5M12 3v12"></path></svg></span>
             <span data-i18n="exportSettings">Export Settings</span>
           </div>
           <div class="card-description" data-i18n="exportSettingsDesc">
@@ -827,11 +854,11 @@
           <div class="form-group">
             <div style="display: flex; gap: 8px; margin-bottom: 16px;">
               <button id="previewSettingsBtn" class="btn" style="background: #17a2b8; color: white;">
-                <span>👁️</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-7.5 11-7.5S23 12 23 12s-4 7.5-11 7.5S1 12 1 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 <span data-i18n="preview">Preview</span>
               </button>
               <button id="exportSettingsBtn" class="btn btn-primary">
-                <span>📤</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5M12 3v12"></path></svg>
                 <span data-i18n="export">Export</span>
               </button>
             </div>
@@ -850,7 +877,7 @@
 
         <div class="card">
           <div class="card-title">
-            <span>📥</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5M12 15V3"></path></svg></span>
             <span data-i18n="importSettings">Import Settings</span>
           </div>
           <div class="card-description" data-i18n="importSettingsDesc">
@@ -862,11 +889,11 @@
             
             <div style="display: flex; gap: 8px; margin-bottom: 16px;">
               <button id="previewImportSettingsBtn" class="btn" style="background: #17a2b8; color: white;">
-                <span>👁️</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-7.5 11-7.5S23 12 23 12s-4 7.5-11 7.5S1 12 1 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 <span data-i18n="preview">Preview</span>
               </button>
               <button id="importSettingsBtn" class="btn btn-primary">
-                <span>📥</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5M12 15V3"></path></svg>
                 <span data-i18n="import">Import</span>
               </button>
             </div>
@@ -885,7 +912,7 @@
 
         <div class="card">
           <div class="card-title">
-            <span>🔄</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8M20 4v4h-4"></path><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16M4 20v-4h4"></path></svg></span>
             <span data-i18n="resetSettings">Reset Settings</span>
           </div>
           <div class="card-description" data-i18n="resetSettingsDesc">
@@ -893,14 +920,14 @@
           </div>
           <div class="form-group">
             <div style="padding: 12px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; margin-bottom: 16px;">
-              <div style="color: #856404; font-weight: 500; margin-bottom: 4px;">⚠️ <span data-i18n="warning">Warning</span></div>
+              <div style="color: #856404; font-weight: 500; margin-bottom: 4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><path d="M12 9v4M12 17h.01"></path></svg><span data-i18n="warning">Warning</span></div>
               <div style="color: #856404; font-size: 13px;" data-i18n="resetWarning">
                 This action will permanently delete all your current settings and restore defaults. This cannot be undone.
               </div>
             </div>
             
             <button id="resetSettingsBtn" class="btn" style="background: #dc3545; color: white;">
-              <span>🔄</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8M20 4v4h-4"></path><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16M4 20v-4h4"></path></svg>
               <span data-i18n="resetToDefaults">Reset to Defaults</span>
             </button>
             
@@ -920,7 +947,7 @@
 
         <div class="card">
           <div class="card-title">
-            <span>📤</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5M12 3v12"></path></svg></span>
             <span data-i18n="exportSessions">Export Sessions</span>
           </div>
           <div class="card-description" data-i18n="exportSessionsDesc">
@@ -934,11 +961,11 @@
                 <option value="txt" data-i18n="formatTxt">TXT</option>
               </select>
               <button id="exportPreviewBtn" class="btn" style="background: #17a2b8; color: white;">
-                <span>👁️</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-7.5 11-7.5S23 12 23 12s-4 7.5-11 7.5S1 12 1 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 <span data-i18n="preview">Preview</span>
               </button>
               <button id="exportBtn" class="btn btn-primary">
-                <span>📤</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5M12 3v12"></path></svg>
                 <span data-i18n="export">Export</span>
               </button>
             </div>
@@ -958,7 +985,7 @@
 
         <div class="card">
           <div class="card-title">
-            <span>📥</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5M12 15V3"></path></svg></span>
             <span data-i18n="importSessions">Import Sessions</span>
           </div>
           <div class="card-description" data-i18n="importSessionsDesc">
@@ -980,11 +1007,11 @@
             
             <div style="display: flex; gap: 8px;">
               <button id="previewSessionBtn" class="btn" style="background: #17a2b8; color: white;">
-                <span>👁️</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-7.5 11-7.5S23 12 23 12s-4 7.5-11 7.5S1 12 1 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 <span data-i18n="preview">Preview</span>
               </button>
               <button id="importSessionBtn" class="btn btn-primary">
-                <span>📥</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5M12 15V3"></path></svg>
                 <span data-i18n="import">Import</span>
               </button>
             </div>
@@ -1005,7 +1032,7 @@
         <div id="importProgressContainer" style="display: none; margin-top: 16px;">
           <div class="card">
             <div class="card-title">
-              <span>⏳</span>
+              <span class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>
               <span data-i18n="importProgress">Import Progress</span>
             </div>
             <div style="margin-bottom: 8px; font-size: 14px; color: #666;">
@@ -1028,7 +1055,7 @@
 
         <div class="card">
           <div class="card-title">
-            <span>⌨️</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="11" rx="2"></rect><path d="M7 11h.01M11 11h.01M15 11h.01M8 15h8"></path></svg></span>
             <span data-i18n="shortcutsList">Available Shortcuts</span>
           </div>
           <div class="card-description" data-i18n="shortcutsHelp">
@@ -1042,11 +1069,11 @@
             </div>
             <div style="display: flex; gap: 8px;">
               <button id="manageShortcutsBtn" class="btn btn-primary">
-                <span>⚙️</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 <span data-i18n="manageShortcuts">Manage Shortcuts</span>
               </button>
               <button id="refreshShortcutsBtn" class="btn" style="background: #e1e5e9; color: #333;">
-                <span>🔄</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8M20 4v4h-4"></path><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16M4 20v-4h4"></path></svg>
                 <span data-i18n="refresh">Refresh</span>
               </button>
             </div>
@@ -1063,7 +1090,7 @@
 
         <div class="card">
           <div class="card-title">
-            <span>😴</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></span>
             <span data-i18n="suspendedTabsViewer">Suspended Tabs Viewer</span>
           </div>
           <div class="card-description" data-i18n="suspendedTabsViewerDesc">
@@ -1082,7 +1109,7 @@
               </select>
             </div>
             <button id="showSuspendedTabsBtn" class="btn" style="background: #17a2b8; color: white; margin-bottom: 16px;">
-              <span>📊</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg>
               <span data-i18n="showSuspendedTabs">Show Suspended Tabs</span>
             </button>
             <div id="suspendedTabsInfo" style="display: none;">
@@ -1105,13 +1132,13 @@
         <div class="help-text" style="margin: 0 0 24px 0; padding: 12px; background: #f0f9ff; border-left: 3px solid #3b82f6; font-size: 13px; border-radius: 0 8px 8px 0;">
           <div class="help-text" data-i18n="tabMigrationHelp">This feature allows you to convert suspended tabs from other tab suspension extensions (like The Marvellous Suspender) to ZeroRAM Suspender format, so you can continue using those tabs.</div>
           <div class="help-text" style="margin-top: 8px;">
-            <strong data-i18n="migrationTip">💡 Tip:</strong> <span data-i18n="migrationTipDesc">This tool can automatically detect both known and unknown versions of The Marvellous Suspender. If you find tabs from other similar extensions, they may also be detected.</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 2px;" aria-hidden="true"><path d="M9 18h6M10 21h4"></path><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.2 1.4 1.4 2.2h4.4c.2-.8.7-1.6 1.4-2.2A6 6 0 0 0 12 3z"></path></svg><strong data-i18n="migrationTip">Tip:</strong> <span data-i18n="migrationTipDesc">This tool can automatically detect both known and unknown versions of The Marvellous Suspender. If you find tabs from other similar extensions, they may also be detected.</span>
           </div>
         </div>
 
         <div class="card">
           <div class="card-title">
-            <span>🔍</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.35-4.35"></path></svg></span>
             <span data-i18n="marvellousTabDetection">The Marvellous Suspender Tab Detection</span>
           </div>
           <div class="card-description" data-i18n="marvellousTabDetectionDesc">
@@ -1119,7 +1146,7 @@
           </div>
           <div class="form-group">
             <button id="scanMarvellousBtn" class="btn btn-primary" style="margin-bottom: 16px;">
-              <span>🔍</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.35-4.35"></path></svg>
               <span data-i18n="scanForMarvellousTab">Scan for The Marvellous Suspender tabs</span>
             </button>
             <div id="migrationResults" style="display: none;">
@@ -1146,7 +1173,7 @@
                   </div>
                 </div>
                 <button id="migrateSelectedBtn" class="btn btn-primary" style="margin-top: 16px;">
-                  <span>🔄</span>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8M20 4v4h-4"></path><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16M4 20v-4h4"></path></svg>
                   <span data-i18n="migrateSelected">Migrate selected tabs</span>
                 </button>
               </div>
@@ -1156,7 +1183,7 @@
 
         <div class="card">
           <div class="card-title">
-            <span>🔍</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.35-4.35"></path></svg></span>
             <span data-i18n="tabSuspenderDetection">Tab Suspender Tab Detection</span>
           </div>
           <div class="card-description" data-i18n="tabSuspenderDetectionDesc">
@@ -1164,7 +1191,7 @@
           </div>
           <div class="form-group">
             <button id="scanTabSuspenderBtn" class="btn btn-primary" style="margin-bottom: 16px;">
-              <span>🔍</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.35-4.35"></path></svg>
               <span data-i18n="scanForTabSuspenderTab">Scan for Tab Suspender tabs</span>
             </button>
             <div id="tabSuspenderResults" style="display: none;">
@@ -1191,7 +1218,7 @@
                   </div>
                 </div>
                 <button id="migrateTabSuspenderBtn" class="btn btn-primary" style="margin-top: 16px;">
-                  <span>🔄</span>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8M20 4v4h-4"></path><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16M4 20v-4h4"></path></svg>
                   <span data-i18n="migrateSelected">Migrate selected tabs</span>
                 </button>
               </div>
@@ -1201,7 +1228,7 @@
 
         <div class="card">
           <div class="card-title">
-            <span>🛠️</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg></span>
             <span data-i18n="customTabDetection">Custom Suspended Tab Detection</span>
           </div>
           <div class="card-description" data-i18n="customTabDetectionDesc">
@@ -1244,11 +1271,11 @@
             
             <div style="display: flex; gap: 8px; margin-bottom: 16px;">
               <button id="testCustomPatternBtn" class="btn" style="background: #17a2b8; color: white;">
-                <span>🧪</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3v6l-5.2 9a2 2 0 0 0 1.7 3h11a2 2 0 0 0 1.7-3L14 9V3"></path><path d="M8.5 3h7M7.5 15h9"></path></svg>
                 <span data-i18n="testPattern">Test Pattern</span>
               </button>
               <button id="scanCustomBtn" class="btn btn-primary">
-                <span>🔍</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.35-4.35"></path></svg>
                 <span data-i18n="scanCustomTabs">Scan for Custom Tabs</span>
               </button>
             </div>
@@ -1277,7 +1304,7 @@
                   </div>
                 </div>
                 <button id="migrateCustomBtn" class="btn btn-primary" style="margin-top: 16px;">
-                  <span>🔄</span>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8M20 4v4h-4"></path><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16M4 20v-4h4"></path></svg>
                   <span data-i18n="migrateSelected">Migrate selected tabs</span>
                 </button>
               </div>
@@ -1295,7 +1322,7 @@
 
         <div class="card">
           <div class="card-title">
-            <span>🎨</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 .55 17.98c.97-.05 1.45-.83 1.45-1.57 0-.46-.18-.88-.47-1.19-.3-.31-.48-.73-.48-1.2a1.7 1.7 0 0 1 1.7-1.7h2.02A5.23 5.23 0 0 0 22 10.1C21.7 6.06 17.3 3 12 3z"></path><path d="M7.5 12h.01M9 7.5h.01M13.5 6.5h.01M17 9.5h.01"></path></svg></span>
             <span data-i18n="themeSettings">Theme Settings</span>
           </div>
           <div class="card-description" data-i18n="themeSettingsDesc">
@@ -1316,7 +1343,7 @@
 
         <div class="card">
           <div class="card-title">
-            <span>💤</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></span>
             <span data-i18n="suspendedIndicatorTitle">Suspended Tab Indicator</span>
           </div>
           <div class="card-description" data-i18n="suspendedIndicatorDesc">
@@ -1336,7 +1363,7 @@
 
         <div class="card">
           <div class="card-title">
-            <span>🖼️</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M8.5 9.5h.01"></path><path d="M21 15l-4.5-4.5L5.5 20"></path></svg></span>
             <span data-i18n="fixFaviconSectionTitle">Suspended Favicon Fix</span>
           </div>
           <div class="card-description" data-i18n="fixFaviconSectionDesc">
@@ -1369,7 +1396,7 @@
 
         <div class="card">
           <div class="card-title">
-            <span>⚡</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24"><path d="M13 2L4.5 13H11l-1 9 8.5-11H12z"></path></svg></span>
             <span data-i18n="bulkConcurrencyTitle">Bulk Suspension Concurrency</span>
           </div>
           <div class="card-description" data-i18n="bulkConcurrencyDesc">
@@ -1404,13 +1431,13 @@
             <p><span class="item-title"><span data-i18n="description">Description</span>:</span> <span data-i18n="extDescription">Save memory by suspending idle tabs</span></p>
             <p><span class="item-title"><span data-i18n="supportWebsite">Website</span>:</span> <a href="https://github.com/yhchiu/ZeroRAM-Suspender" target="_blank" style="color: #0F766E; text-decoration: none;">github.com/yhchiu/ZeroRAM-Suspender</a></p>
             <p><a href="https://github.com/yhchiu/ZeroRAM-Suspender/issues" target="_blank" style="color: #0F766E; text-decoration: none; background-color: #f8f9fa; border: 1px solid #0D9488; padding: 8px 16px; border-radius: 4px; display: inline-block; font-size: 14px; margin-top: 8px;" data-i18n="reportIssue">Report Bug or Request Feature</a></p>
-            <p><a href="https://chromewebstore.google.com/detail/zeroram-suspender/nlnebbghnncihbiabpnhemjamfmjappo" target="_blank" style="color: #0F766E; text-decoration: none; background-color: #f0f8ff; border: 1px solid #0D9488; padding: 8px 16px; border-radius: 4px; display: inline-block; font-size: 14px; margin-top: 8px;" data-i18n="rateUs">⭐ Rate us on Chrome Web Store</a></p>
+            <p><a href="https://chromewebstore.google.com/detail/zeroram-suspender/nlnebbghnncihbiabpnhemjamfmjappo" target="_blank" style="color: #0F766E; text-decoration: none; background-color: #f0f8ff; border: 1px solid #0D9488; padding: 8px 16px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; margin-top: 8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.2 9.4l6.1-.9z"></path></svg><span data-i18n="rateUs">Rate us on Chrome Web Store</span></a></p>
           </div>
         </div>
 
         <div class="card">
           <div class="card-title">
-            <span>🔒</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></span>
             <span data-i18n="privacyNotice">Privacy Notice</span>
           </div>
           <div class="card-description">
@@ -1420,7 +1447,7 @@
 
         <div class="card">
           <div class="card-title">
-            <span>📜</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M9 13h6M9 17h4"></path></svg></span>
             <span data-i18n="licenseCredits">License & Credits</span>
           </div>
           <div class="card-description">
@@ -1439,7 +1466,7 @@
 
         <div id="changelogContent">
           <div class="loading-state" style="text-align: center; padding: 40px; color: #666;">
-            <div style="font-size: 24px; margin-bottom: 12px;">⏳</div>
+            <div style="margin-bottom: 12px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></div>
             <span data-i18n="loadingChanges">Loading change log...</span>
           </div>
         </div>
@@ -1448,9 +1475,9 @@
       <!-- Action Bar -->
       <div class="action-bar">
         <div class="status-message" id="status"></div>
-        <button id="saveBtn" class="btn btn-primary" data-i18n="saveButton">
-          <span>💾</span>
-          <span>Save</span>
+        <button id="saveBtn" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><path d="M17 21v-8H7v8M7 3v5h8"></path></svg>
+          <span data-i18n="saveButton">Save</span>
         </button>
       </div>
     </main>

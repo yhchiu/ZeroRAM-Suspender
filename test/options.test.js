@@ -80,9 +80,12 @@ describe('pure helpers', () => {
 
   test('getChangeIcon / getChangeColor map types with fallbacks', () => {
     const { options } = load();
-    expect(options.getChangeIcon('added')).toBe('✨');
-    expect(options.getChangeIcon('fixed')).toBe('🐛');
-    expect(options.getChangeIcon('mystery')).toBe('📝');
+    expect(options.getChangeIcon('added')).toContain('<svg');
+    expect(options.getChangeIcon('fixed')).toContain('<svg');
+    expect(options.getChangeIcon('fixed')).not.toBe(options.getChangeIcon('added'));
+    // Unknown types fall back to the default document icon
+    expect(options.getChangeIcon('mystery')).toContain('<svg');
+    expect(options.getChangeIcon('mystery')).toBe(options.getChangeIcon('unknown'));
     expect(options.getChangeColor('added')).toBe('#28a745');
     expect(options.getChangeColor('mystery')).toBe('#6c757d');
   });
