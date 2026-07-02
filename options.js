@@ -1038,7 +1038,7 @@ function displayExtensionTabs(tabs, container) {
       background: white;
       border-radius: 6px;
       border: 1px solid var(--border);
-      transition: all 0.2s ease;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
     `;
     
     const variantBadge = tabData.isUnknownVariant 
