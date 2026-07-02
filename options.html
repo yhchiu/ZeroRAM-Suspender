@@ -251,16 +251,28 @@
       text-align: left;
     }
 
-    input[type="number"] {
-      width: 120px;
+    input[type="number"],
+    input[type="text"],
+    input[type="file"],
+    select {
       padding: 10px 12px;
       border: 2px solid var(--border);
       border-radius: 8px;
       font-size: 14px;
-      transition: all 0.2s ease;
+      background: #fff;
+      color: var(--text-body);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
-    input[type="number"]:focus {
+    input[type="number"] {
+      width: 120px;
+    }
+
+    input[type="number"]:focus,
+    input[type="text"]:focus,
+    input[type="file"]:focus,
+    select:focus,
+    textarea:focus {
       outline: none;
       border-color: var(--brand);
       box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
@@ -292,12 +304,6 @@
       line-height: 1.4;
       resize: vertical;
       transition: all 0.2s ease;
-    }
-
-    textarea:focus {
-      outline: none;
-      border-color: var(--brand-strong);
-      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
     }
 
     .help-text {
@@ -484,17 +490,7 @@
       min-width: 260px;
       max-width: 100%;
       padding: 8px 10px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      background: #fff;
-      color: var(--text-body);
       font-size: 13px;
-    }
-
-    .viewer-filter-select:focus {
-      outline: none;
-      border-color: var(--brand-strong);
-      box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.12);
     }
 
     /* Action Bar */
@@ -530,6 +526,34 @@
 
     .btn-primary:hover {
       background: var(--brand-strong);
+    }
+
+    .btn-secondary {
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+
+    .btn-info {
+      background: var(--info);
+      color: white;
+    }
+
+    .btn-info:hover {
+      background: var(--info-strong);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: var(--danger-strong);
     }
 
     .status-message {
@@ -820,7 +844,7 @@
           <div class="form-group">
             <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
               <label for="whitelistList" data-i18n="whitelistLabel">URL or domain list:</label>
-              <button id="refreshWhitelistBtn" class="btn" style="background: var(--border); color: var(--text-body);">
+              <button id="refreshWhitelistBtn" class="btn btn-secondary">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8M20 4v4h-4"></path><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16M4 20v-4h4"></path></svg>
                 <span data-i18n="refresh">Refresh</span>
               </button>
@@ -853,7 +877,7 @@
           </div>
           <div class="form-group">
             <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-              <button id="previewSettingsBtn" class="btn" style="background: var(--info); color: white;">
+              <button id="previewSettingsBtn" class="btn btn-info">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-7.5 11-7.5S23 12 23 12s-4 7.5-11 7.5S1 12 1 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 <span data-i18n="preview">Preview</span>
               </button>
@@ -885,10 +909,10 @@
           </div>
           <div class="form-group">
             <label for="settingsFileInput" data-i18n="selectSettingsFile">Select settings file:</label>
-            <input type="file" id="settingsFileInput" accept=".json" style="margin-bottom: 16px; padding: 8px; border: 1px solid var(--border); border-radius: 8px; width: 100%;">
+            <input type="file" id="settingsFileInput" accept=".json" style="margin-bottom: 16px; width: 100%;">
             
             <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-              <button id="previewImportSettingsBtn" class="btn" style="background: var(--info); color: white;">
+              <button id="previewImportSettingsBtn" class="btn btn-info">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-7.5 11-7.5S23 12 23 12s-4 7.5-11 7.5S1 12 1 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 <span data-i18n="preview">Preview</span>
               </button>
@@ -926,7 +950,7 @@
               </div>
             </div>
             
-            <button id="resetSettingsBtn" class="btn" style="background: var(--danger); color: white;">
+            <button id="resetSettingsBtn" class="btn btn-danger">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8M20 4v4h-4"></path><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16M4 20v-4h4"></path></svg>
               <span data-i18n="resetToDefaults">Reset to Defaults</span>
             </button>
@@ -956,11 +980,11 @@
           <div class="form-group">
             <label for="exportFormat" data-i18n="exportFormat">Export format:</label>
             <div style="display: flex; gap: 8px; margin-bottom: 16px; align-items: center;">
-              <select id="exportFormat" style="padding: 8px 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; min-width: 120px;">
+              <select id="exportFormat" style="min-width: 120px;">
                 <option value="json" data-i18n="formatJson">JSON</option>
                 <option value="txt" data-i18n="formatTxt">TXT</option>
               </select>
-              <button id="exportPreviewBtn" class="btn" style="background: var(--info); color: white;">
+              <button id="exportPreviewBtn" class="btn btn-info">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-7.5 11-7.5S23 12 23 12s-4 7.5-11 7.5S1 12 1 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 <span data-i18n="preview">Preview</span>
               </button>
@@ -993,7 +1017,7 @@
           </div>
           <div class="form-group">
             <label for="sessionFileInput" data-i18n="selectSessionFile">Select session file:</label>
-            <input type="file" id="sessionFileInput" accept=".txt,.json" style="margin-bottom: 16px; padding: 8px; border: 1px solid var(--border); border-radius: 8px; width: 100%;">
+            <input type="file" id="sessionFileInput" accept=".txt,.json" style="margin-bottom: 16px; width: 100%;">
             
             <div class="form-group">
               <label class="checkbox-group">
@@ -1006,7 +1030,7 @@
             </div>
             
             <div style="display: flex; gap: 8px;">
-              <button id="previewSessionBtn" class="btn" style="background: var(--info); color: white;">
+              <button id="previewSessionBtn" class="btn btn-info">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-7.5 11-7.5S23 12 23 12s-4 7.5-11 7.5S1 12 1 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 <span data-i18n="preview">Preview</span>
               </button>
@@ -1072,7 +1096,7 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 <span data-i18n="manageShortcuts">Manage Shortcuts</span>
               </button>
-              <button id="refreshShortcutsBtn" class="btn" style="background: var(--border); color: var(--text-body);">
+              <button id="refreshShortcutsBtn" class="btn btn-secondary">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8M20 4v4h-4"></path><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16M4 20v-4h4"></path></svg>
                 <span data-i18n="refresh">Refresh</span>
               </button>
@@ -1108,7 +1132,7 @@
                 <option value="not-suspended" data-i18n="tabViewerFilterNotSuspended">Not suspended</option>
               </select>
             </div>
-            <button id="showSuspendedTabsBtn" class="btn" style="background: var(--info); color: white; margin-bottom: 16px;">
+            <button id="showSuspendedTabsBtn" class="btn btn-info" style="margin-bottom: 16px;">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg>
               <span data-i18n="showSuspendedTabs">Show Suspended Tabs</span>
             </button>
@@ -1153,10 +1177,10 @@
               <div id="migrationStatus" style="margin-bottom: 16px; font-weight: 500;"></div>
               <div id="tabsList" style="display: none;">
                 <div style="margin-bottom: 12px; display: flex; gap: 8px;">
-                  <button id="selectAllBtn" class="btn" style="background: var(--border); color: var(--text-body);">
+                  <button id="selectAllBtn" class="btn btn-secondary">
                     <span data-i18n="selectAllTabs">Select All</span>
                   </button>
-                  <button id="deselectAllBtn" class="btn" style="background: var(--border); color: var(--text-body);">
+                  <button id="deselectAllBtn" class="btn btn-secondary">
                     <span data-i18n="deselectAllTabs">Deselect All</span>
                   </button>
                 </div>
@@ -1198,10 +1222,10 @@
               <div id="tabSuspenderStatus" style="margin-bottom: 16px; font-weight: 500;"></div>
               <div id="tabSuspenderTabsList" style="display: none;">
                 <div style="margin-bottom: 12px; display: flex; gap: 8px;">
-                  <button id="selectAllTabSuspenderBtn" class="btn" style="background: var(--border); color: var(--text-body);">
+                  <button id="selectAllTabSuspenderBtn" class="btn btn-secondary">
                     <span data-i18n="selectAllTabs">Select All</span>
                   </button>
-                  <button id="deselectAllTabSuspenderBtn" class="btn" style="background: var(--border); color: var(--text-body);">
+                  <button id="deselectAllTabSuspenderBtn" class="btn btn-secondary">
                     <span data-i18n="deselectAllTabs">Deselect All</span>
                   </button>
                 </div>
@@ -1243,34 +1267,34 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
               <div>
                 <label for="customExtensionId" data-i18n="extensionIdLabel">Extension ID:</label>
-                <input type="text" id="customExtensionId" placeholder="abcdefghijklmnopqrstuvwxyz123456" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 4px; font-family: var(--font-mono);">
+                <input type="text" id="customExtensionId" placeholder="abcdefghijklmnopqrstuvwxyz123456" style="width: 100%; font-family: var(--font-mono);">
               </div>
               <div>
                 <label for="customPath" data-i18n="pathLabel">Path:</label>
-                <input type="text" id="customPath" placeholder="suspended.html" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 4px; font-family: var(--font-mono);">
+                <input type="text" id="customPath" placeholder="suspended.html" style="width: 100%; font-family: var(--font-mono);">
               </div>
             </div>
             
             <div style="display: grid; grid-template-columns: auto 1fr 1fr; gap: 16px; margin-bottom: 16px;">
               <div>
                 <label for="customSeparator" data-i18n="separatorLabel">Separator:</label>
-                <select id="customSeparator" style="padding: 8px; border: 1px solid var(--border); border-radius: 4px;">
+                <select id="customSeparator">
                   <option value="?">? (Query String)</option>
                   <option value="#"># (Hash Fragment)</option>
                 </select>
               </div>
               <div>
                 <label for="customTitleParam" data-i18n="titleParamLabel">Title Parameter:</label>
-                <input type="text" id="customTitleParam" placeholder="title" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 4px; font-family: var(--font-mono);">
+                <input type="text" id="customTitleParam" placeholder="title" style="width: 100%; font-family: var(--font-mono);">
               </div>
               <div>
                 <label for="customUrlParam" data-i18n="urlParamLabel">URL Parameter:</label>
-                <input type="text" id="customUrlParam" placeholder="url" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 4px; font-family: var(--font-mono);">
+                <input type="text" id="customUrlParam" placeholder="url" style="width: 100%; font-family: var(--font-mono);">
               </div>
             </div>
             
             <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-              <button id="testCustomPatternBtn" class="btn" style="background: var(--info); color: white;">
+              <button id="testCustomPatternBtn" class="btn btn-info">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3v6l-5.2 9a2 2 0 0 0 1.7 3h11a2 2 0 0 0 1.7-3L14 9V3"></path><path d="M8.5 3h7M7.5 15h9"></path></svg>
                 <span data-i18n="testPattern">Test Pattern</span>
               </button>
@@ -1284,10 +1308,10 @@
               <div id="customStatus" style="margin-bottom: 16px; font-weight: 500;"></div>
               <div id="customTabsList" style="display: none;">
                 <div style="margin-bottom: 12px; display: flex; gap: 8px;">
-                  <button id="selectAllCustomBtn" class="btn" style="background: var(--border); color: var(--text-body);">
+                  <button id="selectAllCustomBtn" class="btn btn-secondary">
                     <span data-i18n="selectAllTabs">Select All</span>
                   </button>
-                  <button id="deselectAllCustomBtn" class="btn" style="background: var(--border); color: var(--text-body);">
+                  <button id="deselectAllCustomBtn" class="btn btn-secondary">
                     <span data-i18n="deselectAllTabs">Deselect All</span>
                   </button>
                 </div>
@@ -1330,7 +1354,7 @@
           </div>
           <div class="form-group">
             <label for="themeMode" data-i18n="themeMode">Theme mode:</label>
-            <select id="themeMode" style="padding: 10px 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; transition: all 0.2s ease; min-width: 180px;">
+            <select id="themeMode" style="min-width: 180px;">
               <option value="auto" data-i18n="themeAuto">Follow system/browser theme</option>
               <option value="light" data-i18n="themeLight">Light theme</option>
               <option value="dark" data-i18n="themeDark">Dark theme</option>
@@ -1351,7 +1375,7 @@
           </div>
           <div class="form-group">
             <label for="suspendedIndicatorMode" data-i18n="suspendedIndicatorLabel">Suspended tab indicator:</label>
-            <select id="suspendedIndicatorMode" style="padding: 10px 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; transition: all 0.2s ease; min-width: 180px;">
+            <select id="suspendedIndicatorMode" style="min-width: 180px;">
               <option value="favicon" data-i18n="suspendedIndicatorFavicon">Semi-transparent favicon (default)</option>
               <option value="titlePrefix" data-i18n="suspendedIndicatorTitlePrefix">Title 💤 prefix</option>
             </select>

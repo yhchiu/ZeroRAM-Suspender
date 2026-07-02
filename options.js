@@ -194,12 +194,9 @@ function initNavigation() {
         resetSuspendedTabsInfo();
       }
       
-      // Show/hide save button based on section
-      if (sectionId === 'about' || sectionId === 'migration' || sectionId === 'changelog' || sectionId === 'shortcuts' || sectionId === 'session' || sectionId === 'settings' || sectionId === 'tabviewer') {
-        actionBar.style.display = 'none';
-      } else {
-        actionBar.style.display = 'flex';
-      }
+      // Show the save bar only on sections that contain savable form settings
+      const FORM_SECTIONS = ['basic', 'advanced', 'whitelist'];
+      actionBar.style.display = FORM_SECTIONS.includes(sectionId) ? 'flex' : 'none';
     });
   });
 }
