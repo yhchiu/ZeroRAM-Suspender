@@ -470,12 +470,12 @@ function displayKeyboardShortcuts(commands, container) {
     const isAssigned = !!command.shortcut;
     
     return `
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; margin-bottom: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; margin-bottom: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);">
         <div style="flex: 1;">
           <div style="font-weight: 500; color: var(--text-body);">${escapeHtml(displayName)}</div>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="padding: 6px 12px; background: ${isAssigned ? '#ECFEFF' : 'var(--surface-hover)'}; color: ${isAssigned ? 'var(--info-strong)' : 'var(--text-muted)'}; border-radius: 4px; font-size: 13px; font-weight: 500; font-family: var(--font-mono); min-width: 120px; text-align: center;">
+          <span style="padding: 6px 12px; background: ${isAssigned ? '#ECFEFF' : 'var(--surface-hover)'}; color: ${isAssigned ? 'var(--info-strong)' : 'var(--text-muted)'}; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; font-family: var(--font-mono); min-width: 120px; text-align: center;">
             ${escapeHtml(shortcut)}
           </span>
         </div>
@@ -1036,13 +1036,13 @@ function displayExtensionTabs(tabs, container) {
       padding: 12px;
       margin-bottom: 8px;
       background: white;
-      border-radius: 6px;
+      border-radius: var(--radius-sm);
       border: 1px solid var(--border);
       transition: background-color 0.2s ease, border-color 0.2s ease;
     `;
     
     const variantBadge = tabData.isUnknownVariant 
-      ? `<span style="background: var(--warning); color: var(--text-body); padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 8px;">${getMessage('unknownVariant') || 'Unknown Variant'}</span>`
+      ? `<span style="background: var(--warning); color: var(--text-body); padding: 2px 6px; border-radius: var(--radius-sm); font-size: 10px; margin-left: 8px;">${getMessage('unknownVariant') || 'Unknown Variant'}</span>`
       : '';
     
     tabItem.innerHTML = `

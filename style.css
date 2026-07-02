@@ -30,6 +30,11 @@
   --text-muted: #64748B;
   --text-faint: #94A3B8;
 
+  /* Corner radii */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
   /* Surfaces and borders */
   --border: #E2E8F0;
   --border-soft: #EEF2F6;
