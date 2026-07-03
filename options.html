@@ -23,7 +23,10 @@
 
     .container {
       display: flex;
-      min-height: 100vh;
+      /* Fixed viewport height so .main-content becomes the real scroll
+         container — this is what lets the sticky action bar pin to the
+         bottom instead of the whole page scrolling. */
+      height: 100vh;
       max-width: 1200px;
       margin: 0 auto;
       background: var(--bg-elevated);
@@ -37,6 +40,9 @@
       color: var(--text-secondary);
       padding: 0;
       border-right: 1px solid var(--border-soft);
+      /* Scroll the nav on its own if it is taller than the viewport,
+         now that the container height is fixed. */
+      overflow-y: auto;
     }
 
     .sidebar-header {
@@ -96,9 +102,9 @@
     }
 
     .nav-link.active {
-      background: var(--tint-info-bg);
-      color: var(--text);
-      font-weight: 700;
+      background: rgba(13, 148, 136, 0.10);
+      color: var(--brand-text);
+      font-weight: 600;
     }
 
     .nav-link.active::before {
@@ -134,18 +140,27 @@
     /* Main Content */
     .main-content {
       flex: 1;
-      padding: 32px;
+      /* No bottom padding: the action bar sits flush against the
+         container's bottom edge with no leftover whitespace. */
+      padding: 32px 32px 0;
       overflow-y: auto;
       text-align: left;
+      background: var(--bg-page);
+      display: flex;
+      flex-direction: column;
     }
 
     .content-section {
       display: none;
+      max-width: 780px;
     }
 
     .content-section.active {
       display: block;
       animation: fadeIn 0.3s ease;
+      /* Grow to fill leftover height so the sticky action bar is
+         pushed to the very bottom even when the section is short. */
+      flex: 1 0 auto;
     }
 
     @keyframes fadeIn {
@@ -175,10 +190,10 @@
     .card {
       background: var(--bg-elevated);
       border-radius: var(--radius-lg);
-      padding: 22px 24px;
-      margin-bottom: 16px;
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
-      border: 1px solid var(--border-soft);
+      padding: 24px;
+      margin-bottom: 18px;
+      box-shadow: var(--card-shadow);
+      border: 1px solid var(--border);
       text-align: left;
     }
 
@@ -224,6 +239,8 @@
       color: var(--text-muted);
       font-size: 13px;
       margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-soft);
       line-height: 1.5;
       text-align: left;
     }
@@ -257,7 +274,7 @@
     input[type="file"],
     select {
       padding: 10px 12px;
-      border: 2px solid var(--border);
+      border: 1.5px solid var(--border-strong);
       border-radius: var(--radius-md);
       font-size: 14px;
       background: var(--bg-elevated);
@@ -287,11 +304,47 @@
       text-align: left;
     }
 
+    .checkbox-group span {
+      font-weight: 600;
+      font-size: 13.5px;
+      color: var(--text-body);
+    }
+
     input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
       width: 18px;
       height: 18px;
+      margin: 0;
+      flex-shrink: 0;
       cursor: pointer;
-      accent-color: var(--brand);
+      position: relative;
+      border: 1.5px solid var(--border-strong);
+      border-radius: 5px;
+      background: var(--bg-elevated);
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    input[type="checkbox"]:checked {
+      background: var(--brand-strong);
+      border-color: var(--brand-strong);
+    }
+
+    input[type="checkbox"]:checked::after {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 2px;
+      width: 4px;
+      height: 8px;
+      border: solid #fff;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    input[type="checkbox"]:focus-visible {
+      outline: 2px solid var(--brand);
+      outline-offset: 2px;
     }
 
     textarea {
@@ -502,10 +555,11 @@
       background: var(--bg-elevated);
       padding: 20px 32px;
       border-top: 1px solid var(--border);
+      box-shadow: var(--action-bar-shadow);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin: 32px -32px -32px;
+      margin: 32px -32px 0;
     }
 
     .btn {
@@ -543,12 +597,13 @@
     }
 
     .btn-info {
-      background: var(--info-strong);
-      color: white;
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
     }
 
     .btn-info:hover {
-      background: var(--info-deep);
+      background: var(--surface-hover);
     }
 
     .btn-danger {
@@ -607,11 +662,11 @@
       }
 
       .main-content {
-        padding: 20px;
+        padding: 20px 20px 0;
       }
 
       .action-bar {
-        margin: 20px -20px -20px;
+        margin: 20px -20px 0;
         padding: 16px 20px;
       }
     }

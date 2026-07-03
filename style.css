@@ -59,6 +59,12 @@
   --border-soft: #EEF2F6;
   --surface: #F8FAFC;
   --surface-hover: #F1F5F9;
+
+  /* Stronger border for interactive controls, and a shared card shadow */
+  --border-strong: #CBD5E1;
+  --card-shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 8px 20px -12px rgba(15, 23, 42, .18);
+  /* Upward elevation for the sticky action bar (card shadow, inverted) */
+  --action-bar-shadow: 0 -1px 2px rgba(15, 23, 42, .04), 0 -8px 20px -12px rgba(15, 23, 42, .12);
 }
 
 /* Dark theme: applied via data-theme set by theme-boot.js (popup/options)
@@ -95,6 +101,10 @@
   --border-soft: #2C394E;
   --surface: #24324A;
   --surface-hover: #2C3B55;
+
+  --border-strong: #475569;
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 24px -14px rgba(0, 0, 0, .65);
+  --action-bar-shadow: 0 -1px 3px rgba(0, 0, 0, .3), 0 -10px 24px -14px rgba(0, 0, 0, .55);
 }
 
 body {
