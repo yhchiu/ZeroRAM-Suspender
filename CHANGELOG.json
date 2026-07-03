@@ -1,12 +1,276 @@
 [
 {
-  "sha": "d41efb5c66d88d8ea68f023206531d1517a561df",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/d41efb5c66d88d8ea68f023206531d1517a561df",
+  "sha": "b3c5c547d5cd43655fef729aca7a83136d345925",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/b3c5c547d5cd43655fef729aca7a83136d345925",
+  "commit": {
+    "message": "chore: update version to 1.7.3",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-03T15:22:34+08:00"
+    }
+  }
+},
+{
+  "sha": "577bb898711bee681b74766152d995a63b3c95e6",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/577bb898711bee681b74766152d995a63b3c95e6",
+  "commit": {
+    "message": "style(ui): refresh popup and options visual design",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-03T15:21:53+08:00"
+    }
+  }
+},
+{
+  "sha": "ff8668183b3ac8bfdc950136918ee905eea0af5c",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/ff8668183b3ac8bfdc950136918ee905eea0af5c",
+  "commit": {
+    "message": "fix(ui): keep notice countdown bar visible under reduced motion",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-03T01:12:09+08:00"
+    }
+  }
+},
+{
+  "sha": "9deaa2444d2132d6fef1ee3d68fdbf3a19e4d7b9",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/9deaa2444d2132d6fef1ee3d68fdbf3a19e4d7b9",
+  "commit": {
+    "message": "feat(ui): dark mode for popup and options via themeMode setting",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-02T22:49:33+08:00"
+    }
+  }
+},
+{
+  "sha": "bb01b240b95df8a6159b39b639ccb2219a323b4f",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/bb01b240b95df8a6159b39b639ccb2219a323b4f",
+  "commit": {
+    "message": "refactor(a11y): use h3 for card titles",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-02T18:14:44+08:00"
+    }
+  }
+},
+{
+  "sha": "9167c30275ba719504c8d37c3d61204fe7e5e50a",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/9167c30275ba719504c8d37c3d61204fe7e5e50a",
+  "commit": {
+    "message": "refactor(ui): consolidate border radii into a three-step token scale",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-02T18:13:12+08:00"
+    }
+  }
+},
+{
+  "sha": "7d01fb9a879ec56ea29a136e94c4651ab11f0db1",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/7d01fb9a879ec56ea29a136e94c4651ab11f0db1",
+  "commit": {
+    "message": "fix(a11y): respect prefers-reduced-motion",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-02T18:11:32+08:00"
+    }
+  }
+},
+{
+  "sha": "a50077f78b23c2c6ad4c3cf5e74569c97f1ee6a8",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/a50077f78b23c2c6ad4c3cf5e74569c97f1ee6a8",
+  "commit": {
+    "message": "style(ui): replace transition-all with explicit properties",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-02T18:10:48+08:00"
+    }
+  }
+},
+{
+  "sha": "dda745eb9667bfec5fbd895b7c4a71ef54241293",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/dda745eb9667bfec5fbd895b7c4a71ef54241293",
+  "commit": {
+    "message": "style(ui): equalize button heights with transparent border",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-02T18:10:03+08:00"
+    }
+  }
+},
+{
+  "sha": "34b0a236fe076080f2ea70f1fa6c4ad19146212b",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/34b0a236fe076080f2ea70f1fa6c4ad19146212b",
+  "commit": {
+    "message": "style(ui): add disabled state to button variants",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-02T18:09:18+08:00"
+    }
+  }
+},
+{
+  "sha": "8381217975b47fcdc12408d215138cb25f43d373",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8381217975b47fcdc12408d215138cb25f43d373",
+  "commit": {
+    "message": "fix(a11y): add visible focus rings to options controls",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-02T18:08:19+08:00"
+    }
+  }
+},
+{
+  "sha": "8f6ff3c8976c3186a7d6a3e1612d1c0c9c6210ca",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8f6ff3c8976c3186a7d6a3e1612d1c0c9c6210ca",
+  "commit": {
+    "message": "fix(a11y): add arrow-key navigation to popup menu (ARIA menu pattern)",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-02T18:07:31+08:00"
+    }
+  }
+},
+{
+  "sha": "4437cac98a857061e924dda5fd10e21e3939ca23",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/4437cac98a857061e924dda5fd10e21e3939ca23",
+  "commit": {
+    "message": "fix(a11y): raise popup gray banner text contrast",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-02T18:05:42+08:00"
+    }
+  }
+},
+{
+  "sha": "d75e3cf1026f9fc0702761e67797792e6ff5cb3b",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/d75e3cf1026f9fc0702761e67797792e6ff5cb3b",
+  "commit": {
+    "message": "fix(ui): left-align options section headers",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-02T18:05:05+08:00"
+    }
+  }
+},
+{
+  "sha": "73499dffff63499506c692c801b8c3e9d7e73a0d",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/73499dffff63499506c692c801b8c3e9d7e73a0d",
+  "commit": {
+    "message": "fix(a11y): use strong color variants for filled controls and colored text",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-02T18:04:25+08:00"
+    }
+  }
+},
+{
+  "sha": "bdd9ab2b4fc1e55f135799bd3588380d1036166e",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/bdd9ab2b4fc1e55f135799bd3588380d1036166e",
+  "commit": {
+    "message": "style(ui): tighten heading and menu font weights to a two-tier scale",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-02T17:39:30+08:00"
+    }
+  }
+},
+{
+  "sha": "8f211cd7dce163cbbf481cdb9a7e5cb19caaf9fc",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8f211cd7dce163cbbf481cdb9a7e5cb19caaf9fc",
+  "commit": {
+    "message": "fix(ui): left-align popup banner by removing global center default",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-02T17:18:59+08:00"
+    }
+  }
+},
+{
+  "sha": "90a3c4a35d6d6dc8f651f078d686c68debc1256e",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/90a3c4a35d6d6dc8f651f078d686c68debc1256e",
+  "commit": {
+    "message": "fix(a11y): keyboard menu, aria-current, live notices, version contrast",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-02T12:40:30+08:00"
+    }
+  }
+},
+{
+  "sha": "75d22ebe5febb72f6c9ab7f644bd0a650b472cf1",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/75d22ebe5febb72f6c9ab7f644bd0a650b472cf1",
+  "commit": {
+    "message": "refactor(ui): add button variants and unify form control styles",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-02T12:39:10+08:00"
+    }
+  }
+},
+{
+  "sha": "b21f2e780e3aa612dd39ab2606e7158b7f74ffa0",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/b21f2e780e3aa612dd39ab2606e7158b7f74ffa0",
+  "commit": {
+    "message": "refactor(ui): centralize brand and semantic color tokens in style.css",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-02T12:37:05+08:00"
+    }
+  }
+},
+{
+  "sha": "016f0bf69b8ff71b651515726afd0636e597e3f9",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/016f0bf69b8ff71b651515726afd0636e597e3f9",
+  "commit": {
+    "message": "refactor(ui): replace options emoji icons with linear SVGs",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-02T12:32:21+08:00"
+    }
+  }
+},
+{
+  "sha": "59ff1be61e894674c7ad7c2ce72ffbd27ae1afea",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/59ff1be61e894674c7ad7c2ce72ffbd27ae1afea",
+  "commit": {
+    "message": "fix(ui): drop remote Google Fonts, use local font stacks",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-07-02T12:24:41+08:00"
+    }
+  }
+},
+{
+  "sha": "e9635db8cf657c2d59410994c01f7c5420d588d7",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/e9635db8cf657c2d59410994c01f7c5420d588d7",
+  "commit": {
+    "message": "docs: update screenshots",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-26T14:32:15+08:00"
+    }
+  }
+},
+{
+  "sha": "de63a79710b8790b0a2834250cd19178fadbd3cf",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/de63a79710b8790b0a2834250cd19178fadbd3cf",
+  "commit": {
+    "message": "fix(ui): use gear icons for settings entries",
+    "author": {
+      "name": "Arthur Chiu",
+      "date": "2026-06-24T11:55:53+08:00"
+    }
+  }
+},
+{
+  "sha": "17cdd17e13d96642086fd6aae81dfd812b9a7569",
+  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/17cdd17e13d96642086fd6aae81dfd812b9a7569",
   "commit": {
     "message": "chore: update version to 1.7.2",
     "author": {
       "name": "Arthur Chiu",
-      "date": "2026-06-22T19:02:40+08:00"
+      "date": "2026-06-22T19:05:30+08:00"
     }
   }
 },
