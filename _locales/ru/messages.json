@@ -1,0 +1,809 @@
+{
+  "extName": {
+    "message": "ZeroRAM Suspender"
+  },
+  "titleOptions": {
+    "message": "ZeroRAM Suspender – Настройки"
+  },
+  "autoSuspendLabel": {
+    "message": "Автоматическая приостановка через (минут):"
+  },
+  "autoSuspendHelp": {
+    "message": "Установите 0, чтобы никогда не приостанавливать автоматически."
+  },
+  "neverSuspendAudio": {
+    "message": "Никогда не приостанавливать вкладки, воспроизводящие аудио"
+  },
+  "neverSuspendPinned": {
+    "message": "Никогда не приостанавливать закрепленные вкладки"
+  },
+  "neverSuspendActive": {
+    "message": "Никогда не приостанавливать активную вкладку в каждом окне"
+  },
+  "rememberLastActiveTab": {
+    "message": "Запоминать последнюю активную вкладку при переключении на другие приложения"
+  },
+  "rememberLastActiveTabHelp": {
+    "message": "При переключении из браузера в другие приложения защищать последнюю активную вкладку от приостановки"
+  },
+  "clickAnywhereToUnsuspend": {
+    "message": "Кликните в любом месте приостановленной страницы, чтобы возобновить работу"
+  },
+  "clickAnywhereToUnsuspendHelp": {
+    "message": "Если включено, клик по оригинальному заголовку или URL также перезагрузит приостановленную вкладку."
+  },
+  "nativeDiscardLabel": {
+    "message": "Использовать встроенную выгрузку (минимальное потребление памяти)"
+  },
+  "whitelistTitle": {
+    "message": "Белый список"
+  },
+  "whitelistHelp": {
+    "message": "Вкладки, чей URL-адрес или домен совпадает с любым элементом из списка, никогда не будут приостановлены."
+  },
+  "whitelistPlaceholder": {
+    "message": "По одной записи на строку"
+  },
+  "saveButton": {
+    "message": "Сохранить"
+  },
+  "savedNotice": {
+    "message": "Сохранено!"
+  },
+  "savedBasicSettings": {
+    "message": "Основные настройки сохранены!"
+  },
+  "savedAdvancedSettings": {
+    "message": "Дополнительные настройки сохранены!"
+  },
+  "savedWhitelistSettings": {
+    "message": "Настройки белого списка сохранены!"
+  },
+  "cannotSuspend": {
+    "message": "Эту вкладку невозможно приостановить"
+  },
+  "tabSuspended": {
+    "message": "Вкладка приостановлена"
+  },
+  "tabReloading": {
+    "message": "Перезагрузка..."
+  },
+  "autoSuspendDisabled": {
+    "message": "Автоматическая приостановка отключена"
+  },
+  "autoSuspendPaused": {
+    "message": "Автоматическая приостановка на паузе"
+  },
+  "audioTabProtected": {
+    "message": "Воспроизведение аудио; автоматическая приостановка на паузе"
+  },
+  "tabWillSuspend": {
+    "message": "Вкладка будет приостановлена автоматически."
+  },
+  "notNow": {
+    "message": "Не сейчас"
+  },
+  "allowSuspend": {
+    "message": "Разрешить приостановку"
+  },
+  "suspendThisTab": {
+    "message": "Приостановить эту вкладку сейчас"
+  },
+  "neverSuspendURL": {
+    "message": "Никогда не приостанавливать этот URL"
+  },
+  "neverSuspendDomain": {
+    "message": "Никогда не приостанавливать этот домен"
+  },
+  "suspendOthers": {
+    "message": "Приостановить все остальные вкладки (в этом окне)"
+  },
+  "suspendAllOthersAllWindows": {
+    "message": "Приостановить все остальные вкладки (во всех окнах)"
+  },
+  "unsuspendAllThisWindow": {
+    "message": "Возобновить все вкладки (в этом окне)"
+  },
+  "unsuspendAll": {
+    "message": "Возобновить все вкладки (во всех окнах)"
+  },
+  "suspendSelectedTabs": {
+    "message": "Принудительно приостановить выбранные вкладки"
+  },
+  "unsuspendSelectedTabs": {
+    "message": "Возобновить работу выбранных вкладок"
+  },
+  "settingsMenu": {
+    "message": "Настройки"
+  },
+  "suspendedInstruction": {
+    "message": "Нажмите здесь или нажмите Ctrl+Shift+Z, чтобы перезагрузить вкладку."
+  },
+  "suspendedInstructionClickAnywhere": {
+    "message": "Нажмите в любом месте или нажмите Ctrl+Shift+Z, чтобы перезагрузить вкладку."
+  },
+  "basicSettings": {
+    "message": "Основные настройки"
+  },
+  "basicSettingsDesc": {
+    "message": "Настройка базового поведения и параметров приостановки вкладок"
+  },
+  "autoSuspendTitle": {
+    "message": "Автоприостановка"
+  },
+  "autoSuspendDesc": {
+    "message": "Укажите время бездействия вкладок перед их автоматической приостановкой для экономии памяти"
+  },
+  "memoryOptimization": {
+    "message": "Оптимизация памяти"
+  },
+  "memoryOptimizationDesc": {
+    "message": "Выберите способ обработки приостановленных вкладок для оптимального использования памяти"
+  },
+  "nativeDiscardHelp": {
+    "message": "Используйте встроенную функцию выгрузки вкладок браузера для максимальной экономии памяти, однако состояние вкладок может сохраниться не полностью."
+  },
+  "fixFaviconEnabled": {
+    "message": "Исправлять значок (favicon) приостановленной вкладки (рекомендуется)"
+  },
+  "fixFaviconEnabledHelp": {
+    "message": "Если у приостановленной вкладки отсутствует значок после перезапуска браузера, кратковременно перезагрузить её и снова выгрузить, чтобы восстановить значок."
+  },
+  "fixFaviconBatchSize": {
+    "message": "Макс. вкладок для обработки за одну проверку (0 = без ограничений):"
+  },
+  "fixFaviconBatchSizeHelp": {
+    "message": "Ограничение количества вкладок, обрабатываемых при каждом запуске фонового сканирования. Это помогает избежать длительной обработки, когда многим вкладкам требуется исправление."
+  },
+  "fixFaviconMaxRetries": {
+    "message": "Макс. количество попыток для вкладки:"
+  },
+  "fixFaviconMaxRetriesHelp": {
+    "message": "Предотвращает бесконечные попытки для вкладок, которые не могут быть исправлены. Установите 0, чтобы отключить ограничение."
+  },
+  "fixFaviconSectionTitle": {
+    "message": "Исправление значков приостановленных вкладок"
+  },
+  "fixFaviconSectionDesc": {
+    "message": "Настройка способов восстановления отсутствующих значков на приостановленных вкладках"
+  },
+  "whitelistDesc": {
+    "message": "Управление сайтами и доменами, которые никогда не будут приостановлены"
+  },
+  "whitelistRules": {
+    "message": "Правила белого списка"
+  },
+  "whitelistLabel": {
+    "message": "Список URL или доменов:"
+  },
+  "whitelistHelpDetailed": {
+    "message": "Введите один URL-адрес или домен в строке. Примеры:\n• google.com - весь домен\n• https://example.com/page - конкретный URL\n• localhost - локальная разработка"
+  },
+  "refresh": {
+    "message": "Обновить"
+  },
+  "whitelistRefreshed": {
+    "message": "Белый список обновлен!"
+  },
+  "siteWhitelisted": {
+    "message": "Сайт добавлен в белый список."
+  },
+  "removeFromWhitelist": {
+    "message": "Удалить из белого списка"
+  },
+  "confirmRemoveFromWhitelist": {
+    "message": "Вы уверены, что хотите удалить '%s' из белого списка?"
+  },
+  "advancedSettings": {
+    "message": "Дополнительные настройки"
+  },
+  "advancedSettingsDesc": {
+    "message": "Настройка дополнительных параметров приостановки, темы и восстановления значков"
+  },
+  "aboutSettings": {
+    "message": "О расширении"
+  },
+  "aboutDesc": {
+    "message": "Информация и сведения о расширении"
+  },
+  "changeLogSettings": {
+    "message": "История изменений"
+  },
+  "changeLogDesc": {
+    "message": "История версий и обновления функций"
+  },
+  "loadingChanges": {
+    "message": "Загрузка истории изменений..."
+  },
+  "failedToLoadChanges": {
+    "message": "Не удалось загрузить историю изменений"
+  },
+  "noChangesFound": {
+    "message": "Изменения версий не найдены"
+  },
+  "version": {
+    "message": "Версия"
+  },
+  "unreleased": {
+    "message": "Не выпущено"
+  },
+  "description": {
+    "message": "Описание"
+  },
+  "supportWebsite": {
+    "message": "Веб-сайт"
+  },
+  "extDescription": {
+    "message": "Приостанавливайте неактивные вкладки для экономии памяти с помощью встроенной выгрузки или легкой заглушки."
+  },
+  "comingSoon": {
+    "message": "Скоро будет"
+  },
+  "comingSoonDesc": {
+    "message": "Более продвинутые настройки находятся в разработке"
+  },
+  "privacyNotice": {
+    "message": "Политика конфиденциальности"
+  },
+  "privacyNoticeText": {
+    "message": "Это расширение обрабатывает данные только локально и не загружает информацию на внешние серверы"
+  },
+  "tabMigration": {
+    "message": "Миграция вкладок"
+  },
+  "tabMigrationDesc": {
+    "message": "Миграция приостановленных вкладок из других расширений приостановки"
+  },
+  "marvellousTabDetection": {
+    "message": "Обнаружение вкладок The Marvellous Suspender"
+  },
+  "marvellousTabDetectionDesc": {
+    "message": "Автоматическое обнаружение и миграция для The Marvellous Suspender, The Great Suspender (notrack), The Great-er Tab Discarder и других аналогичных приостановленных вкладок"
+  },
+  "scanForMarvellousTab": {
+    "message": "Сканировать вкладки The Marvellous Suspender"
+  },
+  "noMarvellousTabFound": {
+    "message": "Вкладки The Marvellous Suspender не найдены"
+  },
+  "foundMarvellousTab": {
+    "message": "Найдено вкладок The Marvellous Suspender: %d"
+  },
+  "tabSuspenderDetection": {
+    "message": "Обнаружение вкладок Tab Suspender"
+  },
+  "tabSuspenderDetectionDesc": {
+    "message": "Автоматическое обнаружение и миграция для приостановленных вкладок Tab Suspender"
+  },
+  "scanForTabSuspenderTab": {
+    "message": "Сканировать вкладки Tab Suspender"
+  },
+  "noTabSuspenderTabFound": {
+    "message": "Вкладки Tab Suspender не найдены"
+  },
+  "foundTabSuspenderTab": {
+    "message": "Найдено вкладок Tab Suspender: %d"
+  },
+  "customTabDetection": {
+    "message": "Пользовательское обнаружение приостановленных вкладок"
+  },
+  "customTabDetectionDesc": {
+    "message": "Настройка пользовательского шаблона обнаружения для других расширений приостановки вкладок"
+  },
+  "customPatternLabel": {
+    "message": "Пользовательский шаблон URL:"
+  },
+  "extensionIdLabel": {
+    "message": "ID расширения:"
+  },
+  "pathLabel": {
+    "message": "Путь:"
+  },
+  "separatorLabel": {
+    "message": "Разделитель:"
+  },
+  "titleParamLabel": {
+    "message": "Параметр заголовка:"
+  },
+  "urlParamLabel": {
+    "message": "Параметр URL:"
+  },
+  "testPattern": {
+    "message": "Тестировать шаблон"
+  },
+  "scanCustomTabs": {
+    "message": "Сканировать на наличие пользовательских вкладок"
+  },
+  "fillAllFields": {
+    "message": "Пожалуйста, заполните все поля"
+  },
+  "patternTestSuccess": {
+    "message": "Тест шаблона успешно пройден! Пример URL разобран правильно."
+  },
+  "patternTestFailed": {
+    "message": "Тест шаблона не удался. Пожалуйста, проверьте конфигурацию."
+  },
+  "migrateSelected": {
+    "message": "Перенести выбранные вкладки"
+  },
+  "migrationComplete": {
+    "message": "Миграция вкладок завершена!"
+  },
+  "migrationFailed": {
+    "message": "Миграция вкладок не удалась"
+  },
+  "selectAllTabs": {
+    "message": "Выбрать все"
+  },
+  "deselectAllTabs": {
+    "message": "Снять выделение"
+  },
+  "tabMigrationHelp": {
+    "message": "Эта функция позволяет преобразовывать вкладки, приостановленные другими расширениями (например, The Marvellous Suspender), в формат ZeroRAM Suspender, чтобы вы могли продолжить работу с ними."
+  },
+  "savedTabMigrationSettings": {
+    "message": "Настройки миграции вкладок сохранены!"
+  },
+  "scanningTabs": {
+    "message": "Сканирование вкладок..."
+  },
+  "noTabsSelected": {
+    "message": "Не выбраны вкладки для миграции"
+  },
+  "errorScanningTabs": {
+    "message": "Ошибка сканирования вкладок: "
+  },
+  "tabsMigrated": {
+    "message": " вкладок перенесено"
+  },
+  "tabsFailed": {
+    "message": " вкладок не удалось перенести"
+  },
+  "unknownVariant": {
+    "message": "Неизвестная версия"
+  },
+  "extensionId": {
+    "message": "ID расширения"
+  },
+  "migrationTip": {
+    "message": "Подсказка:"
+  },
+  "migrationTipDesc": {
+    "message": "Эта функция может автоматически находить и переносить приостановленные вкладки из других расширений приостановки. Поддерживается обнаружение как известных, так и неизвестных вариантов. Состояние сканирования автоматически сбрасывается при каждом переходе на эту страницу."
+  },
+  "licenseCredits": {
+    "message": "Лицензия и благодарности"
+  },
+  "licenseText": {
+    "message": "Это расширение распространяется под лицензией GNU General Public License v3 (GPL v3). Вы можете свободно использовать, изменять и распространять данное ПО на условиях лицензии GPL v3."
+  },
+  "copyright": {
+    "message": "Авторское право:"
+  },
+  "copyrightText": {
+    "message": "Copyright (C) Yu-Hsiung Chiu"
+  },
+  "keyboardShortcuts": {
+    "message": "Быстрые клавиши"
+  },
+  "keyboardShortcutsDesc": {
+    "message": "Просмотр и управление быстрыми клавишами расширения"
+  },
+  "shortcutsList": {
+    "message": "Доступные сочетания клавиш"
+  },
+  "shortcutsHelp": {
+    "message": "Ниже приведены быстрые клавиши, настроенные для этого расширения. Чтобы изменить их, нажмите «Управление сочетаниями клавиш», чтобы открыть страницу настроек быстрых клавиш Chrome."
+  },
+  "loadingShortcuts": {
+    "message": "Загрузка быстрых клавиш..."
+  },
+  "errorLoadingShortcuts": {
+    "message": "Ошибка загрузки быстрых клавиш"
+  },
+  "noShortcutsFound": {
+    "message": "Сочетания клавиш не найдены"
+  },
+  "notAssigned": {
+    "message": "Не назначено"
+  },
+  "manageShortcuts": {
+    "message": "Управление сочетаниями клавиш"
+  },
+  "shortcutsRefreshed": {
+    "message": "Быстрые клавиши обновлены!"
+  },
+  "shortcutToggleSuspend": {
+    "message": "Приостановить/возобновить текущую вкладку"
+  },
+  "migrationProgress": {
+    "message": "Прогресс миграции"
+  },
+  "sessionManagement": {
+    "message": "Управление сессиями"
+  },
+  "sessionManagementDesc": {
+    "message": "Экспорт и импорт всех вкладок из всех окон"
+  },
+  "exportSessions": {
+    "message": "Экспорт сессий"
+  },
+  "exportSessionsDesc": {
+    "message": "Экспорт всех вкладок из всех окон для сохранения текущего сеанса просмотра"
+  },
+  "exportFormat": {
+    "message": "Формат экспорта:"
+  },
+  "formatTxt": {
+    "message": "TXT"
+  },
+  "formatJson": {
+    "message": "JSON"
+  },
+  "export": {
+    "message": "Экспорт"
+  },
+  "preview": {
+    "message": "Предпросмотр"
+  },
+  "exportPreviewTitle": {
+    "message": "Предпросмотр экспорта:"
+  },
+  "exportHelpTxt": {
+    "message": "Формат TXT: один URL-адрес на строку, окна разделяются пустой строкой"
+  },
+  "exportHelpJson": {
+    "message": "Формат JSON: массив окон с указанием заголовка и URL-адреса для каждой вкладки"
+  },
+  "importSessions": {
+    "message": "Импорт сессий"
+  },
+  "importSessionsDesc": {
+    "message": "Импорт вкладок из ранее экспортированных файлов сессий"
+  },
+  "selectSessionFile": {
+    "message": "Выберите файл сессии:"
+  },
+  "importAsSuspended": {
+    "message": "Импортировать вкладки приостановленными (экономит память)"
+  },
+  "importAsSuspendedHelp": {
+    "message": "Если включено, импортируемые вкладки будут приостановлены сразу для экономии памяти"
+  },
+  "import": {
+    "message": "Импорт"
+  },
+  "sessionPreviewTitle": {
+    "message": "Предпросмотр сессии:"
+  },
+  "importHelp": {
+    "message": "Поддерживаются форматы TXT и JSON. TXT-файлы должны содержать один URL на строку, с пустыми строками для разделения окон. JSON-файлы должны содержать массив окон с объектами вкладок."
+  },
+  "importProgressText": {
+    "message": "Прогресс:"
+  },
+  "exportingSession": {
+    "message": "Экспорт сессии..."
+  },
+  "sessionExported": {
+    "message": "Сессия экспортирована"
+  },
+  "exportFailed": {
+    "message": "Экспорт не удался"
+  },
+  "generatingPreview": {
+    "message": "Генерация предпросмотра..."
+  },
+  "exportPreviewReady": {
+    "message": "Предпросмотр экспорта готов"
+  },
+  "sessionPreviewed": {
+    "message": "Предпросмотр сессии готов"
+  },
+  "previewFailed": {
+    "message": "Предпросмотр не удался: Неверный формат файла"
+  },
+  "sessionImported": {
+    "message": "Сессия успешно импортирована"
+  },
+  "importFailed": {
+    "message": "Импорт не удался"
+  },
+  "pleaseSelectFile": {
+    "message": "Сначала выберите файл, пожалуйста"
+  },
+  "window": {
+    "message": "Окно"
+  },
+  "tabs": {
+    "message": "вкладки"
+  },
+  "settingsManagement": {
+    "message": "Управление настройками"
+  },
+  "settingsManagementDesc": {
+    "message": "Резервное копирование и восстановление настроек расширения"
+  },
+  "exportSettings": {
+    "message": "Экспорт настроек"
+  },
+  "exportSettingsDesc": {
+    "message": "Экспорт всех текущих настроек расширения в файл JSON для резервной копии"
+  },
+  "exportSettingsHelp": {
+    "message": "Экспорт всех настроек, включая конфигурацию автоприостановки, белый список и другие предпочтения"
+  },
+  "settingsPreviewTitle": {
+    "message": "Предпросмотр настроек:"
+  },
+  "importSettings": {
+    "message": "Импорт настроек"
+  },
+  "importSettingsDesc": {
+    "message": "Импорт ранее экспортированных настроек для восстановления вашей конфигурации"
+  },
+  "selectSettingsFile": {
+    "message": "Выберите файл настроек:"
+  },
+  "importSettingsHelp": {
+    "message": "Импорт настроек из ранее экспортированного файла JSON. Это заменит все текущие настройки. Примечание: быстрые клавиши не могут быть импортированы, настройте их вручную."
+  },
+  "importPreviewTitle": {
+    "message": "Предпросмотр импорта:"
+  },
+  "resetSettings": {
+    "message": "Сброс настроек"
+  },
+  "resetSettingsDesc": {
+    "message": "Сбросить все настройки к их значениям по умолчанию"
+  },
+  "warning": {
+    "message": "Предупреждение"
+  },
+  "resetWarning": {
+    "message": "Это действие навсегда удалит все ваши текущие настройки и восстановит значения по умолчанию. Это действие необратимо."
+  },
+  "resetToDefaults": {
+    "message": "Сбросить по умолчанию"
+  },
+  "resetHelp": {
+    "message": "Рекомендуется экспортировать ваши текущие настройки перед сбросом на случай, если вы захотите их восстановить позже."
+  },
+  "exportingSettings": {
+    "message": "Экспорт настроек..."
+  },
+  "settingsExported": {
+    "message": "Настройки успешно экспортированы"
+  },
+  "settingsPreviewReady": {
+    "message": "Предпросмотр настроек готов"
+  },
+  "settingsImported": {
+    "message": "Настройки успешно импортированы"
+  },
+  "settingsReset": {
+    "message": "Настройки сброшены к значениям по умолчанию"
+  },
+  "resetFailed": {
+    "message": "Сброс не удался"
+  },
+  "confirmResetSettings": {
+    "message": "Вы уверены, что хотите сбросить все настройки к значениям по умолчанию? Это действие необратимо."
+  },
+  "settingsFileInfo": {
+    "message": "Информация о файле настроек"
+  },
+  "exportedAt": {
+    "message": "Экспортировано"
+  },
+  "settingsToImport": {
+    "message": "Настройки для импорта"
+  },
+  "minutes": {
+    "message": "минут"
+  },
+  "enabled": {
+    "message": "Включено"
+  },
+  "disabled": {
+    "message": "Отключено"
+  },
+  "items": {
+    "message": "элементов"
+  },
+  "whitelistItems": {
+    "message": "Элементы белого списка"
+  },
+  "importPreviewReady": {
+    "message": "Предпросмотр импорта готов"
+  },
+  "reportIssue": {
+    "message": "Сообщить об ошибке или предложить функцию"
+  },
+  "rateUs": {
+    "message": "Оценить нас в Chrome Web Store"
+  },
+  "themeSettings": {
+    "message": "Настройки темы"
+  },
+  "themeSettingsDesc": {
+    "message": "Выберите тему оформления страниц расширения (всплывающее окно, настройки и приостановленная страница)"
+  },
+  "themeMode": {
+    "message": "Режим темы:"
+  },
+  "themeAuto": {
+    "message": "Соответствовать теме системы/браузера"
+  },
+  "themeLight": {
+    "message": "Светлая тема"
+  },
+  "themeDark": {
+    "message": "Темная тема"
+  },
+  "themeHelpText": {
+    "message": "Тема применяется к всплывающему окну, настройкам и приостановленным страницам. Уже приостановленные вкладки необходимо перезагрузить для применения изменений. Автоматический режим следует системным настройкам темной/светлой темы."
+  },
+  "suspendedIndicatorTitle": {
+    "message": "Индикатор приостановленной вкладки"
+  },
+  "suspendedIndicatorDesc": {
+    "message": "Выберите способ обозначения приостановленной вкладки на панели вкладок"
+  },
+  "suspendedIndicatorLabel": {
+    "message": "Индикатор приостановленной вкладки:"
+  },
+  "suspendedIndicatorFavicon": {
+    "message": "Полупрозрачный значок (по умолчанию)"
+  },
+  "suspendedIndicatorTitlePrefix": {
+    "message": "Префикс 💤 в заголовке"
+  },
+  "suspendedIndicatorHelp": {
+    "message": "Полупрозрачный значок затемняет иконку сайта: сохраняет визуальную идентичность сайта, но малозаметен на очень узких вкладках. Префикс 💤 добавляет эмодзи сна перед заголовком вкладки и оставляет значок полностью непрозрачным: этот способ более «легкий», но обозначение скрыто на очень узких или закрепленных вкладках, где не отображается заголовок."
+  },
+  "tabViewer": {
+    "message": "Просмотр вкладок"
+  },
+  "tabViewerDesc": {
+    "message": "Просмотр и управление всеми приостановленными вкладками"
+  },
+  "tabViewerFilterLabel": {
+    "message": "Фильтр:"
+  },
+  "tabViewerFilterSuspendedAll": {
+    "message": "Все приостановленные вкладки"
+  },
+  "tabViewerFilterSuspendedUndiscarded": {
+    "message": "Приостановленные, но не выгруженные"
+  },
+  "tabViewerFilterNotSuspended": {
+    "message": "Не приостановленные"
+  },
+  "suspendedTabsViewer": {
+    "message": "Просмотр приостановленных вкладок"
+  },
+  "suspendedTabsViewerDesc": {
+    "message": "Просмотр всех приостановленных вкладок во всех окнах и проверка их статуса выгрузки"
+  },
+  "suspendedTabsDiscardsHint": {
+    "message": "Вы также можете проверить сведения о выгрузке по адресу chrome://discards."
+  },
+  "showSuspendedTabs": {
+    "message": "Показать приостановленные вкладки"
+  },
+  "suspendedTabsTitle": {
+    "message": "Информация о приостановленных вкладках:"
+  },
+  "scanningSuspendedTabs": {
+    "message": "Поиск приостановленных вкладок..."
+  },
+  "noSuspendedTabs": {
+    "message": "Приостановленные вкладки не найдены"
+  },
+  "suspendedTabsFound": {
+    "message": "Найдено %d приостановленных вкладок"
+  },
+  "suspendedUndiscardedTabsFound": {
+    "message": "Найдено %d приостановленных, но не выгруженных вкладок"
+  },
+  "notSuspendedTabsFound": {
+    "message": "Найдено %d неприостановленных вкладок"
+  },
+  "noTabsMatchFilter": {
+    "message": "Нет вкладок, соответствующих фильтру"
+  },
+  "totalTabsCount": {
+    "message": "Всего вкладок: %d"
+  },
+  "discardedTabsCount": {
+    "message": "(%d выгружено)"
+  },
+  "noSuspendedTabsDesc": {
+    "message": "Приостановленные вкладки не найдены. Они появляются, когда ZeroRAM Suspender переводит вкладки в режим сна для экономии памяти."
+  },
+  "suspendedTabsLoaded": {
+    "message": "Информация о приостановленных вкладках загружена"
+  },
+  "errorLoadingSuspendedTabs": {
+    "message": "Ошибка загрузки приостановленных вкладок"
+  },
+  "errorOccurred": {
+    "message": "Произошла ошибка"
+  },
+  "discarded": {
+    "message": "Выгружена"
+  },
+  "suspended": {
+    "message": "Приостановлена"
+  },
+  "notSuspended": {
+    "message": "Не приостановлена"
+  },
+  "unsuspend": {
+    "message": "Возобновить"
+  },
+  "unsuspending": {
+    "message": "Возобновление..."
+  },
+  "tabUnsuspended": {
+    "message": "Работа вкладки успешно возобновлена"
+  },
+  "unsuspendFailed": {
+    "message": "Не удалось возобновить работу вкладки"
+  },
+  "reactivate": {
+    "message": "Активировать"
+  },
+  "reactivating": {
+    "message": "Активация..."
+  },
+  "tabReactivated": {
+    "message": "Вкладка успешно активирована"
+  },
+  "reactivationFailed": {
+    "message": "Не удалось активировать вкладку"
+  },
+  "tabId": {
+    "message": "ID вкладки"
+  },
+  "windowId": {
+    "message": "ID окна"
+  },
+  "tab": {
+    "message": "вкладка"
+  },
+  "loading": {
+    "message": "Загрузка..."
+  },
+  "bulkProgress": {
+    "message": "Прогресс массовой операции"
+  },
+  "suspendingAllTabs": {
+    "message": "Приостановка всех вкладок"
+  },
+  "unsuspendingAllTabs": {
+    "message": "Возобновление всех вкладок"
+  },
+  "bulkDone": {
+    "message": "Готово"
+  },
+  "bulkCancel": {
+    "message": "Отмена"
+  },
+  "bulkCancelled": {
+    "message": "Отменено"
+  },
+  "bulkConcurrencyTitle": {
+    "message": "Параллельность массовой приостановки"
+  },
+  "bulkConcurrencyDesc": {
+    "message": "Управление скоростью и производительностью при одновременной приостановке нескольких вкладок"
+  },
+  "suspendBatchConcurrencyLabel": {
+    "message": "Лимит параллельных запросов пакета (рекомендуется 5):"
+  },
+  "suspendBatchConcurrencyHelp": {
+    "message": "Количество вкладок, приостанавливаемых параллельно при выполнении массовых операций (таких как «Приостановить остальные» или «Приостановить все»). Более высокие значения увеличивают скорость, но временно повышают нагрузку на процессор и память."
+  }
+}
