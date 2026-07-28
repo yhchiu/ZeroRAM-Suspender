@@ -1631,6 +1631,59 @@ async function unsuspendAllTabsInWindow(windowId) {
   saveSeenTimestamps();
 }
 
+function getPausableUrl(tab) {
+  if (!tab || !tab.url) return null;
+
+  const url = isSuspendedTab(tab)
+    ? parseOriginalUrlFromSuspended(tab.url)
+    : tab.url;
+  if (!url || isInternalUrl(url)) return null;
+  return url;
+}
+
+// Toggle temporary whitelist state for the current tab
+async function toggleTabPauseState(tab) {
+  const url = getPausableUrl(tab);
+  if (!url) return;
+
+  if (tempWhitelist.has(url)) {
+    tempWhitelist.delete(url);
+  } else {
+    tempWhitelist.add(url);
+  }
+  await persistTempWhitelist();
+}
+
+async function togglePauseForTabs(tabs) {
+  const eligibleUrls = [
+    ...new Set(tabs.map(getPausableUrl).filter(Boolean)),
+  ];
+  if (eligibleUrls.length === 0) return;
+
+  const allPaused = eligibleUrls.every(url => tempWhitelist.has(url));
+  for (const url of eligibleUrls) {
+    if (allPaused) {
+      tempWhitelist.delete(url);
+    } else {
+      tempWhitelist.add(url);
+    }
+  }
+  await persistTempWhitelist();
+}
+
+// Toggle temporary whitelist state for all eligible tabs in a window
+async function toggleWindowPauseState(windowId) {
+  if (typeof windowId !== 'number') return;
+  const tabs = await chrome.tabs.query({ windowId });
+  await togglePauseForTabs(tabs);
+}
+
+// Toggle temporary whitelist state for all eligible tabs across all windows
+async function toggleAllWindowsPauseState() {
+  const tabs = await chrome.tabs.query({});
+  await togglePauseForTabs(tabs);
+}
+
 // Suspend selected tabs (force suspend, ignore whitelist but respect internal URLs)
 async function suspendSelectedTabs(tabIds) {
   const settings = await getSettings();
@@ -1749,7 +1802,7 @@ function scheduleReDiscard(tabId = null, delayMs = 500) {
 
 // Handle keyboard shortcuts from commands API
 chrome.commands.onCommand.addListener(async (command, tab) => {
-  if (!tab || !tab.id) return;
+  if (command !== '08-toggle-pause-all' && (!tab || !tab.id)) return;
   if (!initDone) await initPromise;
 
   try {
@@ -1772,6 +1825,18 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
         
       case '05-unsuspend-all':
         await unsuspendAllTabs();
+        break;
+        
+      case '06-toggle-pause-current-tab':
+        await toggleTabPauseState(tab);
+        break;
+        
+      case '07-toggle-pause-window':
+        await toggleWindowPauseState(tab.windowId);
+        break;
+        
+      case '08-toggle-pause-all':
+        await toggleAllWindowsPauseState();
         break;
         
       default:
@@ -1816,6 +1881,7 @@ if (typeof module !== 'undefined' && module.exports) {
     hasUsableSuspendedFavicon,
     needsSuspendedFaviconFix,
     parseOriginalUrlFromSuspended,
+    getPausableUrl,
     markTabSeen,
     markTabUnsuspending,
     isTabUnsuspending,
@@ -1863,6 +1929,9 @@ if (typeof module !== 'undefined' && module.exports) {
     suspendSelectedTabs,
     unsuspendSelectedTabs,
     toggleTabSuspension,
+    toggleTabPauseState,
+    toggleWindowPauseState,
+    toggleAllWindowsPauseState,
     // live state accessors for assertions
     __getInternals: () => ({
       initDone,

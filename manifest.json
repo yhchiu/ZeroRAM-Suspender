@@ -55,6 +55,15 @@
     },
     "05-unsuspend-all": {
       "description": "__MSG_unsuspendAll__"
+    },
+    "06-toggle-pause-current-tab": {
+      "description": "__MSG_shortcutTogglePauseCurrentTab__"
+    },
+    "07-toggle-pause-window": {
+      "description": "__MSG_shortcutTogglePauseWindow__"
+    },
+    "08-toggle-pause-all": {
+      "description": "__MSG_shortcutTogglePauseAll__"
     }
   },
   "web_accessible_resources": [

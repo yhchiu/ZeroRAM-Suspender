@@ -805,5 +805,14 @@
   },
   "suspendBatchConcurrencyHelp": {
     "message": "How many tabs to suspend in parallel when performing bulk operations (like 'Suspend Others' or 'Suspend All'). Higher values are faster but consume more CPU/memory temporarily."
+  },
+  "shortcutTogglePauseCurrentTab": {
+    "message": "Pause/resume suspension of the current tab"
+  },
+  "shortcutTogglePauseWindow": {
+    "message": "Pause/resume suspension of all tabs (this window)"
+  },
+  "shortcutTogglePauseAll": {
+    "message": "Pause/resume suspension of all tabs (all windows)"
   }
 }

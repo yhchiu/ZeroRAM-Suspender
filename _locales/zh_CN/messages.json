@@ -805,5 +805,14 @@
   },
   "suspendBatchConcurrencyHelp": {
     "message": "执行批量操作（例如「挂起其他标签页」或「挂起所有标签页」）时，同时挂起的标签页数量。设置越高速度越快，但会短暂消耗更多 CPU 与内存。"
+  },
+  "shortcutTogglePauseCurrentTab": {
+    "message": "暂停/允许挂起当前标签页"
+  },
+  "shortcutTogglePauseWindow": {
+    "message": "暂停/允许挂起所有标签页（此窗口）"
+  },
+  "shortcutTogglePauseAll": {
+    "message": "暂停/允许挂起所有标签页（所有窗口）"
   }
 }

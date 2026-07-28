@@ -823,6 +823,55 @@ describe('event listeners', () => {
     expect(chrome._getTab(1).url).toContain('suspended.html');
   });
 
+  test('commands.onCommand toggles pause for the current tab', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 1, url: 'https://x.com', title: 'X', active: true, windowId: 1 }],
+    });
+    expect(bg.__getInternals().tempWhitelist.has('https://x.com')).toBe(false);
+    
+    await chrome.commands.onCommand.trigger('06-toggle-pause-current-tab', chrome._getTab(1));
+    expect(bg.__getInternals().tempWhitelist.has('https://x.com')).toBe(true);
+    
+    await chrome.commands.onCommand.trigger('06-toggle-pause-current-tab', chrome._getTab(1));
+    expect(bg.__getInternals().tempWhitelist.has('https://x.com')).toBe(false);
+  });
+
+  test('commands.onCommand toggles pause for all tabs in current window', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [
+        { id: 1, url: 'https://a.com', title: 'A', active: true, windowId: 1 },
+        { id: 2, url: 'https://b.com', title: 'B', active: false, windowId: 1 },
+        { id: 3, url: 'https://c.com', title: 'C', active: false, windowId: 2 },
+      ],
+    });
+    
+    await chrome.commands.onCommand.trigger('07-toggle-pause-window', chrome._getTab(1));
+    expect(bg.__getInternals().tempWhitelist.has('https://a.com')).toBe(true);
+    expect(bg.__getInternals().tempWhitelist.has('https://b.com')).toBe(true);
+    expect(bg.__getInternals().tempWhitelist.has('https://c.com')).toBe(false);
+    
+    await chrome.commands.onCommand.trigger('07-toggle-pause-window', chrome._getTab(1));
+    expect(bg.__getInternals().tempWhitelist.has('https://a.com')).toBe(false);
+    expect(bg.__getInternals().tempWhitelist.has('https://b.com')).toBe(false);
+  });
+
+  test('commands.onCommand toggles pause for all tabs across all windows', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [
+        { id: 1, url: 'https://a.com', title: 'A', active: true, windowId: 1 },
+        { id: 2, url: 'https://b.com', title: 'B', active: false, windowId: 2 },
+      ],
+    });
+    
+    await chrome.commands.onCommand.trigger('08-toggle-pause-all', chrome._getTab(1));
+    expect(bg.__getInternals().tempWhitelist.has('https://a.com')).toBe(true);
+    expect(bg.__getInternals().tempWhitelist.has('https://b.com')).toBe(true);
+    
+    await chrome.commands.onCommand.trigger('08-toggle-pause-all', chrome._getTab(1));
+    expect(bg.__getInternals().tempWhitelist.has('https://a.com')).toBe(false);
+    expect(bg.__getInternals().tempWhitelist.has('https://b.com')).toBe(false);
+  });
+
   test('onConnect registers and removes popup ports', () => {
     const { bg, chrome } = loadBackground();
     let disconnectCb;
@@ -836,6 +885,125 @@ describe('event listeners', () => {
     disconnectCb();
     expect(bg.__getInternals().popupPorts.has(port)).toBe(false);
   });
+});
+
+describe('pause shortcut regressions', () => {
+  test('getPausableUrl maps suspended placeholders and rejects internal URLs', () => {
+    const { bg, chrome } = loadBackground();
+    const original = 'https://suspended.example/page';
+
+    expect(bg.getPausableUrl({
+      url: suspendedUrl(chrome, original),
+    })).toBe(original);
+    expect(bg.getPausableUrl({ url: 'chrome://settings' })).toBeNull();
+    expect(bg.getPausableUrl({ url: bg.SUSPENDED_PREFIX })).toBeNull();
+    expect(bg.getPausableUrl(null)).toBeNull();
+  });
+
+  test('command 06 pauses a suspended tab by original URL and persists it', async () => {
+    const original = 'https://suspended.example/page';
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 1, url: 'about:blank', active: true, windowId: 1 }],
+    });
+    await bg.initPromise;
+    chrome._getTab(1).url = suspendedUrl(chrome, original);
+
+    await chrome.commands.onCommand.trigger(
+      '06-toggle-pause-current-tab',
+      chrome._getTab(1)
+    );
+
+    expect([...bg.__getInternals().tempWhitelist]).toEqual([original]);
+    expect(chrome.storage.session._store.utsTempWhitelist).toEqual([original]);
+  });
+
+  test.each(['window', 'all'])(
+    '%s bulk pause includes suspended original URLs and persists once',
+    async (scope) => {
+      const { bg, chrome } = loadBackground({
+        tabs: [
+          { id: 1, url: 'https://a.com', active: true, windowId: 1 },
+          { id: 2, url: 'about:blank', active: false, windowId: 1 },
+        ],
+      });
+      await bg.initPromise;
+      chrome._getTab(2).url = suspendedUrl(chrome, 'https://b.com');
+      chrome.storage.session.set.mockClear();
+
+      if (scope === 'window') {
+        await bg.toggleWindowPauseState(1);
+      } else {
+        await bg.toggleAllWindowsPauseState();
+      }
+
+      expect([...bg.__getInternals().tempWhitelist]).toEqual([
+        'https://a.com',
+        'https://b.com',
+      ]);
+      expect(chrome.storage.session._store.utsTempWhitelist).toEqual([
+        'https://a.com',
+        'https://b.com',
+      ]);
+      expect(chrome.storage.session.set).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  test('null-tab dispatch skips command 07 but still runs and persists command 08', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 1, url: 'https://a.com', active: true, windowId: 1 }],
+    });
+    await bg.initPromise;
+    chrome.storage.session.set.mockClear();
+
+    await chrome.commands.onCommand.trigger('07-toggle-pause-window', null);
+
+    expect(bg.__getInternals().tempWhitelist.size).toBe(0);
+    expect(chrome.storage.session.set).not.toHaveBeenCalled();
+
+    await chrome.commands.onCommand.trigger('08-toggle-pause-all', null);
+
+    expect([...bg.__getInternals().tempWhitelist]).toEqual(['https://a.com']);
+    expect(chrome.storage.session._store.utsTempWhitelist).toEqual([
+      'https://a.com',
+    ]);
+    expect(chrome.storage.session.set).toHaveBeenCalledTimes(1);
+  });
+
+  test.each([
+    ['window', false],
+    ['all', true],
+  ])(
+    'mixed %s pause state becomes fully paused and persists',
+    async (scope, includesOtherWindow) => {
+      const { bg, chrome } = loadBackground({
+        tabs: [
+          { id: 1, url: 'https://a.com', active: true, windowId: 1 },
+          { id: 2, url: 'https://b.com', active: false, windowId: 1 },
+          { id: 3, url: 'https://c.com', active: false, windowId: 2 },
+        ],
+      });
+      await bg.initPromise;
+      bg.setTempWhitelistFromStorageValue(['https://a.com']);
+      chrome.storage.session.set.mockClear();
+
+      if (scope === 'window') {
+        await bg.toggleWindowPauseState(1);
+      } else {
+        await bg.toggleAllWindowsPauseState();
+      }
+
+      expect(bg.__getInternals().tempWhitelist.has('https://a.com')).toBe(true);
+      expect(bg.__getInternals().tempWhitelist.has('https://b.com')).toBe(true);
+      expect(bg.__getInternals().tempWhitelist.has('https://c.com'))
+        .toBe(includesOtherWindow);
+      expect(chrome.storage.session._store.utsTempWhitelist).toEqual(
+        includesOtherWindow
+          ? ['https://a.com', 'https://b.com', 'https://c.com']
+          : ['https://a.com', 'https://b.com']
+      );
+      expect(chrome.storage.session.set).toHaveBeenCalledTimes(1);
+    }
+  );
 });
 
 describe('checkTabs', () => {

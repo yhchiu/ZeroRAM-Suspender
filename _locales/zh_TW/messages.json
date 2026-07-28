@@ -805,5 +805,14 @@
   },
   "suspendBatchConcurrencyHelp": {
     "message": "執行批次操作（例如「休眠其他分頁」或「休眠所有分頁」）時，同時休眠的分頁數量。設定越高速度越快，但會短暫消耗更多 CPU 與記憶體。"
+  },
+  "shortcutTogglePauseCurrentTab": {
+    "message": "暫停/允許休眠目前的分頁"
+  },
+  "shortcutTogglePauseWindow": {
+    "message": "暫停/允許休眠所有分頁（此視窗）"
+  },
+  "shortcutTogglePauseAll": {
+    "message": "暫停/允許休眠所有分頁（所有視窗）"
   }
 }

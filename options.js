@@ -11,7 +11,10 @@ const COMMAND_DESCRIPTIONS = {
   '02-suspend-others-window': { key: 'suspendOthers', default: 'Suspend all other tabs (this window)' },
   '03-suspend-others-all': { key: 'suspendAllOthersAllWindows', default: 'Suspend all other tabs (all windows)' },
   '04-unsuspend-all-window': { key: 'unsuspendAllThisWindow', default: 'Unsuspend all tabs (this window)' },
-  '05-unsuspend-all': { key: 'unsuspendAll', default: 'Unsuspend all tabs (all windows)' }
+  '05-unsuspend-all': { key: 'unsuspendAll', default: 'Unsuspend all tabs (all windows)' },
+  '06-toggle-pause-current-tab': { key: 'shortcutTogglePauseCurrentTab', default: 'Pause/resume suspension of the current tab' },
+  '07-toggle-pause-window': { key: 'shortcutTogglePauseWindow', default: 'Pause/resume suspension of all tabs (this window)' },
+  '08-toggle-pause-all': { key: 'shortcutTogglePauseAll', default: 'Pause/resume suspension of all tabs (all windows)' }
 };
 
 const SUSPENDED_TABS_RENDER_BATCH_SIZE = 120;
