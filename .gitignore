@@ -4,6 +4,9 @@ node_modules/
 # Test coverage output
 coverage/
 
+# Local isolated worktrees
+.worktrees/
+
 # Logs
 *.log
 npm-debug.log*
