@@ -21,6 +21,13 @@ async function sendMessage(chrome, msg, sender = {}) {
   return sendResponse;
 }
 
+/** Session-storage writes touching one key, ignoring unrelated bookkeeping. */
+function sessionWrites(chrome, key) {
+  return chrome.storage.session.set.mock.calls.filter(
+    ([items]) => items && key in items
+  );
+}
+
 function suspendedUrl(chrome, original, title = 'T', favicon) {
   let u = `chrome-extension://${chrome._extId}/suspended.html?uri=${encodeURIComponent(original)}&ttl=${encodeURIComponent(title)}`;
   if (favicon) u += `&favicon=${encodeURIComponent(favicon)}`;
@@ -966,7 +973,8 @@ describe('pause shortcut regressions', () => {
     expect(chrome.storage.session._store.utsTempWhitelist).toEqual([
       'https://a.com',
     ]);
-    expect(chrome.storage.session.set).toHaveBeenCalledTimes(1);
+    // Counted by key: the badge feedback writes to session storage too.
+    expect(sessionWrites(chrome, 'utsTempWhitelist')).toHaveLength(1);
   });
 
   test.each([
@@ -1004,6 +1012,183 @@ describe('pause shortcut regressions', () => {
       expect(chrome.storage.session.set).toHaveBeenCalledTimes(1);
     }
   );
+});
+
+describe('shortcut badge feedback', () => {
+  test('a successful pause flashes a green tick on the acting tab, then clears', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 1, url: 'https://a.com', active: true, windowId: 1 }],
+    });
+    await bg.initPromise;
+
+    await chrome.commands.onCommand.trigger(
+      '06-toggle-pause-current-tab',
+      chrome._getTab(1)
+    );
+
+    expect(chrome.action._getBadgeText(1)).toBe(bg.BADGE_SUCCESS_TEXT);
+    expect(chrome.action._badgeColor.get(1)).toBe(bg.BADGE_SUCCESS_COLOR);
+    // Scoped to the acting tab: other tabs keep the empty global badge.
+    expect(chrome.action._getBadgeText(99)).toBe('');
+    expect(chrome.storage.session._store[bg.BADGE_PENDING_KEY]).toBe(1);
+
+    jest.advanceTimersByTime(bg.BADGE_DURATION_MS);
+    await flush();
+
+    expect(chrome.action._getBadgeText(1)).toBe('');
+    expect(bg.BADGE_PENDING_KEY in chrome.storage.session._store).toBe(false);
+  });
+
+  test('an unpausable tab flashes a red cross', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 1, url: 'chrome://settings', active: true, windowId: 1 }],
+    });
+    await bg.initPromise;
+
+    await chrome.commands.onCommand.trigger(
+      '06-toggle-pause-current-tab',
+      chrome._getTab(1)
+    );
+
+    expect(chrome.action._getBadgeText(1)).toBe(bg.BADGE_FAILURE_TEXT);
+    expect(chrome.action._badgeColor.get(1)).toBe(bg.BADGE_FAILURE_COLOR);
+    expect(bg.__getInternals().tempWhitelist.size).toBe(0);
+  });
+
+  test('a window with no pausable tabs flashes a cross', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [
+        { id: 1, url: 'chrome://settings', active: true, windowId: 1 },
+        { id: 2, url: 'about:blank', active: false, windowId: 1 },
+      ],
+    });
+    await bg.initPromise;
+
+    await chrome.commands.onCommand.trigger(
+      '07-toggle-pause-window',
+      chrome._getTab(1)
+    );
+
+    expect(chrome.action._getBadgeText(1)).toBe(bg.BADGE_FAILURE_TEXT);
+  });
+
+  test('a thrown command error flashes a cross', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 1, url: 'https://a.com', active: true, windowId: 1 }],
+    });
+    await bg.initPromise;
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    chrome.tabs.query.mockRejectedValueOnce(new Error('boom'));
+
+    await chrome.commands.onCommand.trigger(
+      '07-toggle-pause-window',
+      chrome._getTab(1)
+    );
+
+    expect(chrome.action._getBadgeText(1)).toBe(bg.BADGE_FAILURE_TEXT);
+    expect(consoleError).toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
+  test('the all-windows shortcut without a tab badges globally', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 1, url: 'https://a.com', active: true, windowId: 1 }],
+    });
+    await bg.initPromise;
+
+    await chrome.commands.onCommand.trigger('08-toggle-pause-all', null);
+
+    expect(chrome.action._getBadgeText()).toBe(bg.BADGE_SUCCESS_TEXT);
+    expect(chrome.action.setBadgeText).toHaveBeenLastCalledWith({
+      text: bg.BADGE_SUCCESS_TEXT,
+    });
+    expect(chrome.storage.session._store[bg.BADGE_PENDING_KEY]).toBeNull();
+  });
+
+  test('a second press on another tab wipes the first badge', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [
+        { id: 1, url: 'https://a.com', active: true, windowId: 1 },
+        { id: 2, url: 'https://b.com', active: false, windowId: 1 },
+      ],
+    });
+    await bg.initPromise;
+
+    await chrome.commands.onCommand.trigger(
+      '06-toggle-pause-current-tab',
+      chrome._getTab(1)
+    );
+    // Second press lands while the first badge is still on screen.
+    jest.advanceTimersByTime(bg.BADGE_DURATION_MS / 2);
+    await chrome.commands.onCommand.trigger(
+      '06-toggle-pause-current-tab',
+      chrome._getTab(2)
+    );
+
+    expect(chrome.action._getBadgeText(1)).toBe('');
+    expect(chrome.action._getBadgeText(2)).toBe(bg.BADGE_SUCCESS_TEXT);
+
+    jest.advanceTimersByTime(bg.BADGE_DURATION_MS);
+    await flush();
+    expect(chrome.action._getBadgeText(2)).toBe('');
+  });
+
+  test('a tab closed before the reset timer does not break the worker', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 1, url: 'https://a.com', active: true, windowId: 1 }],
+    });
+    await bg.initPromise;
+
+    await chrome.commands.onCommand.trigger(
+      '06-toggle-pause-current-tab',
+      chrome._getTab(1)
+    );
+    chrome._setTabs([]); // tab goes away; setBadgeText now rejects
+    jest.advanceTimersByTime(bg.BADGE_DURATION_MS);
+    await flush();
+
+    expect(bg.BADGE_PENDING_KEY in chrome.storage.session._store).toBe(false);
+  });
+
+  test('a tab that vanishes before the badge is drawn is swallowed', async () => {
+    const { bg, chrome } = loadBackground();
+    await bg.initPromise;
+    const consoleWarn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    // Tab id 42 is not in the mock's tab list, so the badge calls reject.
+    await chrome.commands.onCommand.trigger('06-toggle-pause-current-tab', {
+      id: 42,
+      url: 'https://a.com',
+      windowId: 1,
+    });
+
+    // The pause itself still went through; only the feedback was lost.
+    expect([...bg.__getInternals().tempWhitelist]).toEqual(['https://a.com']);
+    expect(bg.BADGE_PENDING_KEY in chrome.storage.session._store).toBe(false);
+    expect(consoleWarn).toHaveBeenCalled();
+    consoleWarn.mockRestore();
+  });
+
+  test('a badge left by a dead worker is cleared on start-up', async () => {
+    const chrome = installChrome({
+      tabs: [{ id: 7, url: 'https://a.com', active: true, windowId: 1 }],
+    });
+    // Simulate the previous worker dying mid-flash.
+    chrome.storage.session._store.utsPendingBadgeTab = 7;
+    chrome.action._badgeText.set(7, '✓');
+
+    const bg = requireSource('background.js');
+    await flush();
+
+    expect(chrome.action._getBadgeText(7)).toBe('');
+    expect(bg.BADGE_PENDING_KEY in chrome.storage.session._store).toBe(false);
+  });
+
+  test('start-up cleanup is a no-op when no badge is pending', async () => {
+    const { chrome } = loadBackground();
+    await flush();
+    expect(chrome.action.setBadgeText).not.toHaveBeenCalled();
+  });
 });
 
 describe('checkTabs', () => {

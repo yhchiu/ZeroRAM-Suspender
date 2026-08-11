@@ -283,6 +283,44 @@ function createChromeMock(initialState = {}) {
       onAlarm: makeEvent(),
     },
 
+    action: {
+      // Badge state keyed by tab id, with `null` holding the global default —
+      // the same shape Chrome exposes through its per-tab overrides.
+      _badgeText: new Map([[null, '']]),
+      _badgeColor: new Map(),
+      /** Resolve a tab's effective badge text the way Chrome would. */
+      _getBadgeText(tabId = null) {
+        const key = typeof tabId === 'number' ? tabId : null;
+        return chrome.action._badgeText.has(key)
+          ? chrome.action._badgeText.get(key)
+          : chrome.action._badgeText.get(null);
+      },
+      setBadgeText: jest.fn((details = {}) => {
+        const key = typeof details.tabId === 'number' ? details.tabId : null;
+        if (key !== null && !tabs.some((t) => t.id === key)) {
+          return Promise.reject(tabGoneError(key));
+        }
+        // Clearing a per-tab override drops back to the global value.
+        if (key !== null && details.text === '') {
+          chrome.action._badgeText.delete(key);
+        } else {
+          chrome.action._badgeText.set(key, details.text);
+        }
+        return Promise.resolve();
+      }),
+      setBadgeBackgroundColor: jest.fn((details = {}) => {
+        const key = typeof details.tabId === 'number' ? details.tabId : null;
+        if (key !== null && !tabs.some((t) => t.id === key)) {
+          return Promise.reject(tabGoneError(key));
+        }
+        chrome.action._badgeColor.set(key, details.color);
+        return Promise.resolve();
+      }),
+      setTitle: jest.fn(() => Promise.resolve()),
+      setIcon: jest.fn(() => Promise.resolve()),
+      openPopup: jest.fn(() => Promise.resolve()),
+    },
+
     commands: {
       getAll: jest.fn(() => Promise.resolve([])),
       onCommand: makeEvent(),

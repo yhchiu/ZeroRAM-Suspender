@@ -1641,10 +1641,11 @@ function getPausableUrl(tab) {
   return url;
 }
 
-// Toggle temporary whitelist state for the current tab
+// Toggle temporary whitelist state for the current tab.
+// Returns false when the tab holds nothing that may be paused.
 async function toggleTabPauseState(tab) {
   const url = getPausableUrl(tab);
-  if (!url) return;
+  if (!url) return false;
 
   if (tempWhitelist.has(url)) {
     tempWhitelist.delete(url);
@@ -1652,13 +1653,15 @@ async function toggleTabPauseState(tab) {
     tempWhitelist.add(url);
   }
   await persistTempWhitelist();
+  return true;
 }
 
+// Returns false when none of the tabs may be paused.
 async function togglePauseForTabs(tabs) {
   const eligibleUrls = [
     ...new Set(tabs.map(getPausableUrl).filter(Boolean)),
   ];
-  if (eligibleUrls.length === 0) return;
+  if (eligibleUrls.length === 0) return false;
 
   const allPaused = eligibleUrls.every(url => tempWhitelist.has(url));
   for (const url of eligibleUrls) {
@@ -1669,19 +1672,20 @@ async function togglePauseForTabs(tabs) {
     }
   }
   await persistTempWhitelist();
+  return true;
 }
 
 // Toggle temporary whitelist state for all eligible tabs in a window
 async function toggleWindowPauseState(windowId) {
-  if (typeof windowId !== 'number') return;
+  if (typeof windowId !== 'number') return false;
   const tabs = await chrome.tabs.query({ windowId });
-  await togglePauseForTabs(tabs);
+  return togglePauseForTabs(tabs);
 }
 
 // Toggle temporary whitelist state for all eligible tabs across all windows
 async function toggleAllWindowsPauseState() {
   const tabs = await chrome.tabs.query({});
-  await togglePauseForTabs(tabs);
+  return togglePauseForTabs(tabs);
 }
 
 // Suspend selected tabs (force suspend, ignore whitelist but respect internal URLs)
@@ -1800,10 +1804,108 @@ function scheduleReDiscard(tabId = null, delayMs = 500) {
   }, delayMs);
 }
 
+// ==== Toolbar badge feedback ====
+// The pause shortcuts only flip the temporary whitelist, which changes nothing
+// on screen, so the toolbar icon briefly flashes a tick or a cross to confirm
+// the key press landed. chrome.action needs no permission beyond the manifest
+// "action" key, and the default badge text color adapts to the background on
+// its own (setBadgeTextColor would require Chrome 110+, above our floor of 88).
+const BADGE_SUCCESS_TEXT = '✓';
+const BADGE_FAILURE_TEXT = '✕';
+const BADGE_SUCCESS_COLOR = '#16a34a';
+const BADGE_FAILURE_COLOR = '#dc2626';
+const BADGE_DURATION_MS = 1500;
+// Which tab currently wears a badge, persisted so that a service worker torn
+// down before its reset timer fires can still wipe the leftover on restart.
+const BADGE_PENDING_KEY = 'utsPendingBadgeTab';
+
+let badgeResetTimer = null;
+let badgePendingTabId = null;
+
+// Badges are scoped to the tab the shortcut acted on when we know it, and set
+// globally otherwise (the all-windows shortcut can fire without a tab).
+function badgeScope(tabId) {
+  return typeof tabId === 'number' ? { tabId } : {};
+}
+
+async function clearActionBadge(tabId) {
+  try {
+    await chrome.action.setBadgeText({ text: '', ...badgeScope(tabId) });
+  } catch (error) {
+    // Tab already closed, or no action API — nothing left to clean up.
+  }
+}
+
+// Flash a tick (succeeded) or a cross (failed) on the toolbar icon.
+async function flashActionBadge(succeeded, tabId = null) {
+  const scopeTabId = typeof tabId === 'number' ? tabId : null;
+
+  // A second press before the first badge expires: drop the old timer, and wipe
+  // the old badge first if it lives on a different tab than the new one.
+  if (badgeResetTimer) {
+    clearTimeout(badgeResetTimer);
+    badgeResetTimer = null;
+    if (badgePendingTabId !== scopeTabId) await clearActionBadge(badgePendingTabId);
+  }
+
+  const scope = badgeScope(scopeTabId);
+  try {
+    await chrome.action.setBadgeBackgroundColor({
+      color: succeeded ? BADGE_SUCCESS_COLOR : BADGE_FAILURE_COLOR,
+      ...scope
+    });
+    await chrome.action.setBadgeText({
+      text: succeeded ? BADGE_SUCCESS_TEXT : BADGE_FAILURE_TEXT,
+      ...scope
+    });
+  } catch (error) {
+    console.warn('Failed to show shortcut badge:', error);
+    badgePendingTabId = null;
+    return;
+  }
+
+  badgePendingTabId = scopeTabId;
+  await chrome.storage.session.set({ [BADGE_PENDING_KEY]: scopeTabId });
+
+  badgeResetTimer = setTimeout(async () => {
+    badgeResetTimer = null;
+    badgePendingTabId = null;
+    await clearActionBadge(scopeTabId);
+    await chrome.storage.session.remove(BADGE_PENDING_KEY);
+  }, BADGE_DURATION_MS);
+}
+
+// Remove a badge left behind by a worker that died before its reset timer ran.
+// A 1.5s timer virtually always fires (the worker stays alive ~30s after an
+// event), so this only covers crashes and forced reloads. chrome.alarms cannot
+// stand in for the timer here: its minimum delay is far longer than the flash.
+async function clearStaleActionBadge() {
+  try {
+    const stored = await chrome.storage.session.get(BADGE_PENDING_KEY);
+    if (!(BADGE_PENDING_KEY in stored)) return;
+    await clearActionBadge(stored[BADGE_PENDING_KEY]);
+    await chrome.storage.session.remove(BADGE_PENDING_KEY);
+  } catch (error) {
+    console.warn('Failed to clear stale badge:', error);
+  }
+}
+
+// Runs on every worker start-up, which covers both install and browser launch.
+clearStaleActionBadge();
+
+// Shortcuts whose only outcome is a whitelist flip, so they report via badge.
+const BADGE_REPORTING_COMMANDS = new Set([
+  '06-toggle-pause-current-tab',
+  '07-toggle-pause-window',
+  '08-toggle-pause-all'
+]);
+
 // Handle keyboard shortcuts from commands API
 chrome.commands.onCommand.addListener(async (command, tab) => {
   if (command !== '08-toggle-pause-all' && (!tab || !tab.id)) return;
   if (!initDone) await initPromise;
+
+  const feedbackTabId = tab && typeof tab.id === 'number' ? tab.id : null;
 
   try {
     switch (command) {
@@ -1828,22 +1930,25 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
         break;
         
       case '06-toggle-pause-current-tab':
-        await toggleTabPauseState(tab);
+        await flashActionBadge(await toggleTabPauseState(tab), feedbackTabId);
         break;
-        
+
       case '07-toggle-pause-window':
-        await toggleWindowPauseState(tab.windowId);
+        await flashActionBadge(await toggleWindowPauseState(tab.windowId), feedbackTabId);
         break;
-        
+
       case '08-toggle-pause-all':
-        await toggleAllWindowsPauseState();
+        await flashActionBadge(await toggleAllWindowsPauseState(), feedbackTabId);
         break;
-        
+
       default:
         return; // Unknown command
     }
   } catch (error) {
     console.error('Failed to execute shortcut command:', error);
+    if (BADGE_REPORTING_COMMANDS.has(command)) {
+      await flashActionBadge(false, feedbackTabId);
+    }
   }
 });
 
@@ -1932,6 +2037,15 @@ if (typeof module !== 'undefined' && module.exports) {
     toggleTabPauseState,
     toggleWindowPauseState,
     toggleAllWindowsPauseState,
+    flashActionBadge,
+    clearActionBadge,
+    clearStaleActionBadge,
+    BADGE_SUCCESS_TEXT,
+    BADGE_FAILURE_TEXT,
+    BADGE_SUCCESS_COLOR,
+    BADGE_FAILURE_COLOR,
+    BADGE_DURATION_MS,
+    BADGE_PENDING_KEY,
     // live state accessors for assertions
     __getInternals: () => ({
       initDone,
