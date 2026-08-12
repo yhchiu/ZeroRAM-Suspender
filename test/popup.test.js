@@ -9,6 +9,17 @@ const { loadHtmlBody } = require('./helpers/dom');
 const EXT_ID = 'testextensionid';
 const STORAGE_KEY = 'utsSettings';
 const TEMP_KEY = 'utsTempWhitelist';
+const SETTINGS_CACHE_KEY = 'utsCacheSettings';
+
+const NORMAL_TAB = {
+  id: 1,
+  windowId: 1,
+  active: true,
+  highlighted: true,
+  currentWindow: true,
+  url: 'https://x.com',
+  title: 'X',
+};
 
 async function flush(times = 20) {
   for (let i = 0; i < times; i++) await Promise.resolve();
@@ -48,6 +59,12 @@ async function loadPopupWith({ tab, settings = {}, selected, tempWhite = false }
 }
 
 describe('popup.js', () => {
+  beforeEach(() => {
+    // The popup caches settings here, so one test's cache must not seed the
+    // next one's first render.
+    localStorage.clear();
+  });
+
   afterEach(() => {
     delete global.getMessage;
   });
@@ -257,16 +274,6 @@ describe('popup.js', () => {
   // a cold worker start is the single slowest thing that used to sit on this
   // path, and it is worst exactly when the machine is already busy.
   describe('startup path', () => {
-    const NORMAL_TAB = {
-      id: 1,
-      windowId: 1,
-      active: true,
-      highlighted: true,
-      currentWindow: true,
-      url: 'https://x.com',
-      title: 'X',
-    };
-
     test('reads the temp whitelist from session storage, not from the worker', async () => {
       const chrome = await loadPopupWith({
         tab: { url: 'https://x.com', title: 'X' },
@@ -346,6 +353,126 @@ describe('popup.js', () => {
         settings: { autoSuspendMinutes: 30 },
       });
       expect(document.querySelectorAll('#menu li.skeleton')).toHaveLength(0);
+    });
+  });
+
+  // chrome.storage.sync is disk-backed, so the popup renders from a synchronous
+  // localStorage mirror when it has one and reconciles against the real read.
+  describe('settings cache', () => {
+    /** A sync read that stays pending until the returned function is called. */
+    function deferSyncGet(chrome, settings) {
+      let release;
+      chrome.storage.sync.get.mockImplementation(
+        () => new Promise((resolve) => { release = () => resolve({ [STORAGE_KEY]: settings }); })
+      );
+      return () => release();
+    }
+
+    test('a warm cache renders before the sync read resolves', async () => {
+      const chrome = setupChrome([NORMAL_TAB], {});
+      localStorage.setItem(
+        SETTINGS_CACHE_KEY,
+        JSON.stringify({ whitelist: [], autoSuspendMinutes: 30 })
+      );
+      chrome.storage.sync.get.mockImplementation(() => new Promise(() => {}));
+
+      loadHtmlBody('popup.html');
+      requireSource('popup.js');
+      await flush();
+
+      expect(document.querySelectorAll('#menu li[role="menuitem"]').length).toBeGreaterThan(0);
+      expect(document.getElementById('banner').classList.contains('blue')).toBe(true);
+    });
+
+    test('without a cache the first render waits for the sync read', async () => {
+      const chrome = setupChrome([NORMAL_TAB], {});
+      chrome.storage.sync.get.mockImplementation(() => new Promise(() => {}));
+
+      loadHtmlBody('popup.html');
+      requireSource('popup.js');
+      await flush();
+
+      expect(document.querySelectorAll('#menu li[role="menuitem"]')).toHaveLength(0);
+    });
+
+    test('a corrupt cache entry falls back to the sync read', async () => {
+      localStorage.setItem(SETTINGS_CACHE_KEY, 'not json');
+      await loadPopupWith({
+        tab: { url: 'https://x.com', title: 'X' },
+        settings: { autoSuspendMinutes: 30 },
+      });
+      expect(document.getElementById('banner').classList.contains('blue')).toBe(true);
+      expect(document.querySelectorAll('#menu li[role="menuitem"]').length).toBeGreaterThan(0);
+    });
+
+    test('caches only the fields the popup renders from', async () => {
+      await loadPopupWith({
+        tab: { url: 'https://x.com', title: 'X' },
+        settings: { autoSuspendMinutes: 30, whitelist: ['a.com'], fixFaviconBatchSize: 50 },
+      });
+      expect(JSON.parse(localStorage.getItem(SETTINGS_CACHE_KEY))).toEqual({
+        whitelist: ['a.com'],
+        autoSuspendMinutes: 30,
+      });
+    });
+
+    test('re-renders when the real settings disagree with the cache', async () => {
+      const chrome = setupChrome([NORMAL_TAB], { autoSuspendMinutes: 30, whitelist: ['x.com'] });
+      localStorage.setItem(
+        SETTINGS_CACHE_KEY,
+        JSON.stringify({ whitelist: [], autoSuspendMinutes: 30 })
+      );
+
+      loadHtmlBody('popup.html');
+      requireSource('popup.js');
+      await flush();
+
+      // The tab turns out to be whitelisted: gray banner, no never-suspend items.
+      const banner = document.getElementById('banner');
+      expect(banner.classList.contains('gray')).toBe(true);
+      expect(document.querySelectorAll('#menu li[data-icon="never"]')).toHaveLength(0);
+      // The redraw replaces the banner contents rather than doubling them up.
+      expect(banner.querySelectorAll('span')).toHaveLength(1);
+      expect(banner.querySelectorAll('a')).toHaveLength(1);
+    });
+
+    test('leaves the menu alone when a change does not affect this tab', async () => {
+      const chrome = setupChrome([NORMAL_TAB], {});
+      localStorage.setItem(
+        SETTINGS_CACHE_KEY,
+        JSON.stringify({ whitelist: [], autoSuspendMinutes: 30 })
+      );
+      const releaseSync = deferSyncGet(chrome, { autoSuspendMinutes: 30, whitelist: ['other.com'] });
+
+      loadHtmlBody('popup.html');
+      requireSource('popup.js');
+      await flush();
+      const firstItem = document.querySelector('#menu li');
+      expect(firstItem).toBeTruthy();
+
+      releaseSync();
+      await flush();
+
+      // Same node: a whitelist entry for an unrelated site must not rebuild
+      // the menu under the user's cursor.
+      expect(document.querySelector('#menu li')).toBe(firstItem);
+      expect(JSON.parse(localStorage.getItem(SETTINGS_CACHE_KEY)).whitelist).toEqual(['other.com']);
+    });
+
+    test('whitelisting from the popup refreshes the cache', async () => {
+      const chrome = await loadPopupWith({
+        tab: { url: 'https://x.com/page', title: 'X' },
+        settings: { autoSuspendMinutes: 30, whitelist: [] },
+      });
+      chrome.storage.sync._store[STORAGE_KEY] = { autoSuspendMinutes: 30, whitelist: [] };
+      window.close = jest.fn();
+
+      document.querySelector('#menu li[data-icon="never"]').click();
+      await flush();
+
+      expect(JSON.parse(localStorage.getItem(SETTINGS_CACHE_KEY)).whitelist).toEqual([
+        'https://x.com/page',
+      ]);
     });
   });
 });

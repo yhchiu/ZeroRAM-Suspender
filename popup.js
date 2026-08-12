@@ -5,19 +5,23 @@
   // back to session storage on every change, so the popup can read the same
   // data straight from there instead of asking the worker for it.
   const TEMP_KEY = 'utsTempWhitelist';
+  // Synchronous mirror of the settings the popup renders from, cached the way
+  // theme-boot.js caches the theme. chrome.storage.sync is disk-backed and so
+  // is the slowest read here when the machine is busy; a warm cache lets the
+  // first render go ahead without it. The authoritative read still runs and
+  // reconciles right after, so the cache can never hold the UI wrong.
+  const SETTINGS_CACHE_KEY = 'utsCacheSettings';
 
-  // Every read below is independent, so they leave as one parallel batch
-  // instead of a serial chain, and none of them touches the service worker.
-  // That is what matters when the machine is busy: a sleeping worker has to
-  // spawn a process, evaluate background.js and restore its whole state before
-  // it can answer a message, and the popup used to sit on an empty frame for
-  // all of it. Kicking the batch off before any other work gets the requests
-  // onto the browser process as early as possible.
-  const pendingData = Promise.all([
-    chrome.tabs.query({ highlighted: true, currentWindow: true }),
-    chrome.storage.sync.get(STORAGE_KEY),
-    chrome.storage.session.get(TEMP_KEY),
-  ]);
+  // These reads are independent, so they leave together instead of as a serial
+  // chain, and none of them touches the service worker. That is what matters
+  // when the machine is busy: a sleeping worker has to spawn a process,
+  // evaluate background.js and restore its whole state before it can answer a
+  // message, and the popup used to sit on an empty frame for all of it.
+  // Starting them before any other work gets the requests onto the browser
+  // process as early as possible.
+  const pendingTabs = chrome.tabs.query({ highlighted: true, currentWindow: true });
+  const pendingTemp = chrome.storage.session.get(TEMP_KEY);
+  const pendingSettings = chrome.storage.sync.get(STORAGE_KEY);
 
   const suspendedPrefix = chrome.runtime.getURL('suspended.html');
   const bannerEl = document.getElementById('banner');
@@ -50,18 +54,6 @@
     );
   }
 
-  function isWhitelisted(url, settings) {
-    if (!url) return false;
-    const u = new URL(url);
-    return (settings.whitelist || []).some(entry => {
-      if (!entry) return false;
-      if (entry.startsWith('http')) {
-        return url.startsWith(entry);
-      }
-      return u.hostname === entry || u.hostname.endsWith('.' + entry);
-    });
-  }
-
   function getMatchedWhitelistEntry(url, settings) {
     if (!url) return null;
     const u = new URL(url);
@@ -74,14 +66,49 @@
     });
   }
 
-  // Loading placeholders, drawn only once the batch above has taken longer than
-  // a frame or two — a popup whose data lands immediately never flashes them.
-  // The rows carry no click handlers, so a click that arrives while they are up
-  // cannot land on the wrong menu entry once the real items replace them.
+  // Just the fields the popup renders from. Narrowing to these keeps the cache
+  // small and keeps an unrelated option (say a favicon batch size) from
+  // reading as a change worth acting on.
+  function popupSettings(saved) {
+    const cfg = saved || {};
+    return {
+      whitelist: Array.isArray(cfg.whitelist) ? cfg.whitelist : [],
+      autoSuspendMinutes: cfg.autoSuspendMinutes,
+      neverSuspendAudio: cfg.neverSuspendAudio,
+    };
+  }
+
+  function readCachedSettings() {
+    try {
+      const raw = localStorage.getItem(SETTINGS_CACHE_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null;
+      return popupSettings(parsed);
+    } catch (e) {
+      // localStorage unavailable or the entry is corrupt - fall back to the
+      // authoritative read below.
+      return null;
+    }
+  }
+
+  function writeCachedSettings(settings) {
+    try {
+      localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(popupSettings(settings)));
+    } catch (e) {
+      // Non-fatal: the next open just waits for chrome.storage.sync again.
+    }
+  }
+
+  // Loading placeholders, drawn only once the reads above have taken longer
+  // than a frame or two — a popup whose data lands immediately never flashes
+  // them. The rows carry no click handlers, so a click that arrives while they
+  // are up cannot land on the wrong menu entry once the real items replace them.
   const SKELETON_DELAY_MS = 120;
   const SKELETON_ROWS = 6;
-  let skeletonTimer = setTimeout(() => {
-    skeletonTimer = null;
+  let skeletonShown = false;
+  let skeletonStopped = false;
+  const skeletonTimer = setTimeout(() => {
+    skeletonShown = true;
     menuEl.setAttribute('aria-busy', 'true');
     for (let i = 0; i < SKELETON_ROWS; i++) {
       const placeholder = document.createElement('li');
@@ -91,115 +118,58 @@
     }
   }, SKELETON_DELAY_MS);
 
-  const [highlightedTabs, syncData, sessionData] = await pendingData;
-
-  if (skeletonTimer !== null) {
+  function stopSkeleton() {
+    if (skeletonStopped) return;
+    skeletonStopped = true;
     clearTimeout(skeletonTimer);
-  } else {
-    menuEl.textContent = '';
-    menuEl.removeAttribute('aria-busy');
+    if (skeletonShown) {
+      menuEl.textContent = '';
+      menuEl.removeAttribute('aria-busy');
+    }
   }
 
-  // Chrome always highlights the active tab, so the batched query already
-  // carries it. The extra query is a safety net, not an expected path.
+  const [highlightedTabs, sessionData] = await Promise.all([pendingTabs, pendingTemp]);
+
+  // A warm cache carries the first render; without one there is nothing to do
+  // but wait for the authoritative read (first ever open, or no localStorage).
+  let settings = readCachedSettings();
+  const renderedFromCache = settings !== null;
+  if (!settings) {
+    settings = popupSettings((await pendingSettings)[STORAGE_KEY]);
+  }
+
+  // Chrome always highlights the active tab, so the query above already carries
+  // it. The extra query is a safety net, not an expected path.
   let tab = highlightedTabs.find(t => t.active);
   if (!tab) {
     [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   }
+
+  stopSkeleton();
+
   // No tab to describe: leave the popup as-is rather than throwing on tab.url.
   if (!tab) return;
 
   const selectedTabs = highlightedTabs;
   const hasMultipleSelected = selectedTabs.length > 1;
-  const settings = syncData[STORAGE_KEY] || {};
   const tempWhitelist = sessionData[TEMP_KEY];
   const tempWhite = Array.isArray(tempWhitelist) && tempWhitelist.includes(tab.url);
 
   const isPlaceholder = tab.url.startsWith(suspendedPrefix);
   const isInternal = isInternalUrl(tab.url);
-  const isWhitelistedUrl = isWhitelisted(tab.url, settings);
-  const isAudioProtected = settings.neverSuspendAudio !== false && tab.audible === true;
-  const matchedWhitelistEntry = getMatchedWhitelistEntry(tab.url, settings);
 
-  let bannerTextEl = document.createElement('span');
-  bannerEl.appendChild(bannerTextEl);
-  let actionLink = document.createElement('a');
-  actionLink.href = '#';
-  actionLink.style.color = 'var(--brand)';
-  actionLink.style.fontWeight = '700';
-  actionLink.style.marginLeft = '4px';
-  bannerEl.appendChild(actionLink);
-
-  if (isPlaceholder) {
-    bannerTextEl.textContent = getMessage('tabSuspended');
-    bannerEl.classList.remove('blue');
-    bannerEl.classList.add('gray');
-    actionLink.style.display = 'none';
-  } else if (isInternal) {
-    bannerTextEl.textContent = getMessage('cannotSuspend');
-    bannerEl.classList.remove('blue');
-    bannerEl.classList.add('gray');
-    actionLink.style.display = 'none';
-  } else if (isWhitelistedUrl) {
-    bannerTextEl.textContent = getMessage('siteWhitelisted');
-    bannerEl.classList.remove('blue');
-    bannerEl.classList.add('gray');
-    actionLink.textContent = getMessage('removeFromWhitelist');
-    actionLink.style.display = 'inline';
-
-    actionLink.addEventListener('click', async (e) => {
-      e.preventDefault();
-      if (matchedWhitelistEntry && confirm(getMessage('confirmRemoveFromWhitelist').replace('%s', matchedWhitelistEntry))) {
-        await removeFromWhitelist(matchedWhitelistEntry);
-        window.close();
-      }
-    });
-  } else {
-    if (settings.autoSuspendMinutes === 0) {
-      bannerTextEl.textContent = getMessage('autoSuspendDisabled');
-      bannerEl.classList.remove('blue');
-      bannerEl.classList.add('gray');
-      actionLink.style.display = 'none';
-    } else if (isAudioProtected) {
-      bannerTextEl.textContent = getMessage('audioTabProtected');
-      bannerEl.classList.remove('blue');
-      bannerEl.classList.add('gray');
-      actionLink.style.display = 'none';
-    } else if (tempWhite) {
-      // Temporarily excluded from suspension
-      bannerTextEl.textContent = getMessage('autoSuspendPaused');
-      bannerEl.classList.remove('blue');
-      bannerEl.classList.add('gray');
-      actionLink.textContent = getMessage('allowSuspend');
-      actionLink.style.display = 'inline';
-    } else {
-      bannerTextEl.textContent = getMessage('tabWillSuspend');
-      bannerEl.classList.remove('gray');
-      bannerEl.classList.add('blue');
-      actionLink.textContent = getMessage('notNow');
-      actionLink.style.display = 'inline';
-    }
-
-    // Add click listener if applicable
-    if (settings.autoSuspendMinutes !== 0) {
-      actionLink.addEventListener('click', async (e) => {
-        e.preventDefault();
-        const { whitelisted } = await chrome.runtime.sendMessage({ command: 'toggleTempWhitelist', url: tab.url });
-        // Update UI based on new state
-        if (whitelisted) {
-          bannerTextEl.textContent = getMessage('autoSuspendPaused');
-          bannerEl.classList.remove('blue');
-          bannerEl.classList.add('gray');
-          actionLink.textContent = getMessage('allowSuspend');
-        } else {
-          bannerTextEl.textContent = getMessage('tabWillSuspend');
-          bannerEl.classList.remove('gray');
-          bannerEl.classList.add('blue');
-          actionLink.textContent = getMessage('notNow');
-        }
-      });
-    }
+  // Everything the render reads out of settings, for this tab. Comparing this
+  // rather than the settings object keeps a whitelist edit for some other site
+  // from rebuilding the menu under the user's cursor.
+  function renderSignature(cfg) {
+    return JSON.stringify([
+      cfg.autoSuspendMinutes === 0,
+      cfg.neverSuspendAudio !== false && tab.audible === true,
+      getMatchedWhitelistEntry(tab.url, cfg) || null,
+    ]);
   }
+
+  let menuItems = [];
 
   function addItem(text, onClick, iconType = '', closeOnClick = true) {
     const li = document.createElement('li');
@@ -232,94 +202,192 @@
     menuEl.appendChild(hr);
   }
 
-  // Menu items depending on state
-  if (!isPlaceholder && !isInternal) {
-    addItem(getMessage('suspendThisTab'), async () => {
-      await chrome.runtime.sendMessage({ command: 'suspendTab', tabId: tab.id });
-    }, 'suspend');
-  }
+  // Draws banner and menu from scratch. Runs once from the cached settings and
+  // again only if the authoritative read disagrees with what was drawn.
+  function render(cfg) {
+    // Drop whatever a previous pass added; the status indicator belongs to the
+    // static markup and has to survive.
+    for (const el of bannerEl.querySelectorAll('span, a')) el.remove();
+    menuEl.textContent = '';
 
-  if (!isInternal && !isWhitelistedUrl) {
-    addItem(getMessage('neverSuspendURL'), async () => {
-      await modifyWhitelist(tab.url);
-    }, 'never');
-    addItem(getMessage('neverSuspendDomain'), async () => {
-      const domain = new URL(tab.url).hostname;
-      await modifyWhitelist(domain);
-    }, 'never');
-  }
+    const matchedWhitelistEntry = getMatchedWhitelistEntry(tab.url, cfg);
+    const isWhitelistedUrl = Boolean(matchedWhitelistEntry);
+    const isAudioProtected = cfg.neverSuspendAudio !== false && tab.audible === true;
 
-  // Add separator before bulk actions if we have single tab actions
-  if ((!isPlaceholder && !isInternal) || (!isInternal && !isWhitelistedUrl)) {
-    addSeparator();
-  }
+    const bannerTextEl = document.createElement('span');
+    bannerEl.appendChild(bannerTextEl);
+    const actionLink = document.createElement('a');
+    actionLink.href = '#';
+    actionLink.style.color = 'var(--brand)';
+    actionLink.style.fontWeight = '700';
+    actionLink.style.marginLeft = '4px';
+    bannerEl.appendChild(actionLink);
 
-  // Selected tabs actions (force suspend/unsuspend)
-  if (hasMultipleSelected) {
-    // Count suspendable and unsuspendable tabs
-    const suspendableTabs = selectedTabs.filter(t => !isInternalUrl(t.url) && !t.url.startsWith(suspendedPrefix));
-    const unsuspendableTabs = selectedTabs.filter(t => t.url.startsWith(suspendedPrefix));
+    if (isPlaceholder) {
+      bannerTextEl.textContent = getMessage('tabSuspended');
+      bannerEl.classList.remove('blue');
+      bannerEl.classList.add('gray');
+      actionLink.style.display = 'none';
+    } else if (isInternal) {
+      bannerTextEl.textContent = getMessage('cannotSuspend');
+      bannerEl.classList.remove('blue');
+      bannerEl.classList.add('gray');
+      actionLink.style.display = 'none';
+    } else if (isWhitelistedUrl) {
+      bannerTextEl.textContent = getMessage('siteWhitelisted');
+      bannerEl.classList.remove('blue');
+      bannerEl.classList.add('gray');
+      actionLink.textContent = getMessage('removeFromWhitelist');
+      actionLink.style.display = 'inline';
 
-    if (suspendableTabs.length > 0) {
-      addItem(getMessage('suspendSelectedTabs') + ` (${suspendableTabs.length})`, async () => {
-        await chrome.runtime.sendMessage({ command: 'suspendSelectedTabs', tabIds: suspendableTabs.map(t => t.id) });
+      actionLink.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (matchedWhitelistEntry && confirm(getMessage('confirmRemoveFromWhitelist').replace('%s', matchedWhitelistEntry))) {
+          await removeFromWhitelist(matchedWhitelistEntry);
+          window.close();
+        }
+      });
+    } else {
+      if (cfg.autoSuspendMinutes === 0) {
+        bannerTextEl.textContent = getMessage('autoSuspendDisabled');
+        bannerEl.classList.remove('blue');
+        bannerEl.classList.add('gray');
+        actionLink.style.display = 'none';
+      } else if (isAudioProtected) {
+        bannerTextEl.textContent = getMessage('audioTabProtected');
+        bannerEl.classList.remove('blue');
+        bannerEl.classList.add('gray');
+        actionLink.style.display = 'none';
+      } else if (tempWhite) {
+        // Temporarily excluded from suspension
+        bannerTextEl.textContent = getMessage('autoSuspendPaused');
+        bannerEl.classList.remove('blue');
+        bannerEl.classList.add('gray');
+        actionLink.textContent = getMessage('allowSuspend');
+        actionLink.style.display = 'inline';
+      } else {
+        bannerTextEl.textContent = getMessage('tabWillSuspend');
+        bannerEl.classList.remove('gray');
+        bannerEl.classList.add('blue');
+        actionLink.textContent = getMessage('notNow');
+        actionLink.style.display = 'inline';
+      }
+
+      // Add click listener if applicable
+      if (cfg.autoSuspendMinutes !== 0) {
+        actionLink.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const { whitelisted } = await chrome.runtime.sendMessage({ command: 'toggleTempWhitelist', url: tab.url });
+          // Update UI based on new state
+          if (whitelisted) {
+            bannerTextEl.textContent = getMessage('autoSuspendPaused');
+            bannerEl.classList.remove('blue');
+            bannerEl.classList.add('gray');
+            actionLink.textContent = getMessage('allowSuspend');
+          } else {
+            bannerTextEl.textContent = getMessage('tabWillSuspend');
+            bannerEl.classList.remove('gray');
+            bannerEl.classList.add('blue');
+            actionLink.textContent = getMessage('notNow');
+          }
+        });
+      }
+    }
+
+    // Menu items depending on state
+    if (!isPlaceholder && !isInternal) {
+      addItem(getMessage('suspendThisTab'), async () => {
+        await chrome.runtime.sendMessage({ command: 'suspendTab', tabId: tab.id });
       }, 'suspend');
     }
 
-    if (unsuspendableTabs.length > 0) {
-      addItem(getMessage('unsuspendSelectedTabs') + ` (${unsuspendableTabs.length})`, async () => {
-        await chrome.runtime.sendMessage({ command: 'unsuspendSelectedTabs', tabIds: unsuspendableTabs.map(t => t.id) });
-      }, 'wake');
+    if (!isInternal && !isWhitelistedUrl) {
+      addItem(getMessage('neverSuspendURL'), async () => {
+        await modifyWhitelist(tab.url);
+      }, 'never');
+      addItem(getMessage('neverSuspendDomain'), async () => {
+        const domain = new URL(tab.url).hostname;
+        await modifyWhitelist(domain);
+      }, 'never');
     }
 
-    // Add separator after selected tabs actions
-    if (suspendableTabs.length > 0 || unsuspendableTabs.length > 0) {
+    // Add separator before bulk actions if we have single tab actions
+    if ((!isPlaceholder && !isInternal) || (!isInternal && !isWhitelistedUrl)) {
       addSeparator();
     }
+
+    // Selected tabs actions (force suspend/unsuspend)
+    if (hasMultipleSelected) {
+      // Count suspendable and unsuspendable tabs
+      const suspendableTabs = selectedTabs.filter(t => !isInternalUrl(t.url) && !t.url.startsWith(suspendedPrefix));
+      const unsuspendableTabs = selectedTabs.filter(t => t.url.startsWith(suspendedPrefix));
+
+      if (suspendableTabs.length > 0) {
+        addItem(getMessage('suspendSelectedTabs') + ` (${suspendableTabs.length})`, async () => {
+          await chrome.runtime.sendMessage({ command: 'suspendSelectedTabs', tabIds: suspendableTabs.map(t => t.id) });
+        }, 'suspend');
+      }
+
+      if (unsuspendableTabs.length > 0) {
+        addItem(getMessage('unsuspendSelectedTabs') + ` (${unsuspendableTabs.length})`, async () => {
+          await chrome.runtime.sendMessage({ command: 'unsuspendSelectedTabs', tabIds: unsuspendableTabs.map(t => t.id) });
+        }, 'wake');
+      }
+
+      // Add separator after selected tabs actions
+      if (suspendableTabs.length > 0 || unsuspendableTabs.length > 0) {
+        addSeparator();
+      }
+    }
+
+    addItem(getMessage('suspendOthers'), async () => {
+      await chrome.runtime.sendMessage({ command: 'suspendOthers', tabId: tab.id });
+    }, 'others');
+    addItem(getMessage('suspendAllOthersAllWindows'), async () => {
+      // Show progress early
+      if (bulkBox) {
+        bulkBox.style.display = 'block';
+        if (bulkTitle) bulkTitle.textContent = getMessage('suspendingAllTabs');
+        if (bulkFill) bulkFill.style.width = '0%';
+        if (bulkText) bulkText.textContent = '0/0';
+        if (bulkLabel) bulkLabel.textContent = '';
+        if (bulkCancelBtn) bulkCancelBtn.disabled = false;
+      }
+      await chrome.runtime.sendMessage({ command: 'suspendAllOthersAllWindows', tabId: tab.id, withProgress: true });
+    }, 'others', false);
+    addItem(getMessage('unsuspendAllThisWindow'), async () => {
+      await chrome.runtime.sendMessage({ command: 'unsuspendAllThisWindow', tabId: tab.id });
+    }, 'wake');
+    addItem(getMessage('unsuspendAll'), async () => {
+      // Show progress early
+      if (bulkBox) {
+        bulkBox.style.display = 'block';
+        if (bulkTitle) bulkTitle.textContent = getMessage('unsuspendingAllTabs');
+        if (bulkFill) bulkFill.style.width = '0%';
+        if (bulkText) bulkText.textContent = '0/0';
+        if (bulkLabel) bulkLabel.textContent = '';
+        if (bulkCancelBtn) bulkCancelBtn.disabled = false;
+      }
+      await chrome.runtime.sendMessage({ command: 'unsuspendAll', withProgress: true });
+    }, 'wake', false);
+
+    addSeparator();
+    addItem(getMessage('settingsMenu'), async () => {
+      await chrome.runtime.openOptionsPage();
+    }, 'settings');
+
+    // ARIA menu pattern: a single tab stop, with the arrow keys below moving
+    // between items.
+    menuItems = [...menuEl.querySelectorAll('li[role="menuitem"]')];
+    if (menuItems.length > 0) {
+      menuItems[0].tabIndex = 0;
+    }
   }
 
-  addItem(getMessage('suspendOthers'), async () => {
-    await chrome.runtime.sendMessage({ command: 'suspendOthers', tabId: tab.id });
-  }, 'others');
-  addItem(getMessage('suspendAllOthersAllWindows'), async () => {
-    // Show progress early
-    if (bulkBox) {
-      bulkBox.style.display = 'block';
-      if (bulkTitle) bulkTitle.textContent = getMessage('suspendingAllTabs');
-      if (bulkFill) bulkFill.style.width = '0%';
-      if (bulkText) bulkText.textContent = '0/0';
-      if (bulkLabel) bulkLabel.textContent = '';
-      if (bulkCancelBtn) bulkCancelBtn.disabled = false;
-    }
-    await chrome.runtime.sendMessage({ command: 'suspendAllOthersAllWindows', tabId: tab.id, withProgress: true });
-  }, 'others', false);
-  addItem(getMessage('unsuspendAllThisWindow'), async () => {
-    await chrome.runtime.sendMessage({ command: 'unsuspendAllThisWindow', tabId: tab.id });
-  }, 'wake');
-  addItem(getMessage('unsuspendAll'), async () => {
-    // Show progress early
-    if (bulkBox) {
-      bulkBox.style.display = 'block';
-      if (bulkTitle) bulkTitle.textContent = getMessage('unsuspendingAllTabs');
-      if (bulkFill) bulkFill.style.width = '0%';
-      if (bulkText) bulkText.textContent = '0/0';
-      if (bulkLabel) bulkLabel.textContent = '';
-      if (bulkCancelBtn) bulkCancelBtn.disabled = false;
-    }
-    await chrome.runtime.sendMessage({ command: 'unsuspendAll', withProgress: true });
-  }, 'wake', false);
+  render(settings);
 
-  addSeparator();
-  addItem(getMessage('settingsMenu'), async () => {
-    await chrome.runtime.openOptionsPage();
-  }, 'settings');
-
-  // ARIA menu pattern: single tab stop plus ArrowUp/ArrowDown/Home/End
-  // navigation between items (separators are skipped automatically).
-  const menuItems = [...menuEl.querySelectorAll('li[role="menuitem"]')];
-  if (menuItems.length > 0) {
-    menuItems[0].tabIndex = 0;
-  }
+  // ArrowUp/ArrowDown/Home/End navigation (separators are skipped
+  // automatically). Bound once: menuItems is refreshed by every render.
   menuEl.addEventListener('keydown', (e) => {
     if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key) || menuItems.length === 0) {
       return;
@@ -392,6 +460,14 @@
     });
   }
 
+  // --- Reconcile the cached render against the real settings -------------
+  const freshSettings = popupSettings((await pendingSettings)[STORAGE_KEY]);
+  if (renderedFromCache && renderSignature(freshSettings) !== renderSignature(settings)) {
+    settings = freshSettings;
+    render(settings);
+  }
+  writeCachedSettings(freshSettings);
+
   // --- helper to add to whitelist ---
   async function modifyWhitelist(entry) {
     const { [STORAGE_KEY]: cfg = {} } = await chrome.storage.sync.get(STORAGE_KEY);
@@ -399,6 +475,7 @@
     if (!cfg.whitelist.includes(entry)) {
       cfg.whitelist.push(entry);
       await chrome.storage.sync.set({ [STORAGE_KEY]: cfg });
+      writeCachedSettings(cfg);
       await chrome.runtime.sendMessage({ command: 'updateSettings', settings: cfg });
     }
   }
@@ -411,6 +488,7 @@
     if (index > -1) {
       cfg.whitelist.splice(index, 1);
       await chrome.storage.sync.set({ [STORAGE_KEY]: cfg });
+      writeCachedSettings(cfg);
       await chrome.runtime.sendMessage({ command: 'updateSettings', settings: cfg });
     }
   }
