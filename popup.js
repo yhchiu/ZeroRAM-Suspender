@@ -74,7 +74,31 @@
     });
   }
 
+  // Loading placeholders, drawn only once the batch above has taken longer than
+  // a frame or two — a popup whose data lands immediately never flashes them.
+  // The rows carry no click handlers, so a click that arrives while they are up
+  // cannot land on the wrong menu entry once the real items replace them.
+  const SKELETON_DELAY_MS = 120;
+  const SKELETON_ROWS = 6;
+  let skeletonTimer = setTimeout(() => {
+    skeletonTimer = null;
+    menuEl.setAttribute('aria-busy', 'true');
+    for (let i = 0; i < SKELETON_ROWS; i++) {
+      const placeholder = document.createElement('li');
+      placeholder.className = 'skeleton';
+      placeholder.setAttribute('aria-hidden', 'true');
+      menuEl.appendChild(placeholder);
+    }
+  }, SKELETON_DELAY_MS);
+
   const [highlightedTabs, syncData, sessionData] = await pendingData;
+
+  if (skeletonTimer !== null) {
+    clearTimeout(skeletonTimer);
+  } else {
+    menuEl.textContent = '';
+    menuEl.removeAttribute('aria-busy');
+  }
 
   // Chrome always highlights the active tab, so the batched query already
   // carries it. The extra query is a safety net, not an expected path.

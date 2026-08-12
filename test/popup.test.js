@@ -320,5 +320,32 @@ describe('popup.js', () => {
       expect(menuItemsAtConnect).toBeGreaterThan(0);
     });
 
+    test('a slow first batch shows placeholders that the real menu replaces', async () => {
+      const chrome = setupChrome([NORMAL_TAB], { autoSuspendMinutes: 30 });
+      let releaseQuery;
+      chrome.tabs.query.mockImplementation(
+        () => new Promise((resolve) => { releaseQuery = () => resolve([NORMAL_TAB]); })
+      );
+
+      jest.useFakeTimers();
+      loadHtmlBody('popup.html');
+      requireSource('popup.js');
+      jest.advanceTimersByTime(200);
+      expect(document.querySelectorAll('#menu li.skeleton').length).toBeGreaterThan(0);
+
+      jest.useRealTimers();
+      releaseQuery();
+      await flush();
+      expect(document.querySelectorAll('#menu li.skeleton')).toHaveLength(0);
+      expect(document.querySelectorAll('#menu li[role="menuitem"]').length).toBeGreaterThan(0);
+    });
+
+    test('a fast first batch never draws placeholders', async () => {
+      await loadPopupWith({
+        tab: { url: 'https://x.com', title: 'X' },
+        settings: { autoSuspendMinutes: 30 },
+      });
+      expect(document.querySelectorAll('#menu li.skeleton')).toHaveLength(0);
+    });
   });
 });
