@@ -8,6 +8,7 @@ const { loadHtmlBody } = require('./helpers/dom');
 
 const EXT_ID = 'testextensionid';
 const STORAGE_KEY = 'utsSettings';
+const TEMP_KEY = 'utsTempWhitelist';
 
 async function flush(times = 20) {
   for (let i = 0; i < times; i++) await Promise.resolve();
@@ -17,25 +18,29 @@ function suspendedUrl(original) {
   return `chrome-extension://${EXT_ID}/suspended.html?uri=${encodeURIComponent(original)}&ttl=T`;
 }
 
-/** Load popup.js against a chrome mock seeded with the given active tab. */
-async function loadPopupWith({ tab, settings = {}, selected, tempWhite = false }) {
-  const tabs = [{ id: 1, windowId: 1, active: true, currentWindow: true, ...tab }];
-  if (selected) {
-    for (const t of selected) tabs.push({ ...t, windowId: 1, currentWindow: true, highlighted: true });
-    tabs[0].highlighted = true;
-  }
+/**
+ * Install a chrome mock and wire up the globals popup.html provides.
+ * popup.html loads i18n.js (which defines the global getMessage) before
+ * popup.js, so we emulate that shared global here.
+ */
+function setupChrome(tabs, settings) {
   const chrome = installChrome({ tabs, windows: [{ id: 1, focused: true }] });
-  // popup.html loads i18n.js (which defines the global getMessage) before
-  // popup.js; emulate that shared global here.
   global.getMessage = (key) => chrome.i18n.getMessage(key) || key;
   chrome.storage.sync._store[STORAGE_KEY] = settings;
-  chrome.runtime.sendMessage.mockImplementation((msg, cb) => {
-    let resp = { done: true };
-    if (msg && msg.command === 'checkTempWhitelist') resp = { whitelisted: tempWhite };
-    if (msg && msg.command === 'toggleTempWhitelist') resp = { whitelisted: !tempWhite };
-    if (typeof cb === 'function') { cb(resp); return undefined; }
-    return Promise.resolve(resp);
-  });
+  return chrome;
+}
+
+/** Load popup.js against a chrome mock seeded with the given active tab. */
+async function loadPopupWith({ tab, settings = {}, selected, tempWhite = false }) {
+  // Chrome always highlights the active tab, so the mock seeds it that way.
+  const tabs = [{ id: 1, windowId: 1, active: true, highlighted: true, currentWindow: true, ...tab }];
+  if (selected) {
+    for (const t of selected) tabs.push({ ...t, windowId: 1, currentWindow: true, highlighted: true });
+  }
+  const chrome = setupChrome(tabs, settings);
+  if (tempWhite) {
+    chrome.storage.session._store[TEMP_KEY] = [tabs[0].url];
+  }
   loadHtmlBody('popup.html');
   requireSource('popup.js');
   await flush();
@@ -224,6 +229,17 @@ describe('popup.js', () => {
     expect(chrome.storage.sync._store[STORAGE_KEY].whitelist).not.toContain('white.com');
   });
 
+  test('a paused tab shows the paused banner and an allow-suspend link', async () => {
+    await loadPopupWith({
+      tab: { url: 'https://x.com', title: 'X' },
+      settings: { autoSuspendMinutes: 30 },
+      tempWhite: true,
+    });
+    const banner = document.getElementById('banner');
+    expect(banner.classList.contains('gray')).toBe(true);
+    expect(banner.querySelector('a').style.display).toBe('inline');
+  });
+
   test('clicking "never suspend this URL" adds it to the whitelist', async () => {
     const chrome = await loadPopupWith({ tab: { url: 'https://x.com/page', title: 'X' }, settings: { autoSuspendMinutes: 30, whitelist: [] } });
     chrome.storage.sync._store[STORAGE_KEY] = { whitelist: [] };
@@ -235,5 +251,74 @@ describe('popup.js', () => {
     item.click();
     await flush();
     expect(chrome.storage.sync._store[STORAGE_KEY].whitelist.length).toBeGreaterThan(0);
+  });
+
+  // The popup must be able to draw itself without waking the service worker:
+  // a cold worker start is the single slowest thing that used to sit on this
+  // path, and it is worst exactly when the machine is already busy.
+  describe('startup path', () => {
+    const NORMAL_TAB = {
+      id: 1,
+      windowId: 1,
+      active: true,
+      highlighted: true,
+      currentWindow: true,
+      url: 'https://x.com',
+      title: 'X',
+    };
+
+    test('reads the temp whitelist from session storage, not from the worker', async () => {
+      const chrome = await loadPopupWith({
+        tab: { url: 'https://x.com', title: 'X' },
+        settings: { autoSuspendMinutes: 30 },
+      });
+      expect(chrome.storage.session.get).toHaveBeenCalledWith(TEMP_KEY);
+      const commands = chrome.runtime.sendMessage.mock.calls.map(([msg]) => msg && msg.command);
+      expect(commands).not.toContain('checkTempWhitelist');
+    });
+
+    test('queries tabs once, covering both the active tab and the selection', async () => {
+      const chrome = await loadPopupWith({
+        tab: { url: 'https://x.com', title: 'X' },
+        settings: { autoSuspendMinutes: 30 },
+        selected: [{ id: 2, url: 'https://y.com' }],
+      });
+      expect(chrome.tabs.query).toHaveBeenCalledTimes(1);
+      expect(chrome.tabs.query).toHaveBeenCalledWith({ highlighted: true, currentWindow: true });
+    });
+
+    test('falls back to an active-tab query when no highlighted tab is active', async () => {
+      // Not a state Chrome produces, but the popup must still render if it does.
+      const chrome = setupChrome([{ ...NORMAL_TAB, highlighted: false }], { autoSuspendMinutes: 30 });
+      loadHtmlBody('popup.html');
+      requireSource('popup.js');
+      await flush();
+      expect(chrome.tabs.query).toHaveBeenCalledWith({ active: true, currentWindow: true });
+      expect(document.querySelectorAll('#menu li[role="menuitem"]').length).toBeGreaterThan(0);
+    });
+
+    test('renders nothing and skips the port when there is no tab at all', async () => {
+      const chrome = setupChrome([], { autoSuspendMinutes: 30 });
+      loadHtmlBody('popup.html');
+      requireSource('popup.js');
+      await flush();
+      expect(document.querySelectorAll('#menu li')).toHaveLength(0);
+      expect(chrome.runtime.connect).not.toHaveBeenCalled();
+    });
+
+    test('connects the bulk-progress port only after the menu is rendered', async () => {
+      const chrome = setupChrome([NORMAL_TAB], { autoSuspendMinutes: 30 });
+      const connect = chrome.runtime.connect.getMockImplementation();
+      let menuItemsAtConnect = -1;
+      chrome.runtime.connect.mockImplementation((info) => {
+        menuItemsAtConnect = document.querySelectorAll('#menu li[role="menuitem"]').length;
+        return connect(info);
+      });
+      loadHtmlBody('popup.html');
+      requireSource('popup.js');
+      await flush();
+      expect(menuItemsAtConnect).toBeGreaterThan(0);
+    });
+
   });
 });

@@ -197,6 +197,9 @@ function setTempWhitelistFromStorageValue(value) {
   tempWhitelist = new Set(cleaned);
 }
 
+// Every mutation of tempWhitelist must go through here: the popup reads this
+// session-storage copy directly instead of messaging the worker, so an
+// unpersisted change would show up there as a stale pause state.
 async function persistTempWhitelist() {
   await chrome.storage.session.set({ [TEMP_KEY]: Array.from(tempWhitelist) });
 }
@@ -1294,9 +1297,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         }
         await persistTempWhitelist();
         respond({ whitelisted: tempWhitelist.has(url) });
-      } else if (msg.command === 'checkTempWhitelist') {
-        const whitelisted = tempWhitelist.has(msg.url);
-        respond({ whitelisted });
       } else if (msg.command === 'suspendSelectedTabs') {
         // Force suspend selected tabs (ignore whitelist but respect internal URLs)
         await suspendSelectedTabs(msg.tabIds);

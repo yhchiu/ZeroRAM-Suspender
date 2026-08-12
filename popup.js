@@ -1,8 +1,35 @@
 // popup.js - build popup UI
 (async () => {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  const suspendedPrefix = chrome.runtime.getURL('suspended.html');
   const STORAGE_KEY = 'utsSettings';
+  // Mirrors background.js: the worker writes its in-memory temporary whitelist
+  // back to session storage on every change, so the popup can read the same
+  // data straight from there instead of asking the worker for it.
+  const TEMP_KEY = 'utsTempWhitelist';
+
+  // Every read below is independent, so they leave as one parallel batch
+  // instead of a serial chain, and none of them touches the service worker.
+  // That is what matters when the machine is busy: a sleeping worker has to
+  // spawn a process, evaluate background.js and restore its whole state before
+  // it can answer a message, and the popup used to sit on an empty frame for
+  // all of it. Kicking the batch off before any other work gets the requests
+  // onto the browser process as early as possible.
+  const pendingData = Promise.all([
+    chrome.tabs.query({ highlighted: true, currentWindow: true }),
+    chrome.storage.sync.get(STORAGE_KEY),
+    chrome.storage.session.get(TEMP_KEY),
+  ]);
+
+  const suspendedPrefix = chrome.runtime.getURL('suspended.html');
+  const bannerEl = document.getElementById('banner');
+  const menuEl = document.getElementById('menu');
+
+  // Bulk progress UI elements
+  const bulkBox = document.getElementById('bulkProgress');
+  const bulkFill = document.getElementById('bulkProgressFill');
+  const bulkText = document.getElementById('bulkProgressText');
+  const bulkTitle = document.getElementById('bulkProgressTitle');
+  const bulkLabel = document.getElementById('bulkProgressLabel');
+  const bulkCancelBtn = document.getElementById('bulkCancelBtn');
 
   // Set version dynamically
   const manifest = chrome.runtime.getManifest();
@@ -47,84 +74,28 @@
     });
   }
 
-  // Check for selected tabs (highlighted tabs)
-  async function getSelectedTabs() {
-    const selectedTabs = await chrome.tabs.query({ highlighted: true, currentWindow: true });
-    return selectedTabs;
-  }
+  const [highlightedTabs, syncData, sessionData] = await pendingData;
 
-  const { [STORAGE_KEY]: settings = {} } = await chrome.storage.sync.get(STORAGE_KEY);
+  // Chrome always highlights the active tab, so the batched query already
+  // carries it. The extra query is a safety net, not an expected path.
+  let tab = highlightedTabs.find(t => t.active);
+  if (!tab) {
+    [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  }
+  // No tab to describe: leave the popup as-is rather than throwing on tab.url.
+  if (!tab) return;
+
+  const selectedTabs = highlightedTabs;
+  const hasMultipleSelected = selectedTabs.length > 1;
+  const settings = syncData[STORAGE_KEY] || {};
+  const tempWhitelist = sessionData[TEMP_KEY];
+  const tempWhite = Array.isArray(tempWhitelist) && tempWhitelist.includes(tab.url);
 
   const isPlaceholder = tab.url.startsWith(suspendedPrefix);
   const isInternal = isInternalUrl(tab.url);
   const isWhitelistedUrl = isWhitelisted(tab.url, settings);
   const isAudioProtected = settings.neverSuspendAudio !== false && tab.audible === true;
   const matchedWhitelistEntry = getMatchedWhitelistEntry(tab.url, settings);
-  const cannotSuspend = isInternal || isWhitelistedUrl;
-  const bannerEl = document.getElementById('banner');
-  const menuEl = document.getElementById('menu');
-
-  // Bulk progress UI elements
-  const bulkBox = document.getElementById('bulkProgress');
-  const bulkFill = document.getElementById('bulkProgressFill');
-  const bulkText = document.getElementById('bulkProgressText');
-  const bulkTitle = document.getElementById('bulkProgressTitle');
-  const bulkLabel = document.getElementById('bulkProgressLabel');
-  const bulkCancelBtn = document.getElementById('bulkCancelBtn');
-
-  // Connect a long-lived port for receiving background progress updates
-  const port = chrome.runtime.connect({ name: 'popup' });
-  port.onMessage.addListener((msg) => {
-    if (!msg || msg.type !== 'bulkProgress') return;
-    const { action, processed = 0, total = 0, done = false, cancelled = false } = msg;
-    if (!bulkBox) return;
-    bulkBox.style.display = 'block';
-
-    if (bulkTitle) {
-      if (action === 'unsuspendAll') {
-        bulkTitle.textContent = getMessage('unsuspendingAllTabs');
-      } else if (action === 'suspendAll') {
-        bulkTitle.textContent = getMessage('suspendingAllTabs');
-      } else {
-        bulkTitle.textContent = getMessage('bulkProgress');
-      }
-    }
-
-    const pct = total > 0 ? Math.floor((processed / total) * 100) : 0;
-    if (bulkFill) bulkFill.style.width = `${pct}%`;
-    if (bulkText) bulkText.textContent = `${processed}/${total}`;
-    if (bulkLabel) bulkLabel.textContent = `${pct}%`;
-
-    if (done) {
-      // Snap to 100% and briefly indicate completion
-      if (cancelled) {
-        if (bulkLabel) bulkLabel.textContent = getMessage('bulkCancelled');
-      } else {
-        if (bulkFill) bulkFill.style.width = '100%';
-        if (bulkText) bulkText.textContent = `${total}/${total}`;
-        if (bulkLabel) bulkLabel.textContent = '100%';
-        setTimeout(() => {
-          if (bulkLabel) bulkLabel.textContent = getMessage('bulkDone');
-        }, 100);
-      }
-      if (bulkCancelBtn) bulkCancelBtn.disabled = true;
-    }
-  });
-
-  // Allow cancel during bulk operations
-  if (bulkCancelBtn) {
-    bulkCancelBtn.addEventListener('click', async () => {
-      bulkCancelBtn.disabled = true;
-      await chrome.runtime.sendMessage({ command: 'cancelBulk' });
-    });
-  }
-
-  // Check for multiple selected tabs
-  const selectedTabs = await getSelectedTabs();
-  const hasMultipleSelected = selectedTabs.length > 1;
-
-  // Fetch temporary whitelist status
-  const { whitelisted: tempWhite } = await chrome.runtime.sendMessage({ command: 'checkTempWhitelist', url: tab.url });
 
   let bannerTextEl = document.createElement('span');
   bannerEl.appendChild(bannerTextEl);
@@ -151,7 +122,7 @@
     bannerEl.classList.add('gray');
     actionLink.textContent = getMessage('removeFromWhitelist');
     actionLink.style.display = 'inline';
-    
+
     actionLink.addEventListener('click', async (e) => {
       e.preventDefault();
       if (matchedWhitelistEntry && confirm(getMessage('confirmRemoveFromWhitelist').replace('%s', matchedWhitelistEntry))) {
@@ -264,13 +235,13 @@
     // Count suspendable and unsuspendable tabs
     const suspendableTabs = selectedTabs.filter(t => !isInternalUrl(t.url) && !t.url.startsWith(suspendedPrefix));
     const unsuspendableTabs = selectedTabs.filter(t => t.url.startsWith(suspendedPrefix));
-    
+
     if (suspendableTabs.length > 0) {
       addItem(getMessage('suspendSelectedTabs') + ` (${suspendableTabs.length})`, async () => {
         await chrome.runtime.sendMessage({ command: 'suspendSelectedTabs', tabIds: suspendableTabs.map(t => t.id) });
       }, 'suspend');
     }
-    
+
     if (unsuspendableTabs.length > 0) {
       addItem(getMessage('unsuspendSelectedTabs') + ` (${unsuspendableTabs.length})`, async () => {
         await chrome.runtime.sendMessage({ command: 'unsuspendSelectedTabs', tabIds: unsuspendableTabs.map(t => t.id) });
@@ -345,6 +316,57 @@
     menuItems[next].tabIndex = 0;
     menuItems[next].focus();
   });
+
+  // --- Bulk progress plumbing -------------------------------------------
+  // Connecting the port is what wakes the service worker, so it happens after
+  // the menu is on screen: bulk runs only start from a click, long after this
+  // point, and connecting earlier would make the worker's cold start compete
+  // with the popup's own rendering for CPU and browser-process time.
+  const port = chrome.runtime.connect({ name: 'popup' });
+  port.onMessage.addListener((msg) => {
+    if (!msg || msg.type !== 'bulkProgress') return;
+    const { action, processed = 0, total = 0, done = false, cancelled = false } = msg;
+    if (!bulkBox) return;
+    bulkBox.style.display = 'block';
+
+    if (bulkTitle) {
+      if (action === 'unsuspendAll') {
+        bulkTitle.textContent = getMessage('unsuspendingAllTabs');
+      } else if (action === 'suspendAll') {
+        bulkTitle.textContent = getMessage('suspendingAllTabs');
+      } else {
+        bulkTitle.textContent = getMessage('bulkProgress');
+      }
+    }
+
+    const pct = total > 0 ? Math.floor((processed / total) * 100) : 0;
+    if (bulkFill) bulkFill.style.width = `${pct}%`;
+    if (bulkText) bulkText.textContent = `${processed}/${total}`;
+    if (bulkLabel) bulkLabel.textContent = `${pct}%`;
+
+    if (done) {
+      // Snap to 100% and briefly indicate completion
+      if (cancelled) {
+        if (bulkLabel) bulkLabel.textContent = getMessage('bulkCancelled');
+      } else {
+        if (bulkFill) bulkFill.style.width = '100%';
+        if (bulkText) bulkText.textContent = `${total}/${total}`;
+        if (bulkLabel) bulkLabel.textContent = '100%';
+        setTimeout(() => {
+          if (bulkLabel) bulkLabel.textContent = getMessage('bulkDone');
+        }, 100);
+      }
+      if (bulkCancelBtn) bulkCancelBtn.disabled = true;
+    }
+  });
+
+  // Allow cancel during bulk operations
+  if (bulkCancelBtn) {
+    bulkCancelBtn.addEventListener('click', async () => {
+      bulkCancelBtn.disabled = true;
+      await chrome.runtime.sendMessage({ command: 'cancelBulk' });
+    });
+  }
 
   // --- helper to add to whitelist ---
   async function modifyWhitelist(entry) {

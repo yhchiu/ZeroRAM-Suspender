@@ -548,14 +548,6 @@ describe('event listeners', () => {
     expect(r2).toHaveBeenCalledWith({ whitelisted: false });
   });
 
-  test('onMessage: checkTempWhitelist reports membership', async () => {
-    const { bg, chrome } = loadBackground();
-    await flush(); // let the cold-start restore finish before seeding state
-    bg.setTempWhitelistFromStorageValue(['https://t.com']);
-    const r = await sendMessage(chrome, { command: 'checkTempWhitelist', url: 'https://t.com' });
-    expect(r).toHaveBeenCalledWith({ whitelisted: true });
-  });
-
   test('onMessage: suspendTab on a missing tab responds with a gone error', async () => {
     const { chrome } = loadBackground();
     const r = await sendMessage(chrome, { command: 'suspendTab', tabId: 12345 });

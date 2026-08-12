@@ -170,9 +170,7 @@ function createChromeMock(initialState = {}) {
       sendMessage: jest.fn((msg, cb) => {
         // Default router returns benign responses; tests override as needed.
         const resp =
-          msg && msg.command === 'checkTempWhitelist'
-            ? { whitelisted: false }
-            : msg && msg.command === 'toggleTempWhitelist'
+          msg && msg.command === 'toggleTempWhitelist'
             ? { whitelisted: true }
             : { done: true };
         if (typeof cb === 'function') {
