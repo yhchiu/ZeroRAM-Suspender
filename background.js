@@ -1028,12 +1028,22 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
     // Drop the override now. If it stays on the background tab until the next
     // whitelist change, a worker restart loses the bookkeeping and the stale
     // badge comes back the moment the user returns.
-    await applyTabBadge(previousTabId, false);
+    await clearBadgeForLeftTab(previousTabId);
   }
 
   // The badge is only kept up to date for tabs in view, so the tab that just
   // came into view has to be painted now.
   await paintBadgeForTab(tabId);
+
+  // Any other tab we have badged in this window is off screen now, whether or
+  // not the tracking above was in a position to name it: the window was never
+  // tracked, or its entry went with a detached tab. Normally the clear already
+  // took the one candidate out of the map and this walks a handful of entries
+  // belonging to other windows, at no cost beyond the walk.
+  for (const [badgedTabId, badgedWindowId] of [...badgedTabWindows]) {
+    if (badgedWindowId !== windowId || badgedTabId === tabId) continue;
+    await clearBadgeForLeftTab(badgedTabId);
+  }
 });
 
 // Track last active tab on focus changes to avoid periodic updates in checkTabs
@@ -1070,7 +1080,7 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
       const activeTabId = activeTabs[0].id;
       // Focusing a window puts its active tab in view without an onActivated
       // event, so its badge is painted here, off the query we already made.
-      await applyTabBadge(activeTabId, isPausedTab(activeTabs[0]), true);
+      await applyTabBadge(activeTabId, isPausedTab(activeTabs[0]), true, windowId);
       // Keep per-window active tab tracking fresh even if onActivated doesn't fire on focus switch.
       setLastActiveTabInWindow(windowId, { tabId: activeTabId, timestamp: now });
       // Only update global focused-tab memory if this event is still current.
@@ -1099,9 +1109,9 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     // background tab is left alone: Chrome has already cleared its badge, and
     // it is painted afresh when the user returns to it.
     if (tab && tab.active) {
-      await applyTabBadge(tabId, isPausedTab({ ...tab, url: changeInfo.url }), true);
+      await applyTabBadge(tabId, isPausedTab({ ...tab, url: changeInfo.url }), true, tab.windowId);
     } else {
-      badgedTabIds.delete(tabId);
+      badgedTabWindows.delete(tabId);
     }
   }
 
@@ -1204,7 +1214,7 @@ chrome.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
   suspendedFaviconReadyTabs.delete(tabId);
   pendingReDiscardTabIds.delete(tabId);
   reDiscardRetryCounts.delete(tabId);
-  badgedTabIds.delete(tabId);
+  badgedTabWindows.delete(tabId);
 
   // Clean up pending discard if tab is closed
   cancelPendingDiscardWait(tabId);
@@ -1254,7 +1264,7 @@ chrome.tabs.onReplaced.addListener(async (addedTabId, removedTabId) => {
     await saveLastActiveTab();
   }
   // Per-tab action state is keyed by tab id and does not survive the swap.
-  badgedTabIds.delete(removedTabId);
+  badgedTabWindows.delete(removedTabId);
   await paintBadgeForTab(addedTabId);
 });
 
@@ -1886,9 +1896,17 @@ const ACTION_TITLE_PAUSED = (() => {
   return state ? `${ACTION_TITLE_DEFAULT} — ${state}` : ACTION_TITLE_DEFAULT;
 })();
 
-// The tabs carrying a badge we painted. Only the tabs currently in view;
-// leaving a tab drops it here and in Chrome in the same turn.
-const badgedTabIds = new Set();
+// The tabs carrying a badge we painted, each mapped to the window it was in
+// view in. Only the tabs currently in view; leaving a tab drops it here and in
+// Chrome in the same turn, so there is about one entry per open window.
+//
+// The window is what lets a leave be spotted without any history: a window
+// shows one tab at a time, so activating a tab there means every other badged
+// tab of that window has gone off screen. The per-window active tab tracking
+// names the leaving tab more directly and survives a restart, but it is not
+// always there to ask — a window can be untracked, and a detach drops its
+// entry — so the two cover each other.
+const badgedTabWindows = new Map();
 
 let badgeFlashTimer = null;
 let badgeFlashTabId = null;
@@ -1904,12 +1922,14 @@ function isPausedTab(tab) {
   return Boolean(url) && tempWhitelist.has(url);
 }
 
-// The one writer of the persistent layer, so badgedTabIds cannot drift from
-// what Chrome shows. `force` re-applies a badge Chrome may have dropped by
+// The one writer of the persistent layer, so badgedTabWindows cannot drift
+// from what Chrome shows. `force` re-applies a badge Chrome may have dropped by
 // itself: it resets per-tab action state whenever the tab navigates.
-async function applyTabBadge(tabId, paused, force = false) {
+// `windowId` records where a painted tab is on screen; it defaults to the
+// window already recorded, which is what re-applying a badge wants.
+async function applyTabBadge(tabId, paused, force = false, windowId = badgedTabWindows.get(tabId)) {
   if (typeof tabId !== 'number') return;
-  if (!force && badgedTabIds.has(tabId) === paused) return;
+  if (!force && badgedTabWindows.has(tabId) === paused) return;
 
   try {
     if (paused) {
@@ -1924,14 +1944,14 @@ async function applyTabBadge(tabId, paused, force = false) {
     });
   } catch (error) {
     // The tab closed mid-update; there is nothing on screen left to track.
-    badgedTabIds.delete(tabId);
+    badgedTabWindows.delete(tabId);
     return;
   }
 
   if (paused) {
-    badgedTabIds.add(tabId);
+    badgedTabWindows.set(tabId, windowId);
   } else {
-    badgedTabIds.delete(tabId);
+    badgedTabWindows.delete(tabId);
   }
 }
 
@@ -1946,9 +1966,9 @@ async function refreshVisibleBadges() {
     for (const tab of visibleTabs) {
       if (typeof tab.id !== 'number') continue;
       visibleTabIds.add(tab.id);
-      await applyTabBadge(tab.id, isPausedTab(tab));
+      await applyTabBadge(tab.id, isPausedTab(tab), false, tab.windowId);
     }
-    for (const tabId of [...badgedTabIds]) {
+    for (const tabId of [...badgedTabWindows.keys()]) {
       if (!visibleTabIds.has(tabId)) await applyTabBadge(tabId, false);
     }
   } catch (error) {
@@ -1966,13 +1986,42 @@ async function paintBadgeForTab(tabId) {
     // not painted: Chrome does not draw its badge, and onActivated will paint
     // it if the user later switches to it.
     if (!tab.active) {
-      badgedTabIds.delete(tabId);
+      badgedTabWindows.delete(tabId);
       return;
     }
-    await applyTabBadge(tabId, isPausedTab(tab), true);
+    await applyTabBadge(tabId, isPausedTab(tab), true, tab.windowId);
   } catch (error) {
     // The tab is already gone, so there is nothing to paint.
-    badgedTabIds.delete(tabId);
+    badgedTabWindows.delete(tabId);
+  }
+}
+
+// Take the override off a tab that has just left view, the mirror of the paint
+// above and just as distrustful of the bookkeeping: the tab was very likely
+// badged by an earlier worker — one watched for longer than the 30s idle
+// teardown is left through the very event that wakes its successor — and that
+// worker's set is gone, so a check against it would skip the clear precisely
+// when it matters.
+//
+// The tab is asked whether it really left, because "another tab was activated
+// in this window" does not mean this one is off screen: dragged into another
+// window it is that window's active tab, and still drawn there. Chrome reports
+// active per window, so an active tab here is one that moved, not one that
+// stayed. The source window's onActivated can arrive before onDetached has
+// dropped our tracking entry, so the order of the two cannot be relied on.
+async function clearBadgeForLeftTab(tabId) {
+  try {
+    const tab = await chrome.tabs.get(tabId);
+    if (tab.active) {
+      // It moved rather than left. Follow it, so the window it is drawn in now
+      // is the one that gets to decide when it goes off screen.
+      if (badgedTabWindows.has(tabId)) badgedTabWindows.set(tabId, tab.windowId);
+      return;
+    }
+    await applyTabBadge(tabId, false, true);
+  } catch (error) {
+    // The tab closed on its way out; its per-tab state went with it.
+    badgedTabWindows.delete(tabId);
   }
 }
 
@@ -1987,7 +2036,7 @@ async function restoreBadgeAfterFlash(tabId) {
     }
     return;
   }
-  await applyTabBadge(tabId, badgedTabIds.has(tabId), true);
+  await applyTabBadge(tabId, badgedTabWindows.has(tabId), true);
 }
 
 // Take a flash off the screen ahead of its timer and put the tab it sits on
@@ -2045,7 +2094,7 @@ async function flashActionBadge(kind, tabId = null) {
 // pausable window, or the all-windows shortcut firing with no tab attached.
 async function reportPauseResult(result, tabId) {
   if (result === PAUSE_RESULT_PAUSED) {
-    if (typeof tabId === 'number' && badgedTabIds.has(tabId)) {
+    if (typeof tabId === 'number' && badgedTabWindows.has(tabId)) {
       // The badge is the whole answer here, so any flash still up from an
       // earlier press has to come down without one taking its place.
       await cancelBadgeFlash();
@@ -2228,6 +2277,7 @@ if (typeof module !== 'undefined' && module.exports) {
     applyTabBadge,
     refreshVisibleBadges,
     paintBadgeForTab,
+    clearBadgeForLeftTab,
     flashActionBadge,
     reportPauseResult,
     restoreActionBadges,
@@ -2258,7 +2308,7 @@ if (typeof module !== 'undefined' && module.exports) {
       fixFaviconRetryCounts,
       pendingReDiscardTabIds,
       reDiscardRetryCounts,
-      badgedTabIds,
+      badgedTabWindows,
       cachedSettings,
       popupPorts,
       bulkCancelToken,

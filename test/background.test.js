@@ -1052,7 +1052,7 @@ describe('persistent pause badge', () => {
 
     expect(chrome.action._getBadgeText(2)).toBe(bg.BADGE_PAUSED_TEXT);
     expect(chrome.action._getBadgeText(3)).toBe('');
-    expect([...bg.__getInternals().badgedTabIds]).toEqual([1, 2]);
+    expect([...bg.__getInternals().badgedTabWindows.keys()]).toEqual([1, 2]);
   });
 
   test('switching to a paused tab paints it, and leaving it drops the badge', async () => {
@@ -1080,7 +1080,99 @@ describe('persistent pause badge', () => {
     await flush();
 
     expect(chrome.action._getBadgeText(2)).toBe('');
-    expect(bg.__getInternals().badgedTabIds.has(2)).toBe(false);
+    expect(bg.__getInternals().badgedTabWindows.has(2)).toBe(false);
+  });
+
+  test('a badge left by a dead worker is cleared when its tab is left', async () => {
+    // The usual order of events: the user watches a paused tab for longer than
+    // the 30s idle teardown, so the switch away is the event that starts the
+    // next worker — which knows nothing of the badge its predecessor painted.
+    const { bg, chrome } = loadBackground({
+      tabs: [
+        { id: 1, url: 'https://a.com', active: false, windowId: 1 },
+        { id: 2, url: 'https://paused.example', active: true, windowId: 1 },
+      ],
+      windows: [{ id: 1, focused: true }],
+    });
+    chrome.storage.session._store.utsTempWhitelist = ['https://paused.example'];
+    chrome.storage.session._store.utsLastActiveTabPerWindow = {
+      1: { tabId: 2, timestamp: Date.now() },
+    };
+    // What the previous worker left on screen.
+    chrome.action._badgeText.set(2, bg.BADGE_PAUSED_TEXT);
+    chrome.action._title.set(2, bg.ACTION_TITLE_PAUSED);
+
+    chrome._getTab(2).active = false;
+    chrome._getTab(1).active = true;
+    await chrome.tabs.onActivated.trigger({ tabId: 1, windowId: 1 });
+    await flush();
+
+    // Nothing in the bookkeeping says tab 2 was badged, so the clear has to go
+    // through to the API regardless: the tab is out of view, and a later resume
+    // would otherwise flash this OFF the moment the user came back.
+    expect(chrome.action._getBadgeText(2)).toBe('');
+    expect(chrome.action._getTitle(2)).toBe(bg.ACTION_TITLE_DEFAULT);
+    expect(bg.__getInternals().badgedTabWindows.has(2)).toBe(false);
+  });
+
+  test('leaving a paused tab clears it even with no tracking for the window', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [
+        { id: 1, url: 'https://paused.example', active: true, windowId: 1 },
+        { id: 2, url: 'https://a.com', active: false, windowId: 1 },
+      ],
+      windows: [{ id: 1, focused: true }],
+    });
+    await bg.initPromise;
+    await flush();
+    bg.setTempWhitelistFromStorageValue(['https://paused.example']);
+    await bg.refreshVisibleBadges();
+    expect(chrome.action._getBadgeText(1)).toBe(bg.BADGE_PAUSED_TEXT);
+
+    // No per-window entry to name the leaving tab: the window was painted by a
+    // whitelist change without ever being activated or focused, or a detach
+    // dropped its entry. The badge is still ours to take down.
+    bg.__getInternals().lastActiveTabPerWindow.delete(1);
+
+    chrome._getTab(1).active = false;
+    chrome._getTab(2).active = true;
+    await chrome.tabs.onActivated.trigger({ tabId: 2, windowId: 1 });
+    await flush();
+
+    expect(chrome.action._getBadgeText(1)).toBe('');
+    expect(bg.__getInternals().badgedTabWindows.has(1)).toBe(false);
+  });
+
+  test('a paused tab dragged into another window keeps its badge', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [
+        { id: 1, url: 'https://a.com', active: false, windowId: 1 },
+        { id: 2, url: 'https://paused.example', active: true, windowId: 1 },
+        { id: 3, url: 'https://b.com', active: true, windowId: 2 },
+      ],
+      windows: [{ id: 1, focused: true }, { id: 2, focused: false }],
+    });
+    await bg.initPromise;
+    await flush();
+    bg.setTempWhitelistFromStorageValue(['https://paused.example']);
+    await bg.refreshVisibleBadges();
+    bg.setLastActiveTabInWindow(1, { tabId: 2, timestamp: Date.now() });
+    expect(chrome.action._getBadgeText(2)).toBe(bg.BADGE_PAUSED_TEXT);
+
+    // Tab 2 is dragged to window 2, where it becomes the active tab; window 1
+    // falls back to tab 1. The source window's onActivated can arrive before
+    // onDetached has dropped our tracking entry, so it must not take the badge
+    // off a tab that is now on screen in the other window.
+    chrome._setTabs([
+      { id: 1, url: 'https://a.com', active: true, windowId: 1 },
+      { id: 2, url: 'https://paused.example', active: true, windowId: 2 },
+      { id: 3, url: 'https://b.com', active: false, windowId: 2 },
+    ]);
+    await chrome.tabs.onActivated.trigger({ tabId: 1, windowId: 1 });
+    await flush();
+
+    expect(chrome.action._getBadgeText(2)).toBe(bg.BADGE_PAUSED_TEXT);
+    expect(bg.__getInternals().badgedTabWindows.has(2)).toBe(true);
   });
 
   test('a replaced active tab is painted under the new id', async () => {
@@ -1098,8 +1190,8 @@ describe('persistent pause badge', () => {
     await flush();
 
     expect(chrome.action._getBadgeText(20)).toBe(bg.BADGE_PAUSED_TEXT);
-    expect(bg.__getInternals().badgedTabIds.has(20)).toBe(true);
-    expect(bg.__getInternals().badgedTabIds.has(10)).toBe(false);
+    expect(bg.__getInternals().badgedTabWindows.has(20)).toBe(true);
+    expect(bg.__getInternals().badgedTabWindows.has(10)).toBe(false);
   });
 
   test('replacing a background tab does not paint a badge', async () => {
@@ -1122,7 +1214,7 @@ describe('persistent pause badge', () => {
     await flush();
 
     expect(chrome.action.setBadgeText).not.toHaveBeenCalled();
-    expect(bg.__getInternals().badgedTabIds.has(20)).toBe(false);
+    expect(bg.__getInternals().badgedTabWindows.has(20)).toBe(false);
   });
 
   test('focusing a window paints its active tab', async () => {
@@ -1243,7 +1335,7 @@ describe('persistent pause badge', () => {
     await flush();
 
     expect(chrome.action.setBadgeText).not.toHaveBeenCalled();
-    expect(bg.__getInternals().badgedTabIds.has(2)).toBe(false);
+    expect(bg.__getInternals().badgedTabWindows.has(2)).toBe(false);
   });
 
   test('a closed tab is dropped from the badge bookkeeping', async () => {
@@ -1257,13 +1349,13 @@ describe('persistent pause badge', () => {
       '06-toggle-pause-current-tab',
       chrome._getTab(1)
     );
-    expect(bg.__getInternals().badgedTabIds.has(1)).toBe(true);
+    expect(bg.__getInternals().badgedTabWindows.has(1)).toBe(true);
 
     chrome._setTabs([]);
     await chrome.tabs.onRemoved.trigger(1, { windowId: 1 });
     await flush();
 
-    expect(bg.__getInternals().badgedTabIds.has(1)).toBe(false);
+    expect(bg.__getInternals().badgedTabWindows.has(1)).toBe(false);
   });
 
   test('a failing tab query costs the badges, not the pause itself', async () => {
