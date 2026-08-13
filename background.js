@@ -1025,6 +1025,10 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
   // Attempt to re-discard only the tab that just became inactive in this window.
   if (previousTabId !== null) {
     scheduleReDiscard(previousTabId);
+    // Drop the override now. If it stays on the background tab until the next
+    // whitelist change, a worker restart loses the bookkeeping and the stale
+    // badge comes back the moment the user returns.
+    await applyTabBadge(previousTabId, false);
   }
 
   // The badge is only kept up to date for tabs in view, so the tab that just
@@ -1249,6 +1253,9 @@ chrome.tabs.onReplaced.addListener(async (addedTabId, removedTabId) => {
     lastActiveTabId = addedTabId;
     await saveLastActiveTab();
   }
+  // Per-tab action state is keyed by tab id and does not survive the swap.
+  badgedTabIds.delete(removedTabId);
+  await paintBadgeForTab(addedTabId);
 });
 
 // A tab dragged out of a window leaves the source window's per-window entry
@@ -1845,8 +1852,8 @@ function scheduleReDiscard(tabId = null, delayMs = 500) {
 // Only the tabs the user can actually see are painted — the active tab of each
 // open window — because that is all Chrome ever draws: a background tab's badge
 // appears nowhere, not even in the tab strip. Tabs are painted as they come
-// into view, and an override left on a tab that has gone out of view is dropped
-// the next time the state changes, so nothing stale can come back with it.
+// into view, and the override is dropped as soon as they leave, so a worker
+// restart cannot leave a stale badge on a tab nobody is looking at.
 // Painting every matching tab instead would cost an API call per tab — 30k of
 // them across 10k tabs — to draw badges nobody is in a position to look at.
 //
@@ -1879,8 +1886,8 @@ const ACTION_TITLE_PAUSED = (() => {
   return state ? `${ACTION_TITLE_DEFAULT} — ${state}` : ACTION_TITLE_DEFAULT;
 })();
 
-// The tabs carrying a badge we painted. Only ever a handful — the tabs that are
-// on screen, plus the ones that have just left it — never every paused tab.
+// The tabs carrying a badge we painted. Only the tabs currently in view;
+// leaving a tab drops it here and in Chrome in the same turn.
 const badgedTabIds = new Set();
 
 let badgeFlashTimer = null;
@@ -1928,13 +1935,10 @@ async function applyTabBadge(tabId, paused, force = false) {
   }
 }
 
-// Redraw the tabs on screen after the temporary whitelist changes, and clear
-// the overrides left on tabs that have gone out of view, whose state the change
-// may have moved on. Chrome filters the query itself, so this costs one small
-// query and an API call per tab the user is looking at, whether ten tabs are
-// open or ten thousand. Tabs painted by a previous worker are not in the
-// bookkeeping and keep their badge, which is still right: nothing can change
-// the whitelist while the worker is down.
+// Redraw the tabs on screen after the temporary whitelist changes. Chrome
+// filters the query itself, so this costs one small query and an API call per
+// tab the user is looking at, whether ten tabs are open or ten thousand. The
+// leftover pass is a safety net for a tab that left view without onActivated.
 async function refreshVisibleBadges() {
   try {
     const visibleTabs = await chrome.tabs.query({ active: true });
@@ -1958,6 +1962,13 @@ async function refreshVisibleBadges() {
 async function paintBadgeForTab(tabId) {
   try {
     const tab = await chrome.tabs.get(tabId);
+    // A background replacement (prerender of a tab that is not in view) is
+    // not painted: Chrome does not draw its badge, and onActivated will paint
+    // it if the user later switches to it.
+    if (!tab.active) {
+      badgedTabIds.delete(tabId);
+      return;
+    }
     await applyTabBadge(tabId, isPausedTab(tab), true);
   } catch (error) {
     // The tab is already gone, so there is nothing to paint.

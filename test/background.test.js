@@ -1072,17 +1072,57 @@ describe('persistent pause badge', () => {
     await flush();
     expect(chrome.action._getBadgeText(2)).toBe(bg.BADGE_PAUSED_TEXT);
 
-    // Tab 2 goes out of view, and the state changes while it is away: its
-    // override is dropped so it cannot come back showing the old answer.
+    // Leaving the tab drops the override immediately, so a worker restart
+    // cannot leave a stale OFF on a background tab.
     chrome._getTab(2).active = false;
     chrome._getTab(1).active = true;
     await chrome.tabs.onActivated.trigger({ tabId: 1, windowId: 1 });
     await flush();
-    bg.setTempWhitelistFromStorageValue([]);
-    await bg.persistTempWhitelist();
 
     expect(chrome.action._getBadgeText(2)).toBe('');
-    expect(bg.__getInternals().badgedTabIds.size).toBe(0);
+    expect(bg.__getInternals().badgedTabIds.has(2)).toBe(false);
+  });
+
+  test('a replaced active tab is painted under the new id', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 10, url: 'https://paused.example', active: true, windowId: 1 }],
+    });
+    await bg.initPromise;
+    await flush();
+    bg.setTempWhitelistFromStorageValue(['https://paused.example']);
+    await bg.refreshVisibleBadges();
+    expect(chrome.action._getBadgeText(10)).toBe(bg.BADGE_PAUSED_TEXT);
+
+    chrome._setTabs([{ id: 20, url: 'https://paused.example', active: true, windowId: 1 }]);
+    await chrome.tabs.onReplaced.trigger(20, 10);
+    await flush();
+
+    expect(chrome.action._getBadgeText(20)).toBe(bg.BADGE_PAUSED_TEXT);
+    expect(bg.__getInternals().badgedTabIds.has(20)).toBe(true);
+    expect(bg.__getInternals().badgedTabIds.has(10)).toBe(false);
+  });
+
+  test('replacing a background tab does not paint a badge', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [
+        { id: 1, url: 'https://a.com', active: true, windowId: 1 },
+        { id: 10, url: 'https://paused.example', active: false, windowId: 1 },
+      ],
+    });
+    await bg.initPromise;
+    await flush();
+    bg.setTempWhitelistFromStorageValue(['https://paused.example']);
+    chrome.action.setBadgeText.mockClear();
+
+    chrome._setTabs([
+      { id: 1, url: 'https://a.com', active: true, windowId: 1 },
+      { id: 20, url: 'https://paused.example', active: false, windowId: 1 },
+    ]);
+    await chrome.tabs.onReplaced.trigger(20, 10);
+    await flush();
+
+    expect(chrome.action.setBadgeText).not.toHaveBeenCalled();
+    expect(bg.__getInternals().badgedTabIds.has(20)).toBe(false);
   });
 
   test('focusing a window paints its active tab', async () => {
@@ -1100,6 +1140,28 @@ describe('persistent pause badge', () => {
     await chrome.windows.onFocusChanged.trigger(2);
     await flush();
 
+    expect(chrome.action._getBadgeText(2)).toBe(bg.BADGE_PAUSED_TEXT);
+  });
+
+  test('focusing a window does not clear the other window\'s badge', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [
+        { id: 1, url: 'https://paused.example', active: true, windowId: 1 },
+        { id: 2, url: 'https://paused.example', active: true, windowId: 2 },
+      ],
+      windows: [{ id: 1, focused: true }, { id: 2, focused: false }],
+    });
+    await bg.initPromise;
+    await flush();
+    bg.setTempWhitelistFromStorageValue(['https://paused.example']);
+    await bg.refreshVisibleBadges();
+    expect(chrome.action._getBadgeText(1)).toBe(bg.BADGE_PAUSED_TEXT);
+
+    await chrome.windows.onFocusChanged.trigger(2);
+    await flush();
+
+    // Window 1 still shows its active tab; that override must stay.
+    expect(chrome.action._getBadgeText(1)).toBe(bg.BADGE_PAUSED_TEXT);
     expect(chrome.action._getBadgeText(2)).toBe(bg.BADGE_PAUSED_TEXT);
   });
 
