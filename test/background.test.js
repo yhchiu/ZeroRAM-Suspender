@@ -1032,12 +1032,14 @@ describe('persistent pause badge', () => {
     expect(chrome.action._getBadgeText(1)).toBe(bg.BADGE_PAUSED_TEXT);
   });
 
-  test('every tab holding a paused URL is badged, in any window', async () => {
+  test('the active tab of every window is painted, background tabs are not', async () => {
     const { bg, chrome } = loadBackground({
       tabs: [
         { id: 1, url: 'https://a.com', active: true, windowId: 1 },
         { id: 2, url: 'https://a.com', active: true, windowId: 2 },
-        { id: 3, url: 'https://b.com', active: false, windowId: 2 },
+        // Same paused URL, but out of view: Chrome would draw this badge
+        // nowhere, so it is left unpainted until the user switches to it.
+        { id: 3, url: 'https://a.com', active: false, windowId: 2 },
       ],
     });
     await bg.initPromise;
@@ -1053,12 +1055,60 @@ describe('persistent pause badge', () => {
     expect([...bg.__getInternals().badgedTabIds]).toEqual([1, 2]);
   });
 
+  test('switching to a paused tab paints it, and leaving it drops the badge', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [
+        { id: 1, url: 'https://a.com', active: true, windowId: 1 },
+        { id: 2, url: 'https://paused.example', active: false, windowId: 1 },
+      ],
+    });
+    await bg.initPromise;
+    await flush();
+    bg.setTempWhitelistFromStorageValue(['https://paused.example']);
+
+    chrome._getTab(1).active = false;
+    chrome._getTab(2).active = true;
+    await chrome.tabs.onActivated.trigger({ tabId: 2, windowId: 1 });
+    await flush();
+    expect(chrome.action._getBadgeText(2)).toBe(bg.BADGE_PAUSED_TEXT);
+
+    // Tab 2 goes out of view, and the state changes while it is away: its
+    // override is dropped so it cannot come back showing the old answer.
+    chrome._getTab(2).active = false;
+    chrome._getTab(1).active = true;
+    await chrome.tabs.onActivated.trigger({ tabId: 1, windowId: 1 });
+    await flush();
+    bg.setTempWhitelistFromStorageValue([]);
+    await bg.persistTempWhitelist();
+
+    expect(chrome.action._getBadgeText(2)).toBe('');
+    expect(bg.__getInternals().badgedTabIds.size).toBe(0);
+  });
+
+  test('focusing a window paints its active tab', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [
+        { id: 1, url: 'https://a.com', active: true, windowId: 1 },
+        { id: 2, url: 'https://paused.example', active: true, windowId: 2 },
+      ],
+      windows: [{ id: 1, focused: true }, { id: 2, focused: false }],
+    });
+    await bg.initPromise;
+    await flush();
+    bg.setTempWhitelistFromStorageValue(['https://paused.example']);
+
+    await chrome.windows.onFocusChanged.trigger(2);
+    await flush();
+
+    expect(chrome.action._getBadgeText(2)).toBe(bg.BADGE_PAUSED_TEXT);
+  });
+
   test('a suspended tab is badged by the URL it was suspended from', async () => {
     const original = 'https://suspended.example/page';
     const { bg, chrome } = loadBackground({
       tabs: [
-        { id: 1, url: 'https://a.com', active: true, windowId: 1 },
-        { id: 2, url: 'about:blank', active: false, windowId: 1 },
+        { id: 1, url: 'https://a.com', active: false, windowId: 1 },
+        { id: 2, url: 'about:blank', active: true, windowId: 1 },
       ],
     });
     await bg.initPromise;
@@ -1066,7 +1116,7 @@ describe('persistent pause badge', () => {
     chrome._getTab(2).url = suspendedUrl(chrome, original);
 
     bg.setTempWhitelistFromStorageValue([original]);
-    await bg.syncPauseBadges();
+    await bg.refreshVisibleBadges();
 
     expect(chrome.action._getBadgeText(2)).toBe(bg.BADGE_PAUSED_TEXT);
     expect(chrome.action._getBadgeText(1)).toBe('');
@@ -1113,6 +1163,27 @@ describe('persistent pause badge', () => {
     expect(chrome.action._getBadgeText(1)).toBe('');
   });
 
+  test('a background tab navigating costs no badge call at all', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [
+        { id: 1, url: 'https://a.com', active: true, windowId: 1 },
+        { id: 2, url: 'https://other.com', active: false, windowId: 1 },
+      ],
+    });
+    await bg.initPromise;
+    await flush();
+    bg.setTempWhitelistFromStorageValue(['https://paused.example']);
+    chrome.action.setBadgeText.mockClear();
+
+    const tab = chrome._getTab(2);
+    tab.url = 'https://paused.example';
+    await chrome.tabs.onUpdated.trigger(2, { url: 'https://paused.example' }, tab);
+    await flush();
+
+    expect(chrome.action.setBadgeText).not.toHaveBeenCalled();
+    expect(bg.__getInternals().badgedTabIds.has(2)).toBe(false);
+  });
+
   test('a closed tab is dropped from the badge bookkeeping', async () => {
     const { bg, chrome } = loadBackground({
       tabs: [{ id: 1, url: 'https://a.com', active: true, windowId: 1 }],
@@ -1153,11 +1224,13 @@ describe('persistent pause badge', () => {
     consoleWarn.mockRestore();
   });
 
-  test('start-up re-badges only the tabs the restored whitelist pauses', async () => {
+  test('start-up paints the tabs in view and no others', async () => {
     const chrome = installChrome({
       tabs: [
         { id: 5, url: 'https://a.com', active: true, windowId: 1 },
-        { id: 6, url: 'https://b.com', active: false, windowId: 1 },
+        // Same paused URL, out of view, plus an unpaused tab in view.
+        { id: 6, url: 'https://a.com', active: false, windowId: 1 },
+        { id: 7, url: 'https://b.com', active: true, windowId: 2 },
       ],
     });
     chrome.storage.session._store.utsTempWhitelist = ['https://a.com'];
@@ -1168,9 +1241,10 @@ describe('persistent pause badge', () => {
 
     expect(chrome.action._getBadgeText(5)).toBe(bg.BADGE_PAUSED_TEXT);
     expect(chrome.action._getTitle(5)).toBe(bg.ACTION_TITLE_PAUSED);
-    // The unpaused tab is left alone rather than written with an empty badge.
-    expect(chrome.action.setBadgeText).toHaveBeenCalledTimes(1);
     expect(chrome.action._getBadgeText(6)).toBe('');
+    expect(chrome.action._getBadgeText(7)).toBe('');
+    // Only the one paused tab in view was written to.
+    expect(chrome.action.setBadgeText).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -1258,17 +1332,17 @@ describe('shortcut badge flash', () => {
       chrome._getTab(1)
     );
 
-    // The internal page cannot be paused, so it only gets the flash, while the
-    // tab that was actually paused keeps its badge.
+    // The internal page cannot be paused, so the flash is the only report the
+    // user gets: the tab that was paused is out of view and stays unpainted.
     expect(chrome.action._getBadgeText(1)).toBe(bg.BADGE_PAUSED_TEXT);
     expect(chrome.action._getTitle(1)).toBe(bg.ACTION_TITLE_DEFAULT);
-    expect(chrome.action._getBadgeText(2)).toBe(bg.BADGE_PAUSED_TEXT);
+    expect(chrome.action._getBadgeText(2)).toBe('');
 
     jest.advanceTimersByTime(bg.BADGE_DURATION_MS);
     await flush();
 
     expect(chrome.action._getBadgeText(1)).toBe('');
-    expect(chrome.action._getBadgeText(2)).toBe(bg.BADGE_PAUSED_TEXT);
+    expect(bg.__getInternals().tempWhitelist.has('https://b.com')).toBe(true);
   });
 
   test('a thrown command error flashes a cross', async () => {
@@ -1313,18 +1387,18 @@ describe('shortcut badge flash', () => {
     expect(chrome.action._getBadgeText(1)).toBe(bg.BADGE_PAUSED_TEXT);
   });
 
-  test('a second press on another tab restores the first one', async () => {
+  test('a second press in another window restores the first tab', async () => {
     const { bg, chrome } = loadBackground({
       tabs: [
         { id: 1, url: 'https://a.com', active: true, windowId: 1 },
-        { id: 2, url: 'https://b.com', active: false, windowId: 1 },
+        { id: 2, url: 'https://b.com', active: true, windowId: 2 },
       ],
     });
     await bg.initPromise;
     await flush();
     // Tab 1 is paused, then resumed, so it is flashing ON.
     bg.setTempWhitelistFromStorageValue(['https://a.com']);
-    await bg.syncPauseBadges();
+    await bg.refreshVisibleBadges();
     await chrome.commands.onCommand.trigger(
       '06-toggle-pause-current-tab',
       chrome._getTab(1)

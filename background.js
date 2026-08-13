@@ -200,10 +200,10 @@ function setTempWhitelistFromStorageValue(value) {
 // Every mutation of tempWhitelist must go through here: the popup reads this
 // session-storage copy directly instead of messaging the worker, so an
 // unpersisted change would show up there as a stale pause state, and the
-// toolbar badges of every affected tab are redrawn from the same choke point.
+// toolbar badges on screen are redrawn from the same choke point.
 async function persistTempWhitelist() {
   await chrome.storage.session.set({ [TEMP_KEY]: Array.from(tempWhitelist) });
-  await syncPauseBadges();
+  await refreshVisibleBadges();
 }
 
 // Helper: save last active tab ID
@@ -1026,6 +1026,10 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
   if (previousTabId !== null) {
     scheduleReDiscard(previousTabId);
   }
+
+  // The badge is only kept up to date for tabs in view, so the tab that just
+  // came into view has to be painted now.
+  await paintBadgeForTab(tabId);
 });
 
 // Track last active tab on focus changes to avoid periodic updates in checkTabs
@@ -1060,6 +1064,9 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
     const activeTabs = await chrome.tabs.query({ windowId, active: true });
     if (activeTabs.length > 0) {
       const activeTabId = activeTabs[0].id;
+      // Focusing a window puts its active tab in view without an onActivated
+      // event, so its badge is painted here, off the query we already made.
+      await applyTabBadge(activeTabId, isPausedTab(activeTabs[0]), true);
       // Keep per-window active tab tracking fresh even if onActivated doesn't fire on focus switch.
       setLastActiveTabInWindow(windowId, { tabId: activeTabId, timestamp: now });
       // Only update global focused-tab memory if this event is still current.
@@ -1084,8 +1091,14 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       cancelPendingDiscardWait(tabId);
     }
     // The pause state is keyed by URL, and Chrome drops per-tab action state on
-    // navigation, so the badge has to be recomputed for the new address.
-    await refreshTabBadgeForUrl(tabId, tab, changeInfo.url);
+    // navigation, so a visible tab has to be repainted for its new address. A
+    // background tab is left alone: Chrome has already cleared its badge, and
+    // it is painted afresh when the user returns to it.
+    if (tab && tab.active) {
+      await applyTabBadge(tabId, isPausedTab({ ...tab, url: changeInfo.url }), true);
+    } else {
+      badgedTabIds.delete(tabId);
+    }
   }
 
   // Authoritative readiness signal: when Chrome's browser process reports a real
@@ -1829,6 +1842,14 @@ function scheduleReDiscard(tabId = null, delayMs = 500) {
 //      resuming, a shortcut that found nothing to toggle, or a pause that never
 //      touched the tab the user is looking at.
 //
+// Only the tabs the user can actually see are painted — the active tab of each
+// open window — because that is all Chrome ever draws: a background tab's badge
+// appears nowhere, not even in the tab strip. Tabs are painted as they come
+// into view, and an override left on a tab that has gone out of view is dropped
+// the next time the state changes, so nothing stale can come back with it.
+// Painting every matching tab instead would cost an API call per tab — 30k of
+// them across 10k tabs — to draw badges nobody is in a position to look at.
+//
 // chrome.action needs no permission beyond the manifest "action" key. The badge
 // fits about four latin characters and setBadgeTextColor would require Chrome
 // 110 (our floor is 88), so the text stays short and ASCII, Chrome picks a text
@@ -1858,9 +1879,8 @@ const ACTION_TITLE_PAUSED = (() => {
   return state ? `${ACTION_TITLE_DEFAULT} — ${state}` : ACTION_TITLE_DEFAULT;
 })();
 
-// The tabs currently wearing the persistent badge. Rebuilt from the temporary
-// whitelist on start-up rather than persisted: every whitelist mutation redraws
-// the badges through syncPauseBadges, so the two cannot disagree for long.
+// The tabs carrying a badge we painted. Only ever a handful — the tabs that are
+// on screen, plus the ones that have just left it — never every paused tab.
 const badgedTabIds = new Set();
 
 let badgeFlashTimer = null;
@@ -1908,32 +1928,41 @@ async function applyTabBadge(tabId, paused, force = false) {
   }
 }
 
-// Redraw every tab after the temporary whitelist changes. A full sweep is the
-// simple correct answer: the whitelist is keyed by URL, so a single toggle can
-// flip any number of tabs showing that URL, in any window. Only the tabs whose
-// badge actually changes reach the API, so the sweep costs one query.
-async function syncPauseBadges() {
+// Redraw the tabs on screen after the temporary whitelist changes, and clear
+// the overrides left on tabs that have gone out of view, whose state the change
+// may have moved on. Chrome filters the query itself, so this costs one small
+// query and an API call per tab the user is looking at, whether ten tabs are
+// open or ten thousand. Tabs painted by a previous worker are not in the
+// bookkeeping and keep their badge, which is still right: nothing can change
+// the whitelist while the worker is down.
+async function refreshVisibleBadges() {
   try {
-    const tabs = await chrome.tabs.query({});
-    const liveTabIds = new Set();
-    for (const tab of tabs) {
+    const visibleTabs = await chrome.tabs.query({ active: true });
+    const visibleTabIds = new Set();
+    for (const tab of visibleTabs) {
       if (typeof tab.id !== 'number') continue;
-      liveTabIds.add(tab.id);
+      visibleTabIds.add(tab.id);
       await applyTabBadge(tab.id, isPausedTab(tab));
     }
-    // Forget tabs that closed while we were not looking.
-    for (const tabId of badgedTabIds) {
-      if (!liveTabIds.has(tabId)) badgedTabIds.delete(tabId);
+    for (const tabId of [...badgedTabIds]) {
+      if (!visibleTabIds.has(tabId)) await applyTabBadge(tabId, false);
     }
   } catch (error) {
-    console.warn('Failed to sync pause badges:', error);
+    console.warn('Failed to refresh pause badges:', error);
   }
 }
 
-// A navigating tab keeps neither its URL nor its per-tab badge, so the badge is
-// recomputed from the address the tab is moving to.
-async function refreshTabBadgeForUrl(tabId, tab, url) {
-  await applyTabBadge(tabId, isPausedTab({ ...tab, url }), true);
+// Paint a tab that has just come into view. This always writes: Chrome resets
+// per-tab action state on navigation, and a tab can have been out of view
+// across changes it never saw, so the bookkeeping is not to be trusted here.
+async function paintBadgeForTab(tabId) {
+  try {
+    const tab = await chrome.tabs.get(tabId);
+    await applyTabBadge(tabId, isPausedTab(tab), true);
+  } catch (error) {
+    // The tab is already gone, so there is nothing to paint.
+    badgedTabIds.delete(tabId);
+  }
 }
 
 // Put a tab back to its persistent badge once a flash expires. A global flash
@@ -2017,14 +2046,14 @@ async function reportPauseResult(result, tabId) {
   await flashActionBadge(result === PAUSE_RESULT_RESUMED ? PAUSE_RESULT_RESUMED : 'failed', tabId);
 }
 
-// Rebuild what a previous worker left on the toolbar: the persistent badges
-// come back from the restored temporary whitelist, and a flash whose reset
-// timer never ran is undone. A 1.5s timer virtually always fires (the worker
+// Rebuild what a previous worker left on the toolbar: the tabs in view are
+// painted from the restored temporary whitelist, and a flash whose reset timer
+// never ran is undone. A 1.5s timer virtually always fires (the worker
 // stays alive ~30s after an event), so the flash half only covers crashes and
 // forced reloads. chrome.alarms cannot stand in for that timer: its minimum
 // delay is far longer than the flash itself.
 async function restoreActionBadges() {
-  await syncPauseBadges();
+  await refreshVisibleBadges();
   try {
     const stored = await chrome.storage.session.get(BADGE_PENDING_KEY);
     if (!(BADGE_PENDING_KEY in stored)) return;
@@ -2186,7 +2215,8 @@ if (typeof module !== 'undefined' && module.exports) {
     // toolbar badge
     isPausedTab,
     applyTabBadge,
-    syncPauseBadges,
+    refreshVisibleBadges,
+    paintBadgeForTab,
     flashActionBadge,
     reportPauseResult,
     restoreActionBadges,
