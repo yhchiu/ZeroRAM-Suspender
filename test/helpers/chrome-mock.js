@@ -314,7 +314,25 @@ function createChromeMock(initialState = {}) {
         chrome.action._badgeColor.set(key, details.color);
         return Promise.resolve();
       }),
-      setTitle: jest.fn(() => Promise.resolve()),
+      // Tooltips follow the same per-tab-override shape as the badge text, with
+      // the manifest title standing in for the global default.
+      _title: new Map([
+        [null, (MANIFEST.action && MANIFEST.action.default_title) || ''],
+      ]),
+      _getTitle(tabId = null) {
+        const key = typeof tabId === 'number' ? tabId : null;
+        return chrome.action._title.has(key)
+          ? chrome.action._title.get(key)
+          : chrome.action._title.get(null);
+      },
+      setTitle: jest.fn((details = {}) => {
+        const key = typeof details.tabId === 'number' ? details.tabId : null;
+        if (key !== null && !tabs.some((t) => t.id === key)) {
+          return Promise.reject(tabGoneError(key));
+        }
+        chrome.action._title.set(key, details.title);
+        return Promise.resolve();
+      }),
       setIcon: jest.fn(() => Promise.resolve()),
       openPopup: jest.fn(() => Promise.resolve()),
     },
