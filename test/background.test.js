@@ -466,6 +466,63 @@ describe('bulk operations', () => {
     expect(chrome._getTab(6).url).toBe('https://white.com'); // whitelisted skipped
   });
 
+  test('suspendOthersInWindow reports progress and can be cancelled', async () => {
+    const { bg, chrome } = loadBackground({
+      tabs: [
+        { id: 1, url: 'https://current.com', active: true, windowId: 1 },
+        { id: 2, url: 'https://a.com', active: false, windowId: 1 },
+        { id: 3, url: 'https://b.com', active: false, windowId: 1 },
+      ],
+      windows: [{ id: 1, focused: true }],
+    });
+    chrome.storage.sync._store[STORAGE_KEY] = {
+      useNativeDiscard: false,
+      suspendBatchConcurrency: 1,
+    };
+
+    const port = { name: 'popup', onDisconnect: { addListener: jest.fn() }, postMessage: jest.fn() };
+    chrome.runtime.onConnect.triggerSync(port);
+
+    // Cancel from inside the run, right as the first tab is navigated: the
+    // mock finishes a suspension instantly, so there is no window to do it
+    // from outside.
+    const realUpdate = chrome.tabs.update.getMockImplementation();
+    chrome.tabs.update.mockImplementationOnce((tabId, props) => {
+      bg.cancelBulkNow();
+      return realUpdate(tabId, props);
+    });
+
+    await bg.suspendOthersInWindow(1, true);
+
+    const progress = port.postMessage.mock.calls.map((call) => call[0]);
+    expect(progress[0]).toMatchObject({ type: 'bulkProgress', action: 'suspendWindow' });
+    expect(progress.find((msg) => msg.done)).toMatchObject({
+      action: 'suspendWindow',
+      done: true,
+      cancelled: true,
+    });
+    // The cancel landed before the whole window was processed.
+    expect(chrome._getTab(3).url).toBe('https://b.com');
+  });
+
+  test('the window-scoped unsuspend reports its own progress action', async () => {
+    const extId = 'testextensionid';
+    const { bg, chrome } = loadBackground({
+      tabs: [{ id: 1, url: suspendedUrl({ _extId: extId }, 'https://a.com'), windowId: 1 }],
+    });
+
+    const port = { name: 'popup', onDisconnect: { addListener: jest.fn() }, postMessage: jest.fn() };
+    chrome.runtime.onConnect.triggerSync(port);
+
+    const done = bg.unsuspendAllTabsInWindow(1, true);
+    await flush();
+    await completeLoads(chrome, [1]);
+    await done;
+
+    const doneMsg = port.postMessage.mock.calls.map((call) => call[0]).find((m) => m.done);
+    expect(doneMsg).toMatchObject({ action: 'unsuspendWindow', done: true, total: 1 });
+  });
+
   test('suspendOthersInAllWindows reports progress and suspends across windows', async () => {
     const { bg, chrome } = loadBackground({
       tabs: [

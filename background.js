@@ -1360,7 +1360,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         respond({ done: true });
       } else if (msg.command === 'suspendOthers') {
         // Suspend other tabs in current window only
-        await suspendOthersInWindow(msg.tabId);
+        await suspendOthersInWindow(msg.tabId, !!msg.withProgress);
         respond({ done: true });
       } else if (msg.command === 'unsuspendAll') {
         await unsuspendAllTabs(!!msg.withProgress);
@@ -1586,7 +1586,7 @@ async function unsuspendTabWithUrl(tabId, originalUrl) {
 }
 
 // Suspend other tabs in the same window
-async function suspendOthersInWindow(currentTabId) {
+async function suspendOthersInWindow(currentTabId, withProgress = false) {
   const currentTab = await chrome.tabs.get(currentTabId);
   // Get all tabs in the window, including discarded ones
   const tabs = await chrome.tabs.query({ windowId: currentTab.windowId });
@@ -1608,11 +1608,33 @@ async function suspendOthersInWindow(currentTabId) {
     }
   }
 
+  // Prepare cancel token: suspending a window's worth of tabs waits on each
+  // placeholder, so the run is long enough that the popup has to be able to
+  // stop it, exactly like the all-windows path.
+  const cancelToken = newCancelToken();
+  const total = targets.length;
+  let processed = 0;
+
   // Process in concurrent batches
   const concurrency = settings.suspendBatchConcurrency || 5;
   for (let i = 0; i < targets.length; i += concurrency) {
+    if (cancelToken.cancelled) break;
     const batch = targets.slice(i, i + concurrency);
-    await Promise.allSettled(batch.map(tab => suspendTab(tab, settings, true)));
+    await Promise.allSettled(batch.map(tab =>
+      suspendTab(tab, settings, true).finally(() => {
+        processed += 1;
+        if (withProgress) postBulkProgress({ action: 'suspendWindow', processed, total });
+      })
+    ));
+  }
+  if (withProgress) {
+    postBulkProgress({
+      action: 'suspendWindow',
+      processed,
+      total,
+      done: true,
+      cancelled: cancelToken.cancelled
+    });
   }
 }
 
@@ -1706,7 +1728,7 @@ async function restoreSuspendedTab(tab) {
 // The pacing is a sliding window rather than fixed batches: each slot takes the
 // next tab the moment its own page is back, so one slow page costs its own slot
 // instead of holding up everything beside it.
-async function unsuspendTabsPaced(targets, { cancelToken, withProgress = false } = {}) {
+async function unsuspendTabsPaced(targets, { cancelToken, withProgress = false, action = 'unsuspendAll' } = {}) {
   const settings = await getSettingsCached();
   const slots = Math.max(1, settings.suspendBatchConcurrency || 5);
   const total = targets.length;
@@ -1728,7 +1750,7 @@ async function unsuspendTabsPaced(targets, { cancelToken, withProgress = false }
       }
 
       processed += 1;
-      if (withProgress) postBulkProgress({ action: 'unsuspendAll', processed, total });
+      if (withProgress) postBulkProgress({ action, processed, total });
     }
   }
 
@@ -1739,7 +1761,7 @@ async function unsuspendTabsPaced(targets, { cancelToken, withProgress = false }
   saveSeenTimestamps();
   if (withProgress) {
     postBulkProgress({
-      action: 'unsuspendAll',
+      action,
       processed,
       total,
       done: true,
@@ -1764,7 +1786,11 @@ async function unsuspendAllTabsInWindow(windowId, withProgress = false) {
   // Takes a cancel token like every other bulk run, so the popup's cancel
   // button can stop it: without one it was the only bulk path that ignored it.
   const cancelToken = newCancelToken();
-  await unsuspendTabsPaced(targets, { cancelToken, withProgress });
+  await unsuspendTabsPaced(targets, {
+    cancelToken,
+    withProgress,
+    action: 'unsuspendWindow'
+  });
 }
 
 function getPausableUrl(tab) {
