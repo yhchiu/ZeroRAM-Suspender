@@ -17,7 +17,9 @@ const COMMAND_DESCRIPTIONS = {
   '08-toggle-pause-all': { key: 'shortcutTogglePauseAll', default: 'Pause/resume suspension of all tabs (all windows)' }
 };
 
-const SUSPENDED_TABS_RENDER_BATCH_SIZE = 120;
+// How many tab rows either list appends before yielding a frame. Both lists are
+// built from every tab in the browser, so both can run to thousands of rows.
+const TAB_ROWS_RENDER_BATCH_SIZE = 120;
 const TAB_VIEWER_FILTER_SUSPENDED_ALL = 'suspended-all';
 const TAB_VIEWER_FILTER_SUSPENDED_UNDISCARDED = 'suspended-undiscarded';
 const TAB_VIEWER_FILTER_NOT_SUSPENDED = 'not-suspended';
@@ -1022,9 +1024,10 @@ async function scanForExtensionTabs(extensionKey) {
       statusDiv.textContent = statusText;
       statusDiv.style.color = 'var(--success-text)';
       
-      // Display tabs list
-      displayExtensionTabs(foundTabs, tabsContainer);
+      // Display tabs list. Shown before it is filled so the rows appear as
+      // they are built rather than all at the end.
       tabsListDiv.style.display = 'block';
+      await displayExtensionTabs(foundTabs, tabsContainer);
     }
   } catch (error) {
     console.error(`[ZeroRAM Suspender] Error scanning ${config.name} tabs:`, error);
@@ -1037,58 +1040,73 @@ async function scanForExtensionTabs(extensionKey) {
   }
 }
 
-// Generic function to display found extension tabs
-function displayExtensionTabs(tabs, container) {
+// Generic function to display found extension tabs. Appended in batches with a
+// frame in between, because a migration is exactly the moment a browser holds
+// thousands of suspended tabs, and building the whole list in one pass would
+// lock the page up until it finished.
+async function displayExtensionTabs(tabs, container) {
   container.innerHTML = '';
-  
-  tabs.forEach((tabData, index) => {
-    const tabItem = document.createElement('div');
-    tabItem.style.cssText = `
-      display: flex;
-      align-items: center;
-      padding: 12px;
-      margin-bottom: 8px;
-      background: white;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      transition: background-color 0.2s ease, border-color 0.2s ease;
-    `;
-    
-    const variantBadge = tabData.isUnknownVariant 
-      ? `<span style="background: var(--warning); color: #1E293B; padding: 2px 6px; border-radius: var(--radius-sm); font-size: 10px; margin-left: 8px;">${getMessage('unknownVariant') || 'Unknown Variant'}</span>`
-      : '';
-    
-    tabItem.innerHTML = `
-      <input type="checkbox" 
-             id="tab-${index}" 
-             data-tab-id="${tabData.tabId}"
-             data-original-url="${tabData.originalUrl}"
-             data-title="${tabData.title}"
-             data-favicon-url="${tabData.favIconUrl || ''}"
-             checked
-             style="margin-right: 12px; width: 16px; height: 16px;">
-      <div style="flex: 1; min-width: 0;">
-        <div style="font-weight: 500; color: var(--text-body); margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center;">
-          ${tabData.favIconUrl ? `<img class="migration-tab-favicon-img" src="${escapeHtml(tabData.favIconUrl)}" style="width: 16px; height: 16px; margin-right: 8px; flex-shrink: 0;">` : ''}${escapeHtml(tabData.title)}${variantBadge}
-        </div>
-        <div style="font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-          ${escapeHtml(tabData.originalUrl)}
-        </div>
-        <div style="font-size: 10px; color: var(--text-faint); margin-top: 2px;">
-          ${getMessage('extensionId') || 'Extension ID'}: ${tabData.extensionId}
-        </div>
-      </div>
-    `;
 
-    const faviconImg = tabItem.querySelector('.migration-tab-favicon-img');
-    if (faviconImg) {
-      faviconImg.addEventListener('error', () => {
-        faviconImg.style.display = 'none';
-      }, { once: true });
+  for (let i = 0; i < tabs.length; i += TAB_ROWS_RENDER_BATCH_SIZE) {
+    const end = Math.min(i + TAB_ROWS_RENDER_BATCH_SIZE, tabs.length);
+    const fragment = document.createDocumentFragment();
+
+    for (let index = i; index < end; index++) {
+      fragment.appendChild(createExtensionTabItem(tabs[index], index));
     }
-    
-    container.appendChild(tabItem);
-  });
+    container.appendChild(fragment);
+
+    if (end < tabs.length) await nextRenderFrame();
+  }
+}
+
+function createExtensionTabItem(tabData, index) {
+  const tabItem = document.createElement('div');
+  tabItem.style.cssText = `
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 8px;
+    background: white;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  `;
+  
+  const variantBadge = tabData.isUnknownVariant 
+    ? `<span style="background: var(--warning); color: #1E293B; padding: 2px 6px; border-radius: var(--radius-sm); font-size: 10px; margin-left: 8px;">${getMessage('unknownVariant') || 'Unknown Variant'}</span>`
+    : '';
+  
+  tabItem.innerHTML = `
+    <input type="checkbox" 
+           id="tab-${index}" 
+           data-tab-id="${tabData.tabId}"
+           data-original-url="${tabData.originalUrl}"
+           data-title="${tabData.title}"
+           data-favicon-url="${tabData.favIconUrl || ''}"
+           checked
+           style="margin-right: 12px; width: 16px; height: 16px;">
+    <div style="flex: 1; min-width: 0;">
+      <div style="font-weight: 500; color: var(--text-body); margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center;">
+        ${tabData.favIconUrl ? `<img class="migration-tab-favicon-img" src="${escapeHtml(tabData.favIconUrl)}" style="width: 16px; height: 16px; margin-right: 8px; flex-shrink: 0;">` : ''}${escapeHtml(tabData.title)}${variantBadge}
+      </div>
+      <div style="font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+        ${escapeHtml(tabData.originalUrl)}
+      </div>
+      <div style="font-size: 10px; color: var(--text-faint); margin-top: 2px;">
+        ${getMessage('extensionId') || 'Extension ID'}: ${tabData.extensionId}
+      </div>
+    </div>
+  `;
+
+  const faviconImg = tabItem.querySelector('.migration-tab-favicon-img');
+  if (faviconImg) {
+    faviconImg.addEventListener('error', () => {
+      faviconImg.style.display = 'none';
+    }, { once: true });
+  }
+
+  return tabItem;
 }
 
 // Generic function to select all tabs in a container
@@ -2909,12 +2927,12 @@ async function displaySuspendedTabsList(viewModel, container, renderToken) {
     const windowSection = createSuspendedWindowSection(windowData, messages);
     container.appendChild(windowSection.section);
 
-    for (let i = 0; i < windowData.tabs.length; i += SUSPENDED_TABS_RENDER_BATCH_SIZE) {
+    for (let i = 0; i < windowData.tabs.length; i += TAB_ROWS_RENDER_BATCH_SIZE) {
       if (renderToken !== suspendedTabsViewerState.renderToken) {
         return;
       }
 
-      const end = Math.min(i + SUSPENDED_TABS_RENDER_BATCH_SIZE, windowData.tabs.length);
+      const end = Math.min(i + TAB_ROWS_RENDER_BATCH_SIZE, windowData.tabs.length);
       const fragment = document.createDocumentFragment();
 
       for (let j = i; j < end; j++) {
@@ -3208,6 +3226,8 @@ if (typeof module !== 'undefined' && module.exports) {
     displayKeyboardShortcuts,
     renderChangelog,
     displayExtensionTabs,
+    createExtensionTabItem,
+    TAB_ROWS_RENDER_BATCH_SIZE,
     selectAllTabs,
     deselectAllTabs,
     updateMigrationProgress,

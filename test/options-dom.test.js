@@ -251,6 +251,35 @@ describe('suspended-tab viewer', () => {
     expect(item.querySelector('.suspended-tab-favicon-img')).toBeTruthy();
   });
 
+  test('displayExtensionTabs appends migration rows in batches', async () => {
+    jest.useFakeTimers();
+    const { options } = loadOptions();
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+
+    const batch = options.TAB_ROWS_RENDER_BATCH_SIZE;
+    const tabs = Array.from({ length: batch * 2 + 5 }, (_, i) => ({
+      tabId: i + 1,
+      originalUrl: `https://site${i}.com`,
+      title: `Tab ${i}`,
+      extensionId: 'abcdef',
+      isUnknownVariant: false,
+    }));
+
+    const promise = options.displayExtensionTabs(tabs, container);
+    await flush();
+
+    // The first batch is on the page while the rest is still being built, so a
+    // migration of thousands of tabs never blocks on the whole list.
+    expect(container.children.length).toBe(batch);
+
+    await jest.runAllTimersAsync();
+    await promise;
+    expect(container.children.length).toBe(tabs.length);
+    expect(container.querySelector('input[type="checkbox"]').dataset.tabId).toBe('1');
+    jest.useRealTimers();
+  });
+
   test('renderNoSuspendedTabsState shows the empty state', () => {
     const { options, chrome } = loadOptions();
     chrome.i18n.getMessage.mockImplementation((k) => k);
