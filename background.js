@@ -36,7 +36,11 @@ const DISCARD_READY_TIMEOUT_MS = 10000;
 // How long a bulk unsuspend waits for one tab to finish loading before moving
 // on. The wait is there to pace the restore, so it must never stall it: Chrome
 // defers loading background tabs under pressure, and a page can hang outright.
-const UNSUSPEND_LOAD_TIMEOUT_MS = 15000;
+// Kept short, which makes the pacing a soft limit rather than a hard cap — a
+// page slower than this keeps loading while its slot is handed on, so several
+// can overlap. That is the trade for a queue that keeps moving, and it is still
+// bounded by how many pages outlive the timeout, not by the size of the session.
+const UNSUSPEND_LOAD_TIMEOUT_MS = 3000;
 // After suspended.js signals it set the favicon link, we poll tab.favIconUrl
 // to confirm Chrome's browser process actually registered a real favicon before
 // discarding. Verifying the captured favIconUrl — instead of blindly trusting a
@@ -1697,30 +1701,40 @@ async function restoreSuspendedTab(tab) {
 // back. Batching alone would not pace anything: chrome.tabs.update resolves
 // when the navigation starts, not when it finishes, so a plain loop hands
 // Chrome every page at once — ten thousand of them on a large session, which is
-// the memory spike this extension exists to prevent. Waiting for each batch
-// keeps the number of pages loading at any moment bounded, and the timeout in
-// the wait keeps one slow page from stalling the rest.
-async function unsuspendTabsInBatches(targets, { cancelToken, withProgress = false } = {}) {
+// the memory spike this extension exists to prevent.
+//
+// The pacing is a sliding window rather than fixed batches: each slot takes the
+// next tab the moment its own page is back, so one slow page costs its own slot
+// instead of holding up everything beside it.
+async function unsuspendTabsPaced(targets, { cancelToken, withProgress = false } = {}) {
   const settings = await getSettingsCached();
-  const concurrency = settings.suspendBatchConcurrency || 5;
+  const slots = Math.max(1, settings.suspendBatchConcurrency || 5);
   const total = targets.length;
+  let nextIndex = 0;
   let processed = 0;
 
-  for (let i = 0; i < targets.length; i += concurrency) {
-    if (cancelToken.cancelled) break;
-    const batch = targets.slice(i, i + concurrency);
-    await Promise.allSettled(batch.map(tab =>
-      restoreSuspendedTab(tab)
-        .catch(error => {
-          // Tabs can close between the query and the navigation.
-          logUnexpectedTabError('Failed to unsuspend tab', error);
-        })
-        .finally(() => {
-          processed += 1;
-          if (withProgress) postBulkProgress({ action: 'unsuspendAll', processed, total });
-        })
-    ));
+  async function fillSlot() {
+    while (!cancelToken.cancelled) {
+      // Safe without a lock: nothing awaits between the read and the increment,
+      // so no two slots can claim the same tab.
+      const index = nextIndex++;
+      if (index >= targets.length) return;
+
+      try {
+        await restoreSuspendedTab(targets[index]);
+      } catch (error) {
+        // Tabs can close between the query and the navigation.
+        logUnexpectedTabError('Failed to unsuspend tab', error);
+      }
+
+      processed += 1;
+      if (withProgress) postBulkProgress({ action: 'unsuspendAll', processed, total });
+    }
   }
+
+  await Promise.all(
+    Array.from({ length: Math.min(slots, targets.length) }, () => fillSlot())
+  );
 
   saveSeenTimestamps();
   if (withProgress) {
@@ -1740,7 +1754,7 @@ async function unsuspendAllTabs(withProgress = false) {
   const tabs = await chrome.tabs.query({});
   const targets = tabs.filter(t => isSuspendedTab(t));
   const cancelToken = newCancelToken();
-  await unsuspendTabsInBatches(targets, { cancelToken, withProgress });
+  await unsuspendTabsPaced(targets, { cancelToken, withProgress });
 }
 
 // Unsuspend all tabs in a specific window
@@ -1750,7 +1764,7 @@ async function unsuspendAllTabsInWindow(windowId, withProgress = false) {
   // Takes a cancel token like every other bulk run, so the popup's cancel
   // button can stop it: without one it was the only bulk path that ignored it.
   const cancelToken = newCancelToken();
-  await unsuspendTabsInBatches(targets, { cancelToken, withProgress });
+  await unsuspendTabsPaced(targets, { cancelToken, withProgress });
 }
 
 function getPausableUrl(tab) {
@@ -2352,7 +2366,7 @@ if (typeof module !== 'undefined' && module.exports) {
     suspendOthersInAllWindows,
     unsuspendAllTabs,
     unsuspendAllTabsInWindow,
-    unsuspendTabsInBatches,
+    unsuspendTabsPaced,
     restoreSuspendedTab,
     beginUnsuspendLoadWait,
     settleUnsuspendLoadWait,

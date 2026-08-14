@@ -41,6 +41,11 @@ async function completeLoads(chrome, tabIds) {
   await flush();
 }
 
+/** Keep reporting loads until a paced bulk run has worked through its queue. */
+async function drainLoads(chrome, tabIds, passes = 6) {
+  for (let i = 0; i < passes; i++) await completeLoads(chrome, tabIds);
+}
+
 function suspendedUrl(chrome, original, title = 'T', favicon) {
   let u = `chrome-extension://${chrome._extId}/suspended.html?uri=${encodeURIComponent(original)}&ttl=${encodeURIComponent(title)}`;
   if (favicon) u += `&favicon=${encodeURIComponent(favicon)}`;
@@ -518,7 +523,7 @@ describe('bulk operations', () => {
     expect(chrome._getTab(2).url).toContain('suspended.html'); // other window untouched
   });
 
-  test('bulk unsuspend waits for each batch before starting the next', async () => {
+  test('bulk unsuspend keeps a fixed number of pages loading at once', async () => {
     const extId = 'testextensionid';
     const tabs = Array.from({ length: 12 }, (_, i) => ({
       id: i + 1,
@@ -531,19 +536,53 @@ describe('bulk operations', () => {
     const done = bg.unsuspendAllTabs(false);
     await flush();
 
-    // Only the first batch is navigating: the rest of the session is not
-    // handed to Chrome until these pages are back.
+    // Five slots are filled; the rest of the session is not handed to Chrome.
     expect(chrome.tabs.update).toHaveBeenCalledTimes(5);
 
-    await completeLoads(chrome, [1, 2, 3, 4, 5]);
-    expect(chrome.tabs.update).toHaveBeenCalledTimes(10);
+    // One page comes back, so exactly one more starts: the window slides
+    // rather than waiting for the whole group.
+    await completeLoads(chrome, [1]);
+    expect(chrome.tabs.update).toHaveBeenCalledTimes(6);
 
-    await completeLoads(chrome, [6, 7, 8, 9, 10]);
-    expect(chrome.tabs.update).toHaveBeenCalledTimes(12);
+    await completeLoads(chrome, [2, 3]);
+    expect(chrome.tabs.update).toHaveBeenCalledTimes(8);
 
-    await completeLoads(chrome, [11, 12]);
+    await drainLoads(chrome, tabs.map((tab) => tab.id));
     await done;
+    expect(chrome.tabs.update).toHaveBeenCalledTimes(12);
     expect(chrome._getTab(12).url).toBe('https://site11.com');
+  });
+
+  test('a slow page costs its own slot, not the whole window', async () => {
+    const extId = 'testextensionid';
+    const tabs = Array.from({ length: 6 }, (_, i) => ({
+      id: i + 1,
+      url: suspendedUrl({ _extId: extId }, `https://site${i}.com`),
+      windowId: 1,
+    }));
+    const { bg, chrome } = loadBackground({ tabs });
+    chrome.storage.sync._store[STORAGE_KEY] = { suspendBatchConcurrency: 2 };
+
+    const done = bg.unsuspendAllTabs(false);
+    await flush();
+    expect(chrome.tabs.update).toHaveBeenCalledTimes(2);
+
+    // Tab 1 never reports back. Its neighbour's slot keeps turning over
+    // regardless, which fixed batches could not do.
+    await completeLoads(chrome, [2]);
+    expect(chrome.tabs.update).toHaveBeenCalledTimes(3);
+    await completeLoads(chrome, [3]);
+    expect(chrome.tabs.update).toHaveBeenCalledTimes(4);
+
+    // The stuck slot is freed by its own timeout, and the run finishes.
+    jest.advanceTimersByTime(bg.UNSUSPEND_LOAD_TIMEOUT_MS);
+    await drainLoads(chrome, tabs.map((tab) => tab.id));
+    jest.advanceTimersByTime(bg.UNSUSPEND_LOAD_TIMEOUT_MS);
+    await drainLoads(chrome, tabs.map((tab) => tab.id));
+    await done;
+
+    expect(chrome.tabs.update).toHaveBeenCalledTimes(6);
+    expect(chrome._getTab(1).url).toBe('https://site0.com');
   });
 
   test('a page that never loads times out instead of stalling the queue', async () => {
