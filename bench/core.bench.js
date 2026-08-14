@@ -85,14 +85,35 @@ test('suspend every other tab', async () => {
   );
 });
 
-test('session storage payloads', async () => {
+test('session storage write volume', async () => {
   const tabs = makeTabs();
-  const seen = {};
-  for (const tab of tabs) seen[tab.id] = Date.now();
+  const { chrome, bg } = await loadBackgroundWithTabs({ tabs, settings: SETTINGS });
 
-  const kb = (value) => `${(JSON.stringify(value).length / 1024).toFixed(0)} KB per write`;
-  console.log(`${'utsSeen (10k tabs)'.padEnd(44)} ${kb(seen).padStart(12)}`);
+  // Start from a browser where every tab already carries a stamp, which is
+  // what a session of this size looks like after a scan or two.
+  for (const tab of tabs) bg.markTabSeen(tab.id, Date.now());
+  bg.flushSeenTimestampsNow();
+
+  const bytesWritten = () =>
+    chrome.storage.session.set.mock.calls.reduce(
+      (sum, [items]) => sum + JSON.stringify(items).length,
+      0
+    );
+
+  // What ordinary browsing costs: one tab switch, one page load.
+  chrome.storage.session.set.mockClear();
+  bg.markTabSeen(4321, Date.now());
+  bg.markTabSeen(8765, Date.now());
+  bg.flushSeenTimestampsNow();
   console.log(
-    `${'utsTempWhitelist (10k paused)'.padEnd(44)} ${kb(tabs.map((t) => t._original)).padStart(12)}`
+    `${'seen stamps, two tabs moved'.padEnd(44)} ${String(bytesWritten()).padStart(9)} bytes`
+  );
+
+  // The temporary whitelist is still written whole, one array under one key.
+  chrome.storage.session.set.mockClear();
+  bg.setTempWhitelistFromStorageValue(tabs.map((tab) => tab._original));
+  await bg.persistTempWhitelist();
+  console.log(
+    `${'temp whitelist, 10k paused'.padEnd(44)} ${String(bytesWritten()).padStart(9)} bytes`
   );
 });

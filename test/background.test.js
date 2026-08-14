@@ -274,13 +274,61 @@ describe('settings & storage', () => {
     bg.saveSeenTimestamps();
     expect(chrome.storage.session.set).not.toHaveBeenCalled();
     jest.advanceTimersByTime(2000);
-    expect(chrome.storage.session.set).toHaveBeenCalledWith({ utsSeen: expect.objectContaining({ 1: 111 }) });
+    expect(chrome.storage.session.set).toHaveBeenCalledWith({ 'utsSeen:1': 111 });
 
     bg.markTabSeen(2, 222);
     bg.saveSeenTimestamps();
     chrome.storage.session.set.mockClear();
     bg.flushSeenTimestampsNow();
-    expect(chrome.storage.session.set).toHaveBeenCalled();
+    expect(chrome.storage.session.set).toHaveBeenCalledWith({ 'utsSeen:2': 222 });
+  });
+
+  test('only the tabs that moved are written, and closed tabs are removed', () => {
+    const { bg, chrome } = loadBackground();
+    bg.markTabSeen(1, 111);
+    bg.markTabSeen(2, 222);
+    bg.flushSeenTimestampsNow();
+    chrome.storage.session.set.mockClear();
+
+    // One stamp changes: the other tab's key is left alone rather than
+    // rewritten as part of a whole-map dump.
+    bg.markTabSeen(2, 333);
+    bg.flushSeenTimestampsNow();
+    expect(chrome.storage.session.set).toHaveBeenCalledTimes(1);
+    expect(chrome.storage.session.set).toHaveBeenCalledWith({ 'utsSeen:2': 333 });
+
+    bg.forgetTabSeen(1);
+    bg.flushSeenTimestampsNow();
+    expect(chrome.storage.session.remove).toHaveBeenCalledWith(['utsSeen:1']);
+    expect('utsSeen:1' in chrome.storage.session._store).toBe(false);
+    expect(chrome.storage.session._store['utsSeen:2']).toBe(333);
+  });
+
+  test('nothing is written when no stamp has moved', () => {
+    const { bg, chrome } = loadBackground();
+    bg.markTabSeen(1, 111);
+    bg.flushSeenTimestampsNow();
+    chrome.storage.session.set.mockClear();
+
+    bg.flushSeenTimestampsNow();
+    expect(chrome.storage.session.set).not.toHaveBeenCalled();
+  });
+
+  test('start-up restores per-tab stamps and folds in an older whole-map key', async () => {
+    const chrome = installChrome();
+    chrome.storage.session._store['utsSeen:5'] = 555;
+    chrome.storage.session._store['utsSeen:6'] = 100;
+    // Left by a worker from before the per-tab layout.
+    chrome.storage.session._store.utsSeen = { 6: 666, 7: 777 };
+
+    const bg = requireSource('background.js');
+    await bg.initPromise;
+
+    const seen = bg.__getInternals().seenTimestamps;
+    expect(seen[5]).toBe(555);
+    expect(seen[6]).toBe(666); // the newer of the two wins
+    expect(seen[7]).toBe(777);
+    expect('utsSeen' in chrome.storage.session._store).toBe(false);
   });
 
   test('loadLastActiveTabPerWindow restores the map from session', async () => {

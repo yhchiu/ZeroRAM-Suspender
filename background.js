@@ -62,6 +62,14 @@ let tempWhitelist = new Set();
 
 // Map<tabId, lastSeenTimestamp> persisted across restarts
 let seenTimestamps = {};
+// Which of those entries have changed since the last write, and which tabs have
+// gone. Storage takes one key per tab, so a flush costs the tabs that actually
+// moved rather than the whole map — which on a large session was hundreds of
+// kilobytes, rewritten every couple of seconds for the sake of one stamp.
+const dirtySeenTabIds = new Set();
+const removedSeenTabIds = new Set();
+const SEEN_KEY_PREFIX = 'utsSeen:';
+const seenStorageKey = tabId => `${SEEN_KEY_PREFIX}${tabId}`;
 
 // Track tabs that are currently being unsuspended to prevent re-suspension.
 // Map<tabId, addedAtMs>: entries expire after a TTL so a failed unsuspend
@@ -439,10 +447,22 @@ function parseOriginalUrlFromSuspended(suspendedUrl) {
   }
 }
 
-// Stamp a tab as recently seen; returns true when a valid tabId is written
-function markTabSeen(tabId, timestamp) {
+// Stamp a tab as recently seen; returns true when a valid tabId is written.
+// Every write to seenTimestamps goes through here, and every removal through
+// forgetTabSeen, because the session copy is stored one key per tab: a change
+// that is not recorded here is a change that never reaches storage.
+function markTabSeen(tabId, timestamp = Date.now()) {
   if (typeof tabId !== 'number') return false;
   seenTimestamps[tabId] = timestamp;
+  dirtySeenTabIds.add(tabId);
+  return true;
+}
+
+function forgetTabSeen(tabId) {
+  if (typeof tabId !== 'number') return false;
+  delete seenTimestamps[tabId];
+  dirtySeenTabIds.delete(tabId);
+  removedSeenTabIds.add(tabId);
   return true;
 }
 
@@ -865,7 +885,7 @@ async function checkTabs() {
     // a full idle countdown from when the protection ends. Static protections
     // (whitelist, pinned) intentionally do not stamp.
     if (settings.neverSuspendAudio && tab.audible) {
-      seenTimestamps[tab.id] = Date.now();
+      markTabSeen(tab.id);
       continue; // Skip tabs that are playing audio
     }
 
@@ -876,7 +896,7 @@ async function checkTabs() {
     // Check if this is the last remembered active tab when browser lost focus
     // This should be checked first, regardless of current active state
     if (settings.rememberLastActiveTab && tab.id === lastActiveTabId && !focusedWindow) {
-      seenTimestamps[tab.id] = Date.now();
+      markTabSeen(tab.id);
       continue;
     }
 
@@ -884,12 +904,12 @@ async function checkTabs() {
     if (tab.active) {
       if (settings.neverSuspendActive) {
         // If neverSuspendActive is enabled, protect active tabs in all windows
-        seenTimestamps[tab.id] = Date.now();
+        markTabSeen(tab.id);
         continue;
       } else {
         // Default behavior: only protect active tab in the currently focused window
         if (tab.id === focusedWindowActiveTabId) {
-          seenTimestamps[tab.id] = Date.now();
+          markTabSeen(tab.id);
           continue;
         }
         // Active tabs in non-focused windows can be suspended
@@ -912,7 +932,7 @@ async function checkTabs() {
       last = chromeTimestamp;
     } else {
       // Neither exists, set current time and skip suspension check
-      seenTimestamps[tab.id] = Date.now();
+      markTabSeen(tab.id);
       continue;
     }
 
@@ -951,21 +971,40 @@ chrome.runtime.onInstalled.addListener(async () => {
   await loadLastActiveTab();
 });
 
+// Read the per-tab seen stamps back on start-up. Merges rather than replaces:
+// event handlers (e.g. onActivated) may have written fresh stamps during the
+// async gap, and a plain assignment would silently discard them.
+async function restoreSeenTimestamps() {
+  const stored = await chrome.storage.session.get(null);
+
+  // Writes straight to the map rather than through markTabSeen: these values
+  // came out of storage, so marking them dirty would write them back unchanged.
+  const merge = (tabId, value) => {
+    if (typeof value !== 'number') return;
+    if (!(tabId in seenTimestamps) || seenTimestamps[tabId] < value) {
+      seenTimestamps[tabId] = value;
+    }
+  };
+
+  for (const [key, value] of Object.entries(stored)) {
+    if (key.startsWith(SEEN_KEY_PREFIX)) merge(key.slice(SEEN_KEY_PREFIX.length), value);
+  }
+
+  // A worker from before the per-tab layout may have left the whole map under
+  // one key. Session storage rarely outlives an update, but reading it costs
+  // nothing and saves a session's worth of idle tracking when it does.
+  if (stored.utsSeen && typeof stored.utsSeen === 'object') {
+    for (const [tabId, value] of Object.entries(stored.utsSeen)) merge(tabId, value);
+    chrome.storage.session.remove('utsSeen');
+  }
+}
+
 // Restore persisted state on service worker startup (cold start).
 async function initializeState() {
   try {
     const { [TEMP_KEY]: tmp = [] } = await chrome.storage.session.get(TEMP_KEY);
     setTempWhitelistFromStorageValue(tmp);
-    const { utsSeen = {} } = await chrome.storage.session.get('utsSeen');
-    // Merge persisted timestamps instead of replacing the object.
-    // Event handlers (e.g. onActivated) may have already written fresh
-    // timestamps into seenTimestamps during the async gap above; a plain
-    // assignment would silently discard those writes.
-    for (const [key, value] of Object.entries(utsSeen)) {
-      if (!(key in seenTimestamps) || seenTimestamps[key] < value) {
-        seenTimestamps[key] = value;
-      }
-    }
+    await restoreSeenTimestamps();
     // Load last active tab ID and per-window active tab map from session storage.
     await loadLastActiveTab();
     await loadLastActiveTabPerWindow();
@@ -1050,12 +1089,12 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
   const lastActiveInWindow = lastActiveTabPerWindow.get(windowId);
   if (lastActiveInWindow && lastActiveInWindow.tabId !== tabId) {
     // Update timestamp for the previously active tab to prevent immediate suspension
-    seenTimestamps[lastActiveInWindow.tabId] = now;
+    markTabSeen(lastActiveInWindow.tabId, now);
     previousTabId = lastActiveInWindow.tabId;
   }
 
   // Update timestamp for the newly activated tab
-  seenTimestamps[tabId] = now;
+  markTabSeen(tabId, now);
   saveSeenTimestamps();
 
   // Track the new active tab for this window (persisted to session storage).
@@ -1174,7 +1213,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   }
 
   if (changeInfo.status === 'complete') {
-    seenTimestamps[tabId] = Date.now();
+    markTabSeen(tabId);
     saveSeenTimestamps();
     
     // If tab was being unsuspended and is now complete, remove from tracking
@@ -1224,7 +1263,7 @@ chrome.tabs.onCreated.addListener(async (tab) => {
   try {
     // 1) If Chrome provides an opener, stamp it as recently seen
     if (typeof tab.openerTabId === 'number') {
-      seenTimestamps[tab.openerTabId] = now;
+      markTabSeen(tab.openerTabId, now);
       saveSeenTimestamps();
     }
 
@@ -1234,7 +1273,7 @@ chrome.tabs.onCreated.addListener(async (tab) => {
     //    extensions).
     const lastActiveInWindow = lastActiveTabPerWindow.get(tab.windowId);
     if (lastActiveInWindow && lastActiveInWindow.tabId !== tab.id) {
-      seenTimestamps[lastActiveInWindow.tabId] = now;
+      markTabSeen(lastActiveInWindow.tabId, now);
       saveSeenTimestamps();
     }
 
@@ -1275,7 +1314,7 @@ chrome.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
     removeLastActiveTabInWindow(windowId);
   }
 
-  delete seenTimestamps[tabId];
+  forgetTabSeen(tabId);
   saveSeenTimestamps();
 });
 
@@ -1286,8 +1325,8 @@ chrome.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
 chrome.tabs.onReplaced.addListener(async (addedTabId, removedTabId) => {
   if (!initDone) await initPromise;
   if (removedTabId in seenTimestamps) {
-    seenTimestamps[addedTabId] = seenTimestamps[removedTabId];
-    delete seenTimestamps[removedTabId];
+    markTabSeen(addedTabId, seenTimestamps[removedTabId]);
+    forgetTabSeen(removedTabId);
     saveSeenTimestamps();
   }
   const unsuspendingAt = unsuspendingTabs.get(removedTabId);
@@ -1567,7 +1606,7 @@ async function unsuspendTabById(tabId) {
     if (original) {
       markTabUnsuspending(tabId);
       // Update timestamp immediately to prevent re-suspension
-      seenTimestamps[tabId] = Date.now();
+      markTabSeen(tabId);
       saveSeenTimestamps();
       await chrome.tabs.update(tabId, { url: original });
       return true;
@@ -1580,7 +1619,7 @@ async function unsuspendTabById(tabId) {
 async function unsuspendTabWithUrl(tabId, originalUrl) {
   markTabUnsuspending(tabId);
   // Update timestamp immediately to prevent re-suspension
-  seenTimestamps[tabId] = Date.now();
+  markTabSeen(tabId);
   saveSeenTimestamps();
   await chrome.tabs.update(tabId, { url: originalUrl });
 }
@@ -1705,7 +1744,7 @@ async function restoreSuspendedTab(tab) {
 
   markTabUnsuspending(tab.id);
   // Update timestamp immediately to prevent re-suspension
-  seenTimestamps[tab.id] = Date.now();
+  markTabSeen(tab.id);
 
   // Start the wait before navigating: the load can complete before the update
   // call resolves, and a signal that arrives first must not be missed.
@@ -1912,19 +1951,14 @@ async function toggleTabSuspension(tab) {
 
 // Helper to save seen timestamps (debounced via alarm interval)
 let seenSaveTimer = null;
-let seenSaveDirty = false;
 const SEEN_SAVE_DEBOUNCE_MS = 2000;
 
 function saveSeenTimestamps() {
   // Debounce session storage writes to reduce IO pressure
-  seenSaveDirty = true;
   if (seenSaveTimer) return;
   seenSaveTimer = setTimeout(() => {
-    if (seenSaveDirty) {
-      chrome.storage.session.set({ utsSeen: seenTimestamps });
-      seenSaveDirty = false;
-    }
     seenSaveTimer = null;
+    writeSeenTimestamps();
   }, SEEN_SAVE_DEBOUNCE_MS);
 }
 
@@ -1934,9 +1968,27 @@ function flushSeenTimestampsNow() {
     clearTimeout(seenSaveTimer);
     seenSaveTimer = null;
   }
-  if (seenSaveDirty) {
-    chrome.storage.session.set({ utsSeen: seenTimestamps });
-    seenSaveDirty = false;
+  writeSeenTimestamps();
+}
+
+// Write only the tabs that moved since the last flush. Ordinary browsing dirties
+// one or two of them, so this is a handful of bytes where the whole map would
+// have been hundreds of kilobytes on a large session.
+function writeSeenTimestamps() {
+  if (dirtySeenTabIds.size > 0) {
+    const items = {};
+    for (const tabId of dirtySeenTabIds) {
+      const timestamp = seenTimestamps[tabId];
+      if (typeof timestamp === 'number') items[seenStorageKey(tabId)] = timestamp;
+    }
+    dirtySeenTabIds.clear();
+    if (Object.keys(items).length > 0) chrome.storage.session.set(items);
+  }
+
+  if (removedSeenTabIds.size > 0) {
+    const keys = [...removedSeenTabIds].map(seenStorageKey);
+    removedSeenTabIds.clear();
+    chrome.storage.session.remove(keys);
   }
 }
 
@@ -2349,6 +2401,9 @@ if (typeof module !== 'undefined' && module.exports) {
     parseOriginalUrlFromSuspended,
     getPausableUrl,
     markTabSeen,
+    forgetTabSeen,
+    restoreSeenTimestamps,
+    SEEN_KEY_PREFIX,
     markTabUnsuspending,
     isTabUnsuspending,
     // lifecycle
