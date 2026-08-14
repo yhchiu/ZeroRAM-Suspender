@@ -785,6 +785,12 @@
   "unsuspendingAllTabs": {
     "message": "正在喚醒所有分頁"
   },
+  "suspendingWindowTabs": {
+    "message": "正在休眠此視窗的分頁"
+  },
+  "unsuspendingWindowTabs": {
+    "message": "正在喚醒此視窗的分頁"
+  },
   "bulkDone": {
     "message": "完成"
   },

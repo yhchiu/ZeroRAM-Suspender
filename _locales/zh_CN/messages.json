@@ -785,6 +785,12 @@
   "unsuspendingAllTabs": {
     "message": "正在唤醒所有标签页"
   },
+  "suspendingWindowTabs": {
+    "message": "正在挂起此窗口的标签页"
+  },
+  "unsuspendingWindowTabs": {
+    "message": "正在唤醒此窗口的标签页"
+  },
   "bulkDone": {
     "message": "完成"
   },

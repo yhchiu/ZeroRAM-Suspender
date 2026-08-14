@@ -785,6 +785,12 @@
   "unsuspendingAllTabs": {
     "message": "Возобновление всех вкладок"
   },
+  "suspendingWindowTabs": {
+    "message": "Приостановка вкладок этого окна"
+  },
+  "unsuspendingWindowTabs": {
+    "message": "Возобновление вкладок этого окна"
+  },
   "bulkDone": {
     "message": "Готово"
   },

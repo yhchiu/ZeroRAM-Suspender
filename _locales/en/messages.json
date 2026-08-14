@@ -785,6 +785,12 @@
   "unsuspendingAllTabs": {
     "message": "Unsuspending all tabs"
   },
+  "suspendingWindowTabs": {
+    "message": "Suspending tabs in this window"
+  },
+  "unsuspendingWindowTabs": {
+    "message": "Unsuspending tabs in this window"
+  },
   "bulkDone": {
     "message": "Done"
   },

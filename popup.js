@@ -11,6 +11,13 @@
   // first render go ahead without it. The authoritative read still runs and
   // reconciles right after, so the cache can never hold the UI wrong.
   const SETTINGS_CACHE_KEY = 'utsCacheSettings';
+  // Progress titles, keyed by the action the worker reports.
+  const BULK_TITLE_KEYS = {
+    suspendAll: 'suspendingAllTabs',
+    unsuspendAll: 'unsuspendingAllTabs',
+    suspendWindow: 'suspendingWindowTabs',
+    unsuspendWindow: 'unsuspendingWindowTabs'
+  };
 
   // These reads are independent, so they leave together instead of as a serial
   // chain, and none of them touches the service worker. That is what matters
@@ -340,34 +347,34 @@
       }
     }
 
+    // Every bulk action opens the progress box before sending its command, and
+    // keeps the popup open (the `false` below) so it can report the run. The
+    // window-scoped pair needs this as much as the all-windows pair: both wait
+    // on pages, so both take long enough to be worth watching and stopping.
+    const startBulk = (titleKey) => {
+      if (!bulkBox) return;
+      bulkBox.style.display = 'block';
+      if (bulkTitle) bulkTitle.textContent = getMessage(titleKey);
+      if (bulkFill) bulkFill.style.width = '0%';
+      if (bulkText) bulkText.textContent = '0/0';
+      if (bulkLabel) bulkLabel.textContent = '';
+      if (bulkCancelBtn) bulkCancelBtn.disabled = false;
+    };
+
     addItem(getMessage('suspendOthers'), async () => {
-      await chrome.runtime.sendMessage({ command: 'suspendOthers', tabId: tab.id });
-    }, 'others');
+      startBulk('suspendingWindowTabs');
+      await chrome.runtime.sendMessage({ command: 'suspendOthers', tabId: tab.id, withProgress: true });
+    }, 'others', false);
     addItem(getMessage('suspendAllOthersAllWindows'), async () => {
-      // Show progress early
-      if (bulkBox) {
-        bulkBox.style.display = 'block';
-        if (bulkTitle) bulkTitle.textContent = getMessage('suspendingAllTabs');
-        if (bulkFill) bulkFill.style.width = '0%';
-        if (bulkText) bulkText.textContent = '0/0';
-        if (bulkLabel) bulkLabel.textContent = '';
-        if (bulkCancelBtn) bulkCancelBtn.disabled = false;
-      }
+      startBulk('suspendingAllTabs');
       await chrome.runtime.sendMessage({ command: 'suspendAllOthersAllWindows', tabId: tab.id, withProgress: true });
     }, 'others', false);
     addItem(getMessage('unsuspendAllThisWindow'), async () => {
-      await chrome.runtime.sendMessage({ command: 'unsuspendAllThisWindow', tabId: tab.id });
-    }, 'wake');
+      startBulk('unsuspendingWindowTabs');
+      await chrome.runtime.sendMessage({ command: 'unsuspendAllThisWindow', tabId: tab.id, withProgress: true });
+    }, 'wake', false);
     addItem(getMessage('unsuspendAll'), async () => {
-      // Show progress early
-      if (bulkBox) {
-        bulkBox.style.display = 'block';
-        if (bulkTitle) bulkTitle.textContent = getMessage('unsuspendingAllTabs');
-        if (bulkFill) bulkFill.style.width = '0%';
-        if (bulkText) bulkText.textContent = '0/0';
-        if (bulkLabel) bulkLabel.textContent = '';
-        if (bulkCancelBtn) bulkCancelBtn.disabled = false;
-      }
+      startBulk('unsuspendingAllTabs');
       await chrome.runtime.sendMessage({ command: 'unsuspendAll', withProgress: true });
     }, 'wake', false);
 
@@ -421,14 +428,11 @@
     if (!bulkBox) return;
     bulkBox.style.display = 'block';
 
+    // Titled from the action rather than from whatever this popup last set:
+    // progress can arrive from a run it did not start, such as a keyboard
+    // shortcut, and a window-scoped run must not claim to be doing all tabs.
     if (bulkTitle) {
-      if (action === 'unsuspendAll') {
-        bulkTitle.textContent = getMessage('unsuspendingAllTabs');
-      } else if (action === 'suspendAll') {
-        bulkTitle.textContent = getMessage('suspendingAllTabs');
-      } else {
-        bulkTitle.textContent = getMessage('bulkProgress');
-      }
+      bulkTitle.textContent = getMessage(BULK_TITLE_KEYS[action] || 'bulkProgress');
     }
 
     const pct = total > 0 ? Math.floor((processed / total) * 100) : 0;

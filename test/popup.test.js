@@ -197,6 +197,45 @@ describe('popup.js', () => {
     expect(document.getElementById('bulkCancelBtn').disabled).toBe(true);
   });
 
+  test('a window-scoped run is titled for the window, not for every tab', async () => {
+    const chrome = await loadPopupWith({ tab: { url: 'https://x.com', title: 'X' }, settings: { autoSuspendMinutes: 30 } });
+    const title = document.getElementById('bulkProgressTitle');
+
+    chrome._lastPort.onMessage.triggerSync({ type: 'bulkProgress', action: 'unsuspendWindow', processed: 1, total: 3 });
+    expect(title.textContent).toBe('Unsuspending tabs in this window');
+
+    chrome._lastPort.onMessage.triggerSync({ type: 'bulkProgress', action: 'suspendWindow', processed: 1, total: 3 });
+    expect(title.textContent).toBe('Suspending tabs in this window');
+
+    // An action the popup does not know about still gets a sensible title.
+    chrome._lastPort.onMessage.triggerSync({ type: 'bulkProgress', action: 'somethingElse', processed: 1, total: 3 });
+    expect(title.textContent).toBe('Bulk Progress');
+  });
+
+  test('the window-scoped bulk items ask for progress and keep the popup open', async () => {
+    const chrome = await loadPopupWith({ tab: { url: 'https://x.com', title: 'X' }, settings: { autoSuspendMinutes: 30 } });
+    window.close = jest.fn();
+
+    const others = [...document.querySelectorAll('#menu li[data-icon="others"]')];
+    others[0].click();
+    await flush();
+    expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ command: 'suspendOthers', withProgress: true })
+    );
+
+    const wakeItems = [...document.querySelectorAll('#menu li[data-icon="wake"]')];
+    wakeItems[wakeItems.length - 2].click();
+    await flush();
+    expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ command: 'unsuspendAllThisWindow', withProgress: true })
+    );
+
+    // Both leave the popup up: it is the only place the run can be watched
+    // or stopped.
+    expect(window.close).not.toHaveBeenCalled();
+    expect(document.getElementById('bulkProgress').style.display).toBe('block');
+  });
+
   test('clicking "suspend all others (all windows)" sends the bulk command', async () => {
     const chrome = await loadPopupWith({ tab: { url: 'https://x.com', title: 'X' }, settings: { autoSuspendMinutes: 30 } });
     window.close = jest.fn();
