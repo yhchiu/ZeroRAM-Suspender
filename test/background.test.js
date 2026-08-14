@@ -28,6 +28,19 @@ function sessionWrites(chrome, key) {
   );
 }
 
+/**
+ * Report the pages a bulk unsuspend is waiting on as loaded, the way Chrome
+ * would once the restored tab finishes navigating.
+ */
+async function completeLoads(chrome, tabIds) {
+  for (const tabId of tabIds) {
+    const tab = chrome._getTab(tabId);
+    if (!tab) continue;
+    await chrome.tabs.onUpdated.trigger(tabId, { status: 'complete' }, tab);
+  }
+  await flush();
+}
+
 function suspendedUrl(chrome, original, title = 'T', favicon) {
   let u = `chrome-extension://${chrome._extId}/suspended.html?uri=${encodeURIComponent(original)}&ttl=${encodeURIComponent(title)}`;
   if (favicon) u += `&favicon=${encodeURIComponent(favicon)}`;
@@ -478,7 +491,11 @@ describe('bulk operations', () => {
         { id: 3, url: 'https://normal.com', windowId: 1 },
       ],
     });
-    await bg.unsuspendAllTabs(false);
+    const done = bg.unsuspendAllTabs(false);
+    await flush();
+    await completeLoads(chrome, [1, 2]);
+    await done;
+
     expect(chrome._getTab(1).url).toBe('https://a.com');
     expect(chrome._getTab(2).url).toBe('https://b.com');
     expect(chrome._getTab(3).url).toBe('https://normal.com');
@@ -492,9 +509,133 @@ describe('bulk operations', () => {
         { id: 2, url: suspendedUrl({ _extId: extId }, 'https://b.com'), windowId: 2 },
       ],
     });
-    await bg.unsuspendAllTabsInWindow(1);
+    const done = bg.unsuspendAllTabsInWindow(1);
+    await flush();
+    await completeLoads(chrome, [1]);
+    await done;
+
     expect(chrome._getTab(1).url).toBe('https://a.com');
     expect(chrome._getTab(2).url).toContain('suspended.html'); // other window untouched
+  });
+
+  test('bulk unsuspend waits for each batch before starting the next', async () => {
+    const extId = 'testextensionid';
+    const tabs = Array.from({ length: 12 }, (_, i) => ({
+      id: i + 1,
+      url: suspendedUrl({ _extId: extId }, `https://site${i}.com`),
+      windowId: 1,
+    }));
+    const { bg, chrome } = loadBackground({ tabs });
+    chrome.storage.sync._store[STORAGE_KEY] = { suspendBatchConcurrency: 5 };
+
+    const done = bg.unsuspendAllTabs(false);
+    await flush();
+
+    // Only the first batch is navigating: the rest of the session is not
+    // handed to Chrome until these pages are back.
+    expect(chrome.tabs.update).toHaveBeenCalledTimes(5);
+
+    await completeLoads(chrome, [1, 2, 3, 4, 5]);
+    expect(chrome.tabs.update).toHaveBeenCalledTimes(10);
+
+    await completeLoads(chrome, [6, 7, 8, 9, 10]);
+    expect(chrome.tabs.update).toHaveBeenCalledTimes(12);
+
+    await completeLoads(chrome, [11, 12]);
+    await done;
+    expect(chrome._getTab(12).url).toBe('https://site11.com');
+  });
+
+  test('a page that never loads times out instead of stalling the queue', async () => {
+    const extId = 'testextensionid';
+    const { bg, chrome } = loadBackground({
+      tabs: [
+        { id: 1, url: suspendedUrl({ _extId: extId }, 'https://slow.com'), windowId: 1 },
+        { id: 2, url: suspendedUrl({ _extId: extId }, 'https://b.com'), windowId: 1 },
+      ],
+    });
+    chrome.storage.sync._store[STORAGE_KEY] = { suspendBatchConcurrency: 1 };
+
+    const done = bg.unsuspendAllTabs(false);
+    await flush();
+    expect(chrome.tabs.update).toHaveBeenCalledTimes(1);
+
+    // Tab 1 never reports back; the wait gives up and the queue moves on.
+    jest.advanceTimersByTime(bg.UNSUSPEND_LOAD_TIMEOUT_MS);
+    await flush();
+    expect(chrome.tabs.update).toHaveBeenCalledTimes(2);
+
+    await completeLoads(chrome, [2]);
+    await done;
+  });
+
+  test('cancelling a bulk unsuspend stops it at the current batch', async () => {
+    const extId = 'testextensionid';
+    const tabs = Array.from({ length: 12 }, (_, i) => ({
+      id: i + 1,
+      url: suspendedUrl({ _extId: extId }, `https://site${i}.com`),
+      windowId: 1,
+    }));
+    const { bg, chrome } = loadBackground({ tabs });
+    chrome.storage.sync._store[STORAGE_KEY] = { suspendBatchConcurrency: 5 };
+
+    const port = { name: 'popup', onDisconnect: { addListener: jest.fn() }, postMessage: jest.fn() };
+    chrome.runtime.onConnect.triggerSync(port);
+
+    const done = bg.unsuspendAllTabs(true);
+    await flush();
+    expect(chrome.tabs.update).toHaveBeenCalledTimes(5);
+
+    // Cancelling settles the waits too, so the run does not have to sit out
+    // the rest of the batch it is on.
+    bg.cancelBulkNow();
+    await done;
+
+    expect(chrome.tabs.update).toHaveBeenCalledTimes(5);
+    const doneMsg = port.postMessage.mock.calls.map((c) => c[0]).find((m) => m.done);
+    expect(doneMsg).toMatchObject({ action: 'unsuspendAll', done: true, cancelled: true });
+  });
+
+  test('the window-scoped unsuspend can be cancelled too', async () => {
+    const extId = 'testextensionid';
+    const tabs = Array.from({ length: 8 }, (_, i) => ({
+      id: i + 1,
+      url: suspendedUrl({ _extId: extId }, `https://site${i}.com`),
+      windowId: 1,
+    }));
+    const { bg, chrome } = loadBackground({ tabs });
+    chrome.storage.sync._store[STORAGE_KEY] = { suspendBatchConcurrency: 5 };
+
+    const done = bg.unsuspendAllTabsInWindow(1);
+    await flush();
+    expect(chrome.tabs.update).toHaveBeenCalledTimes(5);
+
+    bg.cancelBulkNow();
+    await done;
+    expect(chrome.tabs.update).toHaveBeenCalledTimes(5);
+  });
+
+  test('a tab closed mid-restore does not hold up its batch', async () => {
+    const extId = 'testextensionid';
+    const { bg, chrome } = loadBackground({
+      tabs: [
+        { id: 1, url: suspendedUrl({ _extId: extId }, 'https://a.com'), windowId: 1 },
+        { id: 2, url: suspendedUrl({ _extId: extId }, 'https://b.com'), windowId: 1 },
+      ],
+    });
+    chrome.storage.sync._store[STORAGE_KEY] = { suspendBatchConcurrency: 1 };
+
+    const done = bg.unsuspendAllTabs(false);
+    await flush();
+
+    chrome.tabs.remove(1);
+    await chrome.tabs.onRemoved.trigger(1, { windowId: 1 });
+    await flush();
+    expect(chrome.tabs.update).toHaveBeenCalledTimes(2);
+
+    await completeLoads(chrome, [2]);
+    await done;
+    expect(chrome._getTab(2).url).toBe('https://b.com');
   });
 
   test('suspendSelectedTabs force-suspends, skipping internal pages', async () => {

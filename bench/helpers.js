@@ -64,6 +64,37 @@ function settle(ms = 20) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Make the mock behave like a browser that loads pages: every navigation
+ * reports `status: 'complete'`, but only on a later turn, so navigations that
+ * were started together are genuinely in flight together.
+ *
+ * Returns a live `{ inFlight, peak, completed }`. `peak` is the number that
+ * matters for bulk operations: it is how many pages the browser was asked to
+ * load at once, which is what decides whether a big session survives the run.
+ */
+function trackNavigations(chrome, { completeAfterMs = 0 } = {}) {
+  const update = chrome.tabs.update;
+  const state = { inFlight: 0, peak: 0, completed: 0 };
+
+  chrome.tabs.update = jest.fn(async (tabId, props) => {
+    const result = await update(tabId, props);
+    state.inFlight += 1;
+    state.peak = Math.max(state.peak, state.inFlight);
+
+    setTimeout(async () => {
+      state.inFlight -= 1;
+      state.completed += 1;
+      const tab = chrome._getTab(tabId);
+      if (tab) await chrome.tabs.onUpdated.trigger(tabId, { status: 'complete' }, tab);
+    }, completeAfterMs);
+
+    return result;
+  });
+
+  return state;
+}
+
 /** Snapshot of the chrome API calls a scenario is judged by. */
 function apiCalls(chrome) {
   return {
@@ -116,6 +147,7 @@ module.exports = {
   makeWindows,
   loadBackgroundWithTabs,
   settle,
+  trackNavigations,
   apiCalls,
   callDiff,
   measure,

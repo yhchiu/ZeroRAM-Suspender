@@ -13,6 +13,7 @@ const {
   loadBackgroundWithTabs,
   measureCalls,
   settle,
+  trackNavigations,
 } = require('./helpers');
 
 jest.setTimeout(300000);
@@ -62,8 +63,15 @@ test('unsuspend every tab', async () => {
     settings: SETTINGS,
   });
 
-  // Each tabs.update here starts a real page load in a real browser.
+  // Each tabs.update here starts a real page load in a real browser, so the
+  // number to watch is not how many were sent but how many were in flight at
+  // once: that is the memory spike. It should track the batch concurrency, not
+  // the tab count.
+  const navigations = trackNavigations(chrome);
   await measureCalls('unsuspendAllTabs', chrome, () => bg.unsuspendAllTabs());
+  console.log(
+    `${'  peak pages loading at once'.padEnd(44)} ${String(navigations.peak).padStart(9)}    of ${navigations.completed} restored`
+  );
 });
 
 test('suspend every other tab', async () => {

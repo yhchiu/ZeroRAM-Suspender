@@ -12,9 +12,13 @@ one.
 ## Running them
 
 ```bash
-npm run bench                 # every scenario, about five seconds
+npm run bench                 # every scenario, about half a minute
 npm run bench -- -t checkTabs # one scenario, by test name
 ```
+
+Most scenarios finish in milliseconds. The bulk unsuspend is the slow one, and
+that is the point: it paces itself on pages coming back, so the run takes as
+long as the work honestly takes.
 
 Or directly, which is the same thing:
 
@@ -54,6 +58,11 @@ that reports 10,000 is paying per tab, and needs a different design.
 | --- | --- |
 | `badge.bench.js` | Pause badge: refresh, shortcuts, tab activation, worker start-up. Every count here should stay flat as the tab count grows. |
 | `core.bench.js` | The every-minute `checkTabs` scan, worker start-up, bulk suspend and unsuspend, and the size of the session-storage payloads. |
+
+For bulk work, `trackNavigations()` reports the **peak number of pages loading
+at once**, which for an unsuspend is the number that decides whether a large
+session survives the run at all. Sending 10,000 navigations is fine; having
+10,000 pages load at the same time is not.
 
 `helpers.js` holds the fixtures: `makeTabs()` builds 10,000 tabs across 20
 windows with one active tab per window, and `measureCalls()` times a scenario

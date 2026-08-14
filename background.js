@@ -33,6 +33,10 @@ const LAST_FOCUSED_WINDOW_KEY = 'utsLastFocusedWindow';
 // Constant prefix for our suspended page URL to avoid repeated getURL calls
 const SUSPENDED_PREFIX = chrome.runtime.getURL('suspended.html');
 const DISCARD_READY_TIMEOUT_MS = 10000;
+// How long a bulk unsuspend waits for one tab to finish loading before moving
+// on. The wait is there to pace the restore, so it must never stall it: Chrome
+// defers loading background tabs under pressure, and a page can hang outright.
+const UNSUSPEND_LOAD_TIMEOUT_MS = 15000;
 // After suspended.js signals it set the favicon link, we poll tab.favIconUrl
 // to confirm Chrome's browser process actually registered a real favicon before
 // discarding. Verifying the captured favIconUrl — instead of blindly trusting a
@@ -146,6 +150,9 @@ function cancelBulkNow() {
       }
     }
   } catch (_) {}
+  // Same for a bulk unsuspend waiting on pages to load: without this the run
+  // would keep pacing itself through the batch it is on before it noticed.
+  settleAllUnsuspendLoadWaits();
 }
 
 // Helper: load settings
@@ -684,6 +691,39 @@ function cancelPendingDiscardWait(tabId) {
   }
 }
 
+// Tabs a bulk unsuspend is currently waiting on: tabId -> settle().
+const pendingUnsuspendLoads = new Map();
+
+// Resolve once the tab reports a completed load, or when the wait times out.
+// chrome.tabs.update resolves the moment the navigation starts, so this is the
+// only signal that says the page is actually back and the next one can go.
+function beginUnsuspendLoadWait(tabId) {
+  settleUnsuspendLoadWait(tabId);
+  return new Promise(resolve => {
+    const timeoutId = setTimeout(() => {
+      pendingUnsuspendLoads.delete(tabId);
+      resolve({ timedOut: true });
+    }, UNSUSPEND_LOAD_TIMEOUT_MS);
+
+    pendingUnsuspendLoads.set(tabId, () => {
+      clearTimeout(timeoutId);
+      pendingUnsuspendLoads.delete(tabId);
+      resolve({ timedOut: false });
+    });
+  });
+}
+
+// Called when the page lands, when the tab goes away, and when a bulk run is
+// cancelled — anything that means the wait has no reason to continue.
+function settleUnsuspendLoadWait(tabId) {
+  const settle = pendingUnsuspendLoads.get(tabId);
+  if (settle) settle();
+}
+
+function settleAllUnsuspendLoadWaits() {
+  for (const settle of [...pendingUnsuspendLoads.values()]) settle();
+}
+
 function markSuspendedFaviconReady(tabId) {
   if (typeof tabId !== 'number') return;
   suspendedFaviconReadyTabs.add(tabId);
@@ -1137,6 +1177,9 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     if (unsuspendingTabs.has(tabId)) {
       unsuspendingTabs.delete(tabId);
     }
+
+    // The page is back, so a bulk unsuspend waiting on it can move on.
+    settleUnsuspendLoadWait(tabId);
     
     // Remove from fix favicon tabs tracking when loaded
     if (fixFaviconTabs.has(tabId)) {
@@ -1218,6 +1261,8 @@ chrome.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
 
   // Clean up pending discard if tab is closed
   cancelPendingDiscardWait(tabId);
+  // A tab that closes mid-restore must not hold up the rest of the batch.
+  settleUnsuspendLoadWait(tabId);
 
   // Clean up per-window active tab tracking
   const { windowId } = removeInfo;
@@ -1319,7 +1364,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       } else if (msg.command === 'unsuspendAllThisWindow') {
         // Unsuspend all suspended tabs in current window only
         const currentTab = await chrome.tabs.get(msg.tabId);
-        await unsuspendAllTabsInWindow(currentTab.windowId);
+        await unsuspendAllTabsInWindow(currentTab.windowId, !!msg.withProgress);
         respond({ done: true });
       } else if (msg.command === 'updateSettings') {
         await saveSettings(msg.settings);
@@ -1627,44 +1672,85 @@ async function suspendOthersInAllWindows(currentTabId, withProgress = false) {
   if (withProgress) postBulkProgress({ action: 'suspendAll', processed, total, done: true, cancelled: cancelToken.cancelled });
 }
 
+// Send one suspended tab back to its original URL and wait for it to load.
+async function restoreSuspendedTab(tab) {
+  const original = parseOriginalUrlFromSuspended(tab.url);
+  if (!original) return;
+
+  markTabUnsuspending(tab.id);
+  // Update timestamp immediately to prevent re-suspension
+  seenTimestamps[tab.id] = Date.now();
+
+  // Start the wait before navigating: the load can complete before the update
+  // call resolves, and a signal that arrives first must not be missed.
+  const loaded = beginUnsuspendLoadWait(tab.id);
+  try {
+    await chrome.tabs.update(tab.id, { url: original });
+  } catch (error) {
+    settleUnsuspendLoadWait(tab.id);
+    throw error;
+  }
+  await loaded;
+}
+
+// Restore a set of suspended tabs, paced by how fast the pages actually come
+// back. Batching alone would not pace anything: chrome.tabs.update resolves
+// when the navigation starts, not when it finishes, so a plain loop hands
+// Chrome every page at once — ten thousand of them on a large session, which is
+// the memory spike this extension exists to prevent. Waiting for each batch
+// keeps the number of pages loading at any moment bounded, and the timeout in
+// the wait keeps one slow page from stalling the rest.
+async function unsuspendTabsInBatches(targets, { cancelToken, withProgress = false } = {}) {
+  const settings = await getSettingsCached();
+  const concurrency = settings.suspendBatchConcurrency || 5;
+  const total = targets.length;
+  let processed = 0;
+
+  for (let i = 0; i < targets.length; i += concurrency) {
+    if (cancelToken.cancelled) break;
+    const batch = targets.slice(i, i + concurrency);
+    await Promise.allSettled(batch.map(tab =>
+      restoreSuspendedTab(tab)
+        .catch(error => {
+          // Tabs can close between the query and the navigation.
+          logUnexpectedTabError('Failed to unsuspend tab', error);
+        })
+        .finally(() => {
+          processed += 1;
+          if (withProgress) postBulkProgress({ action: 'unsuspendAll', processed, total });
+        })
+    ));
+  }
+
+  saveSeenTimestamps();
+  if (withProgress) {
+    postBulkProgress({
+      action: 'unsuspendAll',
+      processed,
+      total,
+      done: true,
+      cancelled: cancelToken.cancelled
+    });
+  }
+  return processed;
+}
+
 // Unsuspend all tabs in all windows
 async function unsuspendAllTabs(withProgress = false) {
   const tabs = await chrome.tabs.query({});
   const targets = tabs.filter(t => isSuspendedTab(t));
   const cancelToken = newCancelToken();
-  const total = targets.length;
-  let processed = 0;
-  for (const tab of targets) {
-    if (cancelToken.cancelled) break;
-    const original = parseOriginalUrlFromSuspended(tab.url);
-    if (original) {
-      markTabUnsuspending(tab.id);
-      // Update timestamp immediately to prevent re-suspension
-      seenTimestamps[tab.id] = Date.now();
-      await chrome.tabs.update(tab.id, { url: original });
-    }
-    processed += 1;
-    if (withProgress) postBulkProgress({ action: 'unsuspendAll', processed, total });
-  }
-  saveSeenTimestamps();
-  if (withProgress) postBulkProgress({ action: 'unsuspendAll', processed, total, done: true, cancelled: cancelToken.cancelled });
+  await unsuspendTabsInBatches(targets, { cancelToken, withProgress });
 }
 
 // Unsuspend all tabs in a specific window
-async function unsuspendAllTabsInWindow(windowId) {
+async function unsuspendAllTabsInWindow(windowId, withProgress = false) {
   const tabs = await chrome.tabs.query({ windowId: windowId });
-  for (const tab of tabs) {
-    if (isSuspendedTab(tab)) {
-      const original = parseOriginalUrlFromSuspended(tab.url);
-      if (original) {
-        markTabUnsuspending(tab.id);
-        // Update timestamp immediately to prevent re-suspension
-        seenTimestamps[tab.id] = Date.now();
-        await chrome.tabs.update(tab.id, { url: original });
-      }
-    }
-  }
-  saveSeenTimestamps();
+  const targets = tabs.filter(t => isSuspendedTab(t));
+  // Takes a cancel token like every other bulk run, so the popup's cancel
+  // button can stop it: without one it was the only bulk path that ignored it.
+  const cancelToken = newCancelToken();
+  await unsuspendTabsInBatches(targets, { cancelToken, withProgress });
 }
 
 function getPausableUrl(tab) {
@@ -2266,6 +2352,11 @@ if (typeof module !== 'undefined' && module.exports) {
     suspendOthersInAllWindows,
     unsuspendAllTabs,
     unsuspendAllTabsInWindow,
+    unsuspendTabsInBatches,
+    restoreSuspendedTab,
+    beginUnsuspendLoadWait,
+    settleUnsuspendLoadWait,
+    UNSUSPEND_LOAD_TIMEOUT_MS,
     suspendSelectedTabs,
     unsuspendSelectedTabs,
     toggleTabSuspension,
