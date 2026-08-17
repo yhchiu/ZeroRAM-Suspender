@@ -1048,27 +1048,39 @@ describe('event listeners', () => {
     const internals = bg.__getInternals();
     bg.markTabUnsuspending(7);
     internals.fixFaviconTabs.add(7);
-    internals.seenTimestamps[7] = 1;
+    // Through mark/flush so a missed forgetTabSeen would leave the session key.
+    bg.markTabSeen(7, 1);
+    bg.flushSeenTimestampsNow();
+    expect(chrome.storage.session._store['utsSeen:7']).toBe(1);
     bg.setLastActiveTabInWindow(2, { tabId: 7, timestamp: 1 });
     await chrome.tabs.onRemoved.trigger(7, { windowId: 2 });
+    bg.flushSeenTimestampsNow();
     // Re-fetch internals: the restore swaps in a fresh per-window map object.
     const after = bg.__getInternals();
     expect(after.unsuspendingTabs.has(7)).toBe(false);
     expect(after.fixFaviconTabs.has(7)).toBe(false);
     expect(7 in after.seenTimestamps).toBe(false);
+    expect('utsSeen:7' in chrome.storage.session._store).toBe(false);
     expect(after.lastActiveTabPerWindow.has(2)).toBe(false);
   });
 
   test('onReplaced migrates timestamps and tracking to the new tab id', async () => {
     const { bg, chrome } = loadBackground({ windows: [{ id: 1 }] });
-    bg.__getInternals().seenTimestamps[10] = 1234;
+    // Through mark/flush so a missed mark/forget pair would leave the old key
+    // and never write the new one.
+    bg.markTabSeen(10, 1234);
+    bg.flushSeenTimestampsNow();
+    expect(chrome.storage.session._store['utsSeen:10']).toBe(1234);
     bg.markTabUnsuspending(10);
     bg.setLastActiveTabInWindow(1, { tabId: 10, timestamp: 1234 });
     chrome.storage.session._store.utsLastActiveTab = 10;
     await chrome.tabs.onReplaced.trigger(20, 10);
+    bg.flushSeenTimestampsNow();
     const after = bg.__getInternals();
     expect(after.seenTimestamps[20]).toBe(1234);
     expect(10 in after.seenTimestamps).toBe(false);
+    expect(chrome.storage.session._store['utsSeen:20']).toBe(1234);
+    expect('utsSeen:10' in chrome.storage.session._store).toBe(false);
     expect(after.unsuspendingTabs.has(20)).toBe(true);
     expect(after.unsuspendingTabs.has(10)).toBe(false);
     expect(after.lastActiveTabPerWindow.get(1).tabId).toBe(20);
