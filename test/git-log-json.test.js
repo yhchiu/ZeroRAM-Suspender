@@ -19,6 +19,18 @@ function run(command, args, cwd) {
   });
 }
 
+function writeManifest(fixtureDir, version) {
+  fs.writeFileSync(
+    path.join(fixtureDir, 'manifest.json'),
+    `{\n  "name": "Fixture",\n  "version": "${version}",\n  "permissions": ["tabs"]\n}\n`,
+  );
+}
+
+function commitAll(fixtureDir, subject) {
+  expect(run('git', ['add', '.'], fixtureDir).status).toBe(0);
+  expect(run('git', ['commit', '-m', subject], fixtureDir).status).toBe(0);
+}
+
 function createFixture() {
   const fixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'git-log-json-'));
   const scriptPath = path.join(fixtureDir, 'git-log-json.sh');
@@ -28,10 +40,7 @@ function createFixture() {
     path.join(fixtureDir, 'package.json'),
     '{\n  "name": "fixture",\n  "version": "1.0.0"\n}\n',
   );
-  fs.writeFileSync(
-    path.join(fixtureDir, 'manifest.json'),
-    '{\n  "name": "Fixture",\n  "version": "1.0.0",\n  "permissions": ["tabs"]\n}\n',
-  );
+  writeManifest(fixtureDir, '1.0.0');
   fs.writeFileSync(
     path.join(fixtureDir, 'package-lock.json'),
     '{\n  "name": "fixture",\n  "version": "1.0.0",\n  "lockfileVersion": 3,\n  "packages": {\n    "": {\n      "name": "fixture",\n      "version": "1.0.0"\n    }\n  }\n}\n',
@@ -74,7 +83,49 @@ describe('git-log-json.sh', () => {
     expect(manifestText).toContain('"permissions": ["tabs"]');
 
     const changelog = JSON.parse(fs.readFileSync(path.join(fixtureDir, 'CHANGELOG.json')));
-    expect(changelog[0].commit.message).toBe('feat: initial fixture');
+    // The bumped version leads the log even though nothing has landed in it yet.
+    expect(changelog[0]).toMatchObject({ version: '2.3.4', items: [] });
+    expect(changelog[1].version).toBe('1.0.0');
+    expect(changelog[1].items).toEqual([
+      { commit: expect.stringMatching(/^[0-9a-f]{40}$/), type: 'feat', subject: 'feat: initial fixture' },
+    ]);
+  });
+
+  test('groups commits into the release whose version manifest.json carried', () => {
+    const { fixtureDir, scriptPath } = createFixture();
+    fixtureDirs.push(fixtureDir);
+
+    // Work done while the tree says 1.0.0 ships in the release the next bump opens.
+    fs.writeFileSync(path.join(fixtureDir, 'a.txt'), 'a\n');
+    commitAll(fixtureDir, 'feat: add A');
+    writeManifest(fixtureDir, '1.1.0');
+    commitAll(fixtureDir, 'chore: update version to 1.1.0');
+
+    fs.writeFileSync(path.join(fixtureDir, 'b.txt'), 'b\n');
+    commitAll(fixtureDir, 'fix: bug B');
+    writeManifest(fixtureDir, '1.2.0');
+    // The older bare bump subject is dropped as release noise too.
+    commitAll(fixtureDir, 'Update version to 1.2.0');
+
+    // Touching manifest.json without changing the version is not a bump.
+    fs.writeFileSync(
+      path.join(fixtureDir, 'manifest.json'),
+      '{\n  "name": "Fixture",\n  "version": "1.2.0",\n  "permissions": ["tabs", "alarms"]\n}\n',
+    );
+    commitAll(fixtureDir, 'feat: ship C');
+
+    const result = run('sh', [shellPath(scriptPath), '1.3.0'], os.tmpdir());
+    expect(result.status).toBe(0);
+
+    const changelog = JSON.parse(fs.readFileSync(path.join(fixtureDir, 'CHANGELOG.json')));
+    expect(
+      changelog.map((release) => [release.version, release.items.map((item) => item.subject)]),
+    ).toEqual([
+      ['1.3.0', ['feat: ship C']],
+      ['1.2.0', ['fix: bug B']],
+      ['1.1.0', ['feat: add A']],
+      ['1.0.0', ['feat: initial fixture']],
+    ]);
   });
 
   test('rejects invalid Chrome manifest versions without changing files', () => {

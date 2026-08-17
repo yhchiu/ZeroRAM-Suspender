@@ -3,6 +3,8 @@
  * DOMContentLoaded initializer, changelog loading, session/settings preview &
  * import, and the suspended-tab viewer click/error handlers.
  */
+const fs = require('fs');
+const path = require('path');
 const { loadOptions } = require('./helpers/load-source');
 
 const EXT_ID = 'testextensionid';
@@ -48,19 +50,54 @@ describe('changelog', () => {
   test('loadChangelog fetches CHANGELOG.json and renders version cards', async () => {
     const { options, chrome } = loadOptions();
     chrome.i18n.getMessage.mockImplementation((k) => k);
-    const commits = [
-      { commit: { message: 'chore: update version to 1.5.0', author: { date: '2024-03-01T00:00:00Z' } }, sha: 'aaaaaaa', html_url: 'https://gh/a' },
-      { commit: { message: 'feat: add cool thing', author: { date: '2024-03-01T00:00:00Z' } }, sha: 'bbbbbbb', html_url: 'https://gh/b' },
-      { commit: { message: 'fix: squash bug', author: { date: '2024-03-01T00:00:00Z' } }, sha: 'ccccccc', html_url: 'https://gh/c' },
+    const releases = [
+      {
+        version: '1.5.0',
+        date: '2024-03-01',
+        items: [
+          { commit: 'bbbbbbbbbbbb', type: 'feat', subject: 'feat: add cool thing' },
+          { commit: 'cccccccccccc', type: 'fix', subject: 'fix: squash bug' },
+        ],
+      },
     ];
     global.fetch.mockImplementation(() =>
-      Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(commits) })
+      Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(releases) })
     );
     await options.loadChangelog();
     await flush();
     const content = document.getElementById('changelogContent');
     expect(content.innerHTML).toContain('1.5.0');
     expect(content.innerHTML.toLowerCase()).toContain('cool thing');
+  });
+
+  test('renders the CHANGELOG.json that git-log-json.sh generated', async () => {
+    // Guards the contract between the generator and this page: every release
+    // in the shipped file must still come out as a card with commit rows.
+    const { options, chrome } = loadOptions();
+    chrome.i18n.getMessage.mockImplementation((k) => k);
+    const releases = JSON.parse(
+      fs.readFileSync(path.join(__dirname, '..', 'CHANGELOG.json'), 'utf8')
+    );
+    global.fetch.mockImplementation(() =>
+      Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(releases) })
+    );
+
+    await options.loadChangelog();
+    await flush();
+
+    const content = document.getElementById('changelogContent');
+    const withItems = releases.filter((release) => release.items.length);
+    expect(content.querySelectorAll('.card')).toHaveLength(withItems.length);
+    expect(content.querySelectorAll('.changelog-item')).toHaveLength(
+      withItems.reduce((total, release) => total + release.items.length, 0)
+    );
+    expect(content.innerHTML).toContain(withItems[0].version);
+    // Commit links point at the repository, not at a bare hash.
+    const link = content.querySelector('.changelog-item a');
+    expect(link.getAttribute('href')).toMatch(
+      /^https:\/\/github\.com\/yhchiu\/ZeroRAM-Suspender\/commit\/[0-9a-f]{40}$/
+    );
+    expect(link.textContent).toHaveLength(7);
   });
 
   test('loadChangelog shows an error state when the fetch fails', async () => {

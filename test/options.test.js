@@ -167,52 +167,78 @@ describe('migration parsers', () => {
 });
 
 describe('changelog parsing', () => {
-  function commit(message, sha = 'abcdef1234567', date = '2024-01-02T00:00:00Z') {
-    return { commit: { message, author: { date } }, sha, html_url: `https://gh/${sha}` };
+  function item(subject, commit = 'abcdef1234567890') {
+    const match = subject.match(/^([a-zA-Z0-9_-]+)(\([^)]+\))?!?:/);
+    return { commit, type: match ? match[1].toLowerCase() : 'other', subject };
   }
 
-  test('parseCommitMessage classifies Conventional Commit types', () => {
+  test('changelogChangeType maps Conventional Commit types', () => {
     const { options } = load();
-    expect(options.parseCommitMessage('feat: add thing', commit('feat: add thing')).type).toBe('added');
-    expect(options.parseCommitMessage('fix: repair', commit('fix: repair')).type).toBe('fixed');
-    expect(options.parseCommitMessage('perf: speed', commit('perf: speed')).type).toBe('improved');
-    expect(options.parseCommitMessage('revert: x', commit('revert: x')).type).toBe('removed');
+    expect(options.changelogChangeType('feat', 'feat: add thing')).toBe('added');
+    expect(options.changelogChangeType('fix', 'fix: repair')).toBe('fixed');
+    expect(options.changelogChangeType('perf', 'perf: speed')).toBe('improved');
+    expect(options.changelogChangeType('revert', 'revert: x')).toBe('removed');
   });
 
-  test('parseCommitMessage adds scope and capitalizes', () => {
+  test('changelogChangeType falls back to the subject verb', () => {
     const { options } = load();
-    const r = options.parseCommitMessage('feat(ui): new button', commit('feat(ui): new button'));
-    expect(r.description).toBe('[ui] New button');
-    expect(r.type).toBe('added');
+    // Types that do not name the change fall through to the leading verb.
+    expect(options.changelogChangeType('chore', 'chore: remove dead code')).toBe('removed');
+    expect(options.changelogChangeType('refactor', 'refactor: tidy up')).toBe('changed');
+    // Free-form subjects from before the Conventional Commit switch.
+    expect(options.changelogChangeType('other', 'Add feature')).toBe('added');
+    expect(options.changelogChangeType('other', 'Improve speed')).toBe('improved');
+    expect(options.changelogChangeType('other', 'Tweak stuff')).toBe('changed');
   });
 
-  test('parseCommitMessage skips version/merge commits', () => {
+  test('changelogDescription strips the type, keeps the scope, capitalizes', () => {
     const { options } = load();
-    expect(options.parseCommitMessage('chore: update version to 1.2.3', commit('x'))).toBeNull();
-    expect(options.parseCommitMessage('Merge branch main', commit('x'))).toBeNull();
+    expect(options.changelogDescription('feat(ui): new button')).toBe('[ui] New button');
+    expect(options.changelogDescription('fix: squash bug')).toBe('Squash bug');
+    expect(options.changelogDescription('Initial commit')).toBe('Initial commit');
+    expect(options.changelogDescription('')).toBe('');
   });
 
-  test('parseCommitMessage infers type from plain message verbs', () => {
+  test('changelogDate keeps the calendar day of a YYYY-MM-DD date', () => {
     const { options } = load();
-    expect(options.parseCommitMessage('Add feature', commit('Add feature')).type).toBe('added');
-    expect(options.parseCommitMessage('Remove cruft', commit('Remove cruft')).type).toBe('removed');
-    expect(options.parseCommitMessage('Improve speed', commit('Improve speed')).type).toBe('improved');
-    expect(options.parseCommitMessage('Tweak stuff', commit('Tweak stuff')).type).toBe('changed');
+    expect(options.changelogDate('2024-03-01')).toBe(new Date(2024, 2, 1).toLocaleDateString());
+    // Anything else is passed through untouched.
+    expect(options.changelogDate('later')).toBe('later');
   });
 
-  test('parseCommitsToChangelog groups by version', () => {
+  test('normalizeChangelog formats each release and drops empty ones', () => {
     const { options } = load();
-    const commits = [
-      commit('chore: update version to 1.2.0', 'v120'),
-      commit('feat: add A', 'a1'),
-      commit('fix: bug B', 'b2'),
-      commit('chore: update version to 1.1.0', 'v110'),
-      commit('feat: old feature', 'o1'),
-    ];
-    const log = options.parseCommitsToChangelog(commits);
-    expect(log.length).toBeGreaterThanOrEqual(1);
-    expect(log[0].version).toBe('1.2.0');
-    expect(log[0].changes.map((c) => c.type)).toEqual(expect.arrayContaining(['added', 'fixed']));
+    const log = options.normalizeChangelog([
+      { version: '1.3.0', date: '2024-04-01', items: [] },
+      {
+        version: '1.2.0',
+        date: '2024-03-01',
+        items: [item('feat: add A', 'a1a1a1a1a1a1'), item('fix(core): bug B', 'b2b2b2b2b2b2')],
+      },
+    ]);
+
+    expect(log).toHaveLength(1);
+    expect(log[0]).toMatchObject({ version: '1.2.0', date: '2024-03-01' });
+    expect(log[0].changes).toEqual([
+      {
+        type: 'added',
+        description: 'Add A',
+        sha: 'a1a1a1a',
+        url: 'https://github.com/yhchiu/ZeroRAM-Suspender/commit/a1a1a1a1a1a1',
+      },
+      {
+        type: 'fixed',
+        description: '[core] Bug B',
+        sha: 'b2b2b2b',
+        url: 'https://github.com/yhchiu/ZeroRAM-Suspender/commit/b2b2b2b2b2b2',
+      },
+    ]);
+  });
+
+  test('normalizeChangelog tolerates malformed input', () => {
+    const { options } = load();
+    expect(options.normalizeChangelog(null)).toEqual([]);
+    expect(options.normalizeChangelog([{ version: '1.0.0' }, {}])).toEqual([]);
   });
 
   test('renderChangelog keeps commit order instead of grouping by type', () => {
@@ -224,7 +250,7 @@ describe('changelog parsing', () => {
       { type: 'changed', description: 'Tweak C', sha: 'c333333', url: 'https://gh/c' },
       { type: 'added', description: 'Feature D', sha: 'd444444', url: 'https://gh/d' },
     ];
-    options.renderChangelog([{ version: '1.2.0', date: new Date('2024-01-02T00:00:00Z'), changes }], container);
+    options.renderChangelog([{ version: '1.2.0', date: '2024-01-02', changes }], container);
 
     const shas = Array.from(container.querySelectorAll('.changelog-item a')).map((a) => a.textContent);
     expect(shas).toEqual(['b222222', 'a111111', 'c333333', 'd444444']);

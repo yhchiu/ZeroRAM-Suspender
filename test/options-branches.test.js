@@ -106,20 +106,24 @@ describe('renderNoSuspendedTabsState branches', () => {
   });
 });
 
-describe('parseCommitMessage branches (no Conventional Commit)', () => {
-  function commit(message) {
-    return { commit: { message, author: { date: '2024-01-01T00:00:00Z' } }, sha: 'abc1234', html_url: 'u' };
-  }
+describe('changelogChangeType branches (no Conventional Commit type match)', () => {
   test('plain "new" and "implement" verbs map to added', () => {
     const { options } = loadOptions();
-    expect(options.parseCommitMessage('new dashboard', commit('new dashboard')).type).toBe('added');
-    expect(options.parseCommitMessage('implement search', commit('implement search')).type).toBe('added');
+    expect(options.changelogChangeType('other', 'new dashboard')).toBe('added');
+    expect(options.changelogChangeType('other', 'implement search')).toBe('added');
+    expect(options.changelogChangeType('other', 'repair favicon')).toBe('fixed');
+    expect(options.changelogChangeType('other', 'delete legacy path')).toBe('removed');
   });
   test('cc subject verb inference for non-feat/fix types', () => {
     const { options } = loadOptions();
-    expect(options.parseCommitMessage('chore: remove dead code', commit('chore: remove dead code')).type).toBe('removed');
-    expect(options.parseCommitMessage('chore: improve perf', commit('chore: improve perf')).type).toBe('improved');
-    expect(options.parseCommitMessage('docs: add notes', commit('docs: add notes')).type).toBe('added');
+    expect(options.changelogChangeType('chore', 'chore: remove dead code')).toBe('removed');
+    expect(options.changelogChangeType('chore', 'chore: improve perf')).toBe('improved');
+    expect(options.changelogChangeType('docs', 'docs: add notes')).toBe('added');
+  });
+  test('parseCommitSubject splits scope from text', () => {
+    const { options } = loadOptions();
+    expect(options.parseCommitSubject('feat(ui)!: drop the old pane')).toEqual({ scope: 'ui', text: 'drop the old pane' });
+    expect(options.parseCommitSubject('plain subject\nbody')).toEqual({ scope: '', text: 'plain subject' });
   });
 });
 

@@ -224,9 +224,6 @@
   "version": {
     "message": "版本"
   },
-  "unreleased": {
-    "message": "尚未發布"
-  },
   "description": {
     "message": "說明"
   },

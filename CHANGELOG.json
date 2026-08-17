@@ -1,1597 +1,888 @@
 [
-{
-  "sha": "b3c5c547d5cd43655fef729aca7a83136d345925",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/b3c5c547d5cd43655fef729aca7a83136d345925",
-  "commit": {
-    "message": "chore: update version to 1.7.3",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-03T15:22:34+08:00"
-    }
+  {
+    "version": "1.8.0",
+    "date": "2026-08-17",
+    "items": [
+      {
+        "commit": "277ab7d724ba85ed8aa32f649d06cac1d8574850",
+        "type": "style",
+        "subject": "style: theme the scrollbars on the options page"
+      },
+      {
+        "commit": "0f078506c2d78eee99a2767e594032d4e8bbafbd",
+        "type": "refactor",
+        "subject": "refactor(options): list change log items in commit order"
+      },
+      {
+        "commit": "0272fc8032f4b0b65e9bb56d3e190e2dd54537ca",
+        "type": "refactor",
+        "subject": "refactor: read every window's active tab in one query on start-up"
+      },
+      {
+        "commit": "8f7a065ceb8589ec54a6ed683943b91e101b9417",
+        "type": "fix",
+        "subject": "fix: repair the favicons of the window in view first"
+      },
+      {
+        "commit": "a7a99dc031324c767b8dc89bf61222ada33c0f86",
+        "type": "test",
+        "subject": "test: assert onRemoved and onReplaced persist stamp key changes"
+      },
+      {
+        "commit": "77c7566173b0686190074fb7245e71211b5a6af1",
+        "type": "fix",
+        "subject": "fix: persist migrated idle stamps and cancel a pending remove"
+      },
+      {
+        "commit": "65bf13959859dd999ff9111587ab061feedda3eb",
+        "type": "perf",
+        "subject": "perf(options): build the migration list in batches instead of one pass"
+      },
+      {
+        "commit": "0b2d2ce925b8a847f7be7dad7727157e212991fd",
+        "type": "perf",
+        "subject": "perf: store idle stamps one key per tab instead of rewriting the whole map"
+      },
+      {
+        "commit": "4c250fd6db2f5c45ad04038525762d21c6a9c6f3",
+        "type": "feat",
+        "subject": "feat(popup): show progress and a cancel button for window-scoped bulk runs"
+      },
+      {
+        "commit": "6cfce29e256d85f34432d47ca4bf94b90595f6f5",
+        "type": "feat",
+        "subject": "feat: let the window-scoped bulk operations report and be cancelled"
+      },
+      {
+        "commit": "59a001b98a617fbff360d34d750f774aacc7c39e",
+        "type": "perf",
+        "subject": "perf: slide the bulk unsuspend window instead of waiting for whole batches"
+      },
+      {
+        "commit": "5436c0d162f009da928b642f291d08c9ab83ab4f",
+        "type": "perf",
+        "subject": "perf: pace bulk unsuspend instead of restoring every tab at once"
+      },
+      {
+        "commit": "de1c2470626982014eecac13ddc8d63239b55870",
+        "type": "test",
+        "subject": "test(bench): add a 10k-tab benchmark harness"
+      },
+      {
+        "commit": "bd177df067e0799e867eebec2797119f398d875d",
+        "type": "fix",
+        "subject": "fix(badge): clear a leaving tab's badge whatever the worker remembers"
+      },
+      {
+        "commit": "82fee74ee8905819e84871afe23927611756faad",
+        "type": "fix",
+        "subject": "fix(badge): drop leftover overrides when a tab leaves view"
+      },
+      {
+        "commit": "8f45ae8317f782434d67b8c83805c9c56433d4f5",
+        "type": "perf",
+        "subject": "perf(badge): only paint the pause badge on tabs in view"
+      },
+      {
+        "commit": "bee2f15803ca24e55d4df88f6a483a30b669eaac",
+        "type": "feat",
+        "subject": "feat: badge paused tabs so the pause state stays readable"
+      },
+      {
+        "commit": "62085f52c39fc05c9cdc1edbc2915c28cf6e7f96",
+        "type": "perf",
+        "subject": "perf(popup): render the first frame from a cached copy of the settings"
+      },
+      {
+        "commit": "051a94467abc43f04fe4ab5a4ac525e091fb779b",
+        "type": "feat",
+        "subject": "feat(popup): show loading placeholders while the popup waits for data"
+      },
+      {
+        "commit": "338f7e8386d658e1d307d3c7031cc163153f99ac",
+        "type": "perf",
+        "subject": "perf(popup): keep the service worker off the popup's critical path"
+      },
+      {
+        "commit": "ef665abd330ba05865330585b788cad96db07dc5",
+        "type": "feat",
+        "subject": "feat: flash a badge on the toolbar icon for pause shortcuts"
+      },
+      {
+        "commit": "575a8fad5ca3cc80f368bdb794de387fee995cc5",
+        "type": "feat",
+        "subject": "feat(scripts): add version bump option to changelog script"
+      },
+      {
+        "commit": "a801a65e616d5e6c551650f16aa6e49a09a65298",
+        "type": "chore",
+        "subject": "chore: ignore local worktrees"
+      },
+      {
+        "commit": "72589d7595e4c90895e4ee98a6bacbbca004f575",
+        "type": "feat",
+        "subject": "feat: add keyboard shortcuts for pausing/resuming auto-suspension"
+      },
+      {
+        "commit": "03ca3ac95e727bcf504536cabc3d77da471dbb79",
+        "type": "feat",
+        "subject": "feat: add Russian translation (ru locale)"
+      },
+      {
+        "commit": "57972e853802fdbffae77fe2ccad51b393e188be",
+        "type": "chore",
+        "subject": "chore: update screenshots"
+      }
+    ]
+  },
+  {
+    "version": "1.7.3",
+    "date": "2026-07-03",
+    "items": [
+      {
+        "commit": "577bb898711bee681b74766152d995a63b3c95e6",
+        "type": "style",
+        "subject": "style(ui): refresh popup and options visual design"
+      },
+      {
+        "commit": "ff8668183b3ac8bfdc950136918ee905eea0af5c",
+        "type": "fix",
+        "subject": "fix(ui): keep notice countdown bar visible under reduced motion"
+      },
+      {
+        "commit": "9deaa2444d2132d6fef1ee3d68fdbf3a19e4d7b9",
+        "type": "feat",
+        "subject": "feat(ui): dark mode for popup and options via themeMode setting"
+      },
+      {
+        "commit": "bb01b240b95df8a6159b39b639ccb2219a323b4f",
+        "type": "refactor",
+        "subject": "refactor(a11y): use h3 for card titles"
+      },
+      {
+        "commit": "9167c30275ba719504c8d37c3d61204fe7e5e50a",
+        "type": "refactor",
+        "subject": "refactor(ui): consolidate border radii into a three-step token scale"
+      },
+      {
+        "commit": "7d01fb9a879ec56ea29a136e94c4651ab11f0db1",
+        "type": "fix",
+        "subject": "fix(a11y): respect prefers-reduced-motion"
+      },
+      {
+        "commit": "a50077f78b23c2c6ad4c3cf5e74569c97f1ee6a8",
+        "type": "style",
+        "subject": "style(ui): replace transition-all with explicit properties"
+      },
+      {
+        "commit": "dda745eb9667bfec5fbd895b7c4a71ef54241293",
+        "type": "style",
+        "subject": "style(ui): equalize button heights with transparent border"
+      },
+      {
+        "commit": "34b0a236fe076080f2ea70f1fa6c4ad19146212b",
+        "type": "style",
+        "subject": "style(ui): add disabled state to button variants"
+      },
+      {
+        "commit": "8381217975b47fcdc12408d215138cb25f43d373",
+        "type": "fix",
+        "subject": "fix(a11y): add visible focus rings to options controls"
+      },
+      {
+        "commit": "8f6ff3c8976c3186a7d6a3e1612d1c0c9c6210ca",
+        "type": "fix",
+        "subject": "fix(a11y): add arrow-key navigation to popup menu (ARIA menu pattern)"
+      },
+      {
+        "commit": "4437cac98a857061e924dda5fd10e21e3939ca23",
+        "type": "fix",
+        "subject": "fix(a11y): raise popup gray banner text contrast"
+      },
+      {
+        "commit": "d75e3cf1026f9fc0702761e67797792e6ff5cb3b",
+        "type": "fix",
+        "subject": "fix(ui): left-align options section headers"
+      },
+      {
+        "commit": "73499dffff63499506c692c801b8c3e9d7e73a0d",
+        "type": "fix",
+        "subject": "fix(a11y): use strong color variants for filled controls and colored text"
+      },
+      {
+        "commit": "bdd9ab2b4fc1e55f135799bd3588380d1036166e",
+        "type": "style",
+        "subject": "style(ui): tighten heading and menu font weights to a two-tier scale"
+      },
+      {
+        "commit": "8f211cd7dce163cbbf481cdb9a7e5cb19caaf9fc",
+        "type": "fix",
+        "subject": "fix(ui): left-align popup banner by removing global center default"
+      },
+      {
+        "commit": "90a3c4a35d6d6dc8f651f078d686c68debc1256e",
+        "type": "fix",
+        "subject": "fix(a11y): keyboard menu, aria-current, live notices, version contrast"
+      },
+      {
+        "commit": "75d22ebe5febb72f6c9ab7f644bd0a650b472cf1",
+        "type": "refactor",
+        "subject": "refactor(ui): add button variants and unify form control styles"
+      },
+      {
+        "commit": "b21f2e780e3aa612dd39ab2606e7158b7f74ffa0",
+        "type": "refactor",
+        "subject": "refactor(ui): centralize brand and semantic color tokens in style.css"
+      },
+      {
+        "commit": "016f0bf69b8ff71b651515726afd0636e597e3f9",
+        "type": "refactor",
+        "subject": "refactor(ui): replace options emoji icons with linear SVGs"
+      },
+      {
+        "commit": "59ff1be61e894674c7ad7c2ce72ffbd27ae1afea",
+        "type": "fix",
+        "subject": "fix(ui): drop remote Google Fonts, use local font stacks"
+      },
+      {
+        "commit": "e9635db8cf657c2d59410994c01f7c5420d588d7",
+        "type": "docs",
+        "subject": "docs: update screenshots"
+      },
+      {
+        "commit": "de63a79710b8790b0a2834250cd19178fadbd3cf",
+        "type": "fix",
+        "subject": "fix(ui): use gear icons for settings entries"
+      }
+    ]
+  },
+  {
+    "version": "1.7.2",
+    "date": "2026-06-22",
+    "items": [
+      {
+        "commit": "e037f9709fca6cfee1a5bef32c3bbd07b0f3969a",
+        "type": "style",
+        "subject": "style(ui): modernize user interface and integrate new brand identity"
+      }
+    ]
+  },
+  {
+    "version": "1.7.1",
+    "date": "2026-06-12",
+    "items": [
+      {
+        "commit": "0ab2d96aa9b99700f90d1916c5d3acecb3b2276e",
+        "type": "chore",
+        "subject": "chore: minor cleanups in placeholder URL and worker lifecycle hooks"
+      },
+      {
+        "commit": "741f5b10f15597b29751d6d78e151a78fd73f065",
+        "type": "fix",
+        "subject": "fix: migrate tab tracking state on tab replacement"
+      },
+      {
+        "commit": "82f735195bb7c72b77c5f7b87f1541dacf3b0098",
+        "type": "fix",
+        "subject": "fix: clean up per-window tracking on tab detach and window close"
+      },
+      {
+        "commit": "583656847b7b96a786ad00f608ca238a78dff624",
+        "type": "fix",
+        "subject": "fix: expire stale unsuspending tab tracking"
+      },
+      {
+        "commit": "570edfbc4abddc8dba61c59aa1ba4505efab4eff",
+        "type": "chore",
+        "subject": "chore: remove dead inactive-tab branch in onUpdated"
+      },
+      {
+        "commit": "97c816c4eeb05d1e9002d24f975a4a45e59ebf98",
+        "type": "fix",
+        "subject": "fix: treat about: scheme URLs as internal"
+      },
+      {
+        "commit": "48bf38dac9ed828fe0a968de97439b111875e1e2",
+        "type": "perf",
+        "subject": "perf: batch checkTabs suspensions with configured concurrency"
+      },
+      {
+        "commit": "3822f9b307020f0c5922e54c82514a0cf8b540b8",
+        "type": "fix",
+        "subject": "fix: revalidate tab state before auto suspending"
+      },
+      {
+        "commit": "8c2ec555b4a118909767ed74d3a3f432c485c80e",
+        "type": "fix",
+        "subject": "fix: refresh timestamps for audio and active tab protections"
+      },
+      {
+        "commit": "8f035eaf2a15b2ccef0ffcf716077e3e220fded9",
+        "type": "fix",
+        "subject": "fix: persist last focused window id across service worker restarts"
+      },
+      {
+        "commit": "01133a4bace9bacd4ce36861338e235107010357",
+        "type": "fix",
+        "subject": "fix: gate event handlers behind service worker state initialization"
+      }
+    ]
+  },
+  {
+    "version": "1.7.0",
+    "date": "2026-06-05",
+    "items": [
+      {
+        "commit": "ab87acfbbef936a13bcebbda71513856cc12bea9",
+        "type": "fix",
+        "subject": "fix: add capture delay after favicon URL confirmation to prevent race condition"
+      },
+      {
+        "commit": "8e8276cc2822f9f389f317ad8c7dd287aa121671",
+        "type": "test",
+        "subject": "test: cover settings import export key parity"
+      },
+      {
+        "commit": "5e5b9aaebda30f5d340cfa90efb3f49ca29cddf0",
+        "type": "feat",
+        "subject": "feat: add suspended tab indicator setting"
+      },
+      {
+        "commit": "c36aeb581678620045aa76c03f69a53a366da307",
+        "type": "fix",
+        "subject": "fix: discard suspended tabs only after Chrome registers the real favicon"
+      },
+      {
+        "commit": "86798b0cbf210d1bce717368c686b05def11b8b7",
+        "type": "test",
+        "subject": "test: add Jest test suite with coverage and CI"
+      }
+    ]
+  },
+  {
+    "version": "1.6.6",
+    "date": "2026-05-27",
+    "items": [
+      {
+        "commit": "7acb719ea8d021a5d619e75b7b02f2fe79271aac",
+        "type": "feat",
+        "subject": "feat: add option for bulk suspension batch concurrency"
+      },
+      {
+        "commit": "c8cda9d09282c060dbc15f7f1103b92a657f6601",
+        "type": "perf",
+        "subject": "perf: speed up bulk tab suspension with concurrency"
+      },
+      {
+        "commit": "1e0b919c2d32b7c33c0a502497ed3f572701e8cb",
+        "type": "feat",
+        "subject": "feat: support Conventional Commits in the changelog"
+      },
+      {
+        "commit": "529eda8f8dc9a07e6d4586ea1c381264dbf70807",
+        "type": "feat",
+        "subject": "feat: add advanced settings section in options page"
+      },
+      {
+        "commit": "c9f92197b0695d8581550e39220ce49102c299d6",
+        "type": "fix",
+        "subject": "fix: use chrome.tabs.update() to unsuspend file:// URLs"
+      }
+    ]
+  },
+  {
+    "version": "1.6.5",
+    "date": "2026-05-26",
+    "items": [
+      {
+        "commit": "0ab3be3887060c40df5cec6b8e7b3b221a963020",
+        "type": "perf",
+        "subject": "perf: limit favicon repair batch size"
+      },
+      {
+        "commit": "b002fe91cacb6bfb7747760d8f18efcead523c11",
+        "type": "other",
+        "subject": "Fix suspended tab showing extension icon for all discard paths"
+      }
+    ]
+  },
+  {
+    "version": "1.6.3",
+    "date": "2026-05-15",
+    "items": [
+      {
+        "commit": "76bd9ddefdef75b53d4f890d9d495bc22dd683d3",
+        "type": "other",
+        "subject": "Fix premature suspension after tab switch when service worker restarts"
+      },
+      {
+        "commit": "e6cd75d23aa93ffcf9f0a73bd065cc9d81a9eb20",
+        "type": "other",
+        "subject": "Fix suspended tab showing extension icon by waiting for suspended.js signal"
+      }
+    ]
+  },
+  {
+    "version": "1.6.2",
+    "date": "2026-05-14",
+    "items": [
+      {
+        "commit": "7af0c7be95fb60cfbab3053b67e099d0df7d98f9",
+        "type": "other",
+        "subject": "Fix favicon rendering issue on suspended tabs in newer Chrome versions"
+      },
+      {
+        "commit": "e3670b88f26857b01ac49d75f7d9a0fdc3d5196f",
+        "type": "other",
+        "subject": "Fix popup status for audio-protected tabs"
+      }
+    ]
+  },
+  {
+    "version": "1.6.1",
+    "date": "2026-04-27",
+    "items": [
+      {
+        "commit": "ab1563062802febff27a847ad7a3200b6c6badc2",
+        "type": "other",
+        "subject": "Add option to click anywhere on suspended page to unsuspend"
+      },
+      {
+        "commit": "bb3e6b355862283a9ab388a86f158cdf5b72c9ce",
+        "type": "other",
+        "subject": "Fix whitelist save corrupting cached theme mode"
+      }
+    ]
+  },
+  {
+    "version": "1.6.0",
+    "date": "2026-02-12",
+    "items": [
+      {
+        "commit": "0e1f5dc537dc7304073911b87c514c22f0a989e2",
+        "type": "other",
+        "subject": "Fix uncaught \"No tab with id\" promise errors"
+      },
+      {
+        "commit": "a9d055e6ec5cc6e7e2d0a19b6f96d7feb9f86337",
+        "type": "other",
+        "subject": "Improve Suspended Tabs Viewer performance for large tab counts"
+      },
+      {
+        "commit": "2ac2f0e8fb69acbdce5d164f0b5b178a50517ceb",
+        "type": "other",
+        "subject": "Fix inline event handlers blocked by CSP in options page"
+      },
+      {
+        "commit": "f6c6d2cc5979538596ab4b40daef26b6ac79edfe",
+        "type": "other",
+        "subject": "Improve whitelist matching performance for large tab counts and large whitelist lists"
+      },
+      {
+        "commit": "89cdcd6dcd7f348a8dcf21af1394b55ca90e212e",
+        "type": "other",
+        "subject": "Improve re-discard performance to be event-driven and queue-based"
+      },
+      {
+        "commit": "16a5833eff214cda23881a4e139d20abffd935db",
+        "type": "other",
+        "subject": "Fix background-window active tabs from being suspended too soon after window focus changes"
+      }
+    ]
+  },
+  {
+    "version": "1.5.8",
+    "date": "2025-09-30",
+    "items": [
+      {
+        "commit": "6d0f356d0ee2b2a6978f12876f42c8ba803a55b3",
+        "type": "other",
+        "subject": "Improve CHANGELOG.json parsing to use first word of commit message for change type detection"
+      },
+      {
+        "commit": "aa77c29d31f05570468abf281deee4e301738f97",
+        "type": "other",
+        "subject": "Fix JSON parsing errors in git-log-json.sh by escaping quotes in commit messages"
+      },
+      {
+        "commit": "1c2c960839ae43c2100f2eba5a9a5761ccac1e75",
+        "type": "other",
+        "subject": "Fix keyboard shortcuts not in settings export/preview"
+      },
+      {
+        "commit": "dd0278afe0f7157ae6ca81a2c10af2212f6f82e6",
+        "type": "other",
+        "subject": "Fix rememberLastActiveTab not in settings export/import and preview"
+      }
+    ]
+  },
+  {
+    "version": "1.5.7",
+    "date": "2025-09-26",
+    "items": [
+      {
+        "commit": "a787a890a1682359b5f437f4230c7950b0c967f5",
+        "type": "other",
+        "subject": "Improve rememberLastActiveTab using event-driven"
+      },
+      {
+        "commit": "6dfce91f3550c202d7df0e5ad016c4616fcac5d5",
+        "type": "other",
+        "subject": "Fix immediate tab suspension after right-click/drag-to search or open-in-new-tab"
+      }
+    ]
+  },
+  {
+    "version": "1.5.6",
+    "date": "2025-08-08",
+    "items": [
+      {
+        "commit": "a07982d8fdde8a0f7252b8198d6480296f3ebc6a",
+        "type": "other",
+        "subject": "Add progress bar and Cancel button for Suspend All and Unsuspend All"
+      },
+      {
+        "commit": "ae0edac0908c9a93a29ae6b62de397921ccf7227",
+        "type": "other",
+        "subject": "Add suspended favicon fix settings in options"
+      },
+      {
+        "commit": "2aaa805f61c62aa8eefeb38aaf2ab521eb896780",
+        "type": "other",
+        "subject": "Improve background performance: debounce writes, throttle re-discard, cache settings"
+      }
+    ]
+  },
+  {
+    "version": "1.5.5",
+    "date": "2025-08-06",
+    "items": [
+      {
+        "commit": "8ce962a9b56aa93a99b68f0d5ed060877d62d26c",
+        "type": "other",
+        "subject": "Add Suspended Tabs Viewer in options"
+      },
+      {
+        "commit": "b59358a3f58579b0b8723eadd76c13a14c39fa6e",
+        "type": "other",
+        "subject": "Fix missing favicons on suspended tabs after browser restart"
+      },
+      {
+        "commit": "b2002996e989db1bb1335fc1052a06fa4db75cea",
+        "type": "other",
+        "subject": "Add option to protect previously active tab from suspension when browser loses focus"
+      },
+      {
+        "commit": "5ea8e81e7fde72c2d77c981c85f4072f95c563ae",
+        "type": "other",
+        "subject": "Fix tabs being suspended too quickly after becoming inactive"
+      },
+      {
+        "commit": "9ae993eb09916e70c55e0d6abfa751f2b688b39e",
+        "type": "other",
+        "subject": "Fix recently unsuspended tabs being re-suspended"
+      },
+      {
+        "commit": "dfee3351c23c0b05925e35ee099816169aa085b8",
+        "type": "other",
+        "subject": "Fix active tabs in background windows never auto-suspending"
+      },
+      {
+        "commit": "00f6bf2eb8ed3deabdfdbbc64d7ebbd6d509d63d",
+        "type": "other",
+        "subject": "Add dark mode for suspended page"
+      },
+      {
+        "commit": "5b612579d65abfd76ff9ca682ee19c4588f03820",
+        "type": "other",
+        "subject": "Add link to Chrome Web Store at the top of README.md for easy installation."
+      },
+      {
+        "commit": "d88d6de02838d637e8301303210f1f889a451617",
+        "type": "other",
+        "subject": "Add \"Rate us on Chrome Web Store\" in options.html"
+      },
+      {
+        "commit": "716780bd395a07dde2dcacd08c0049e389519bdc",
+        "type": "other",
+        "subject": "Update README.md"
+      },
+      {
+        "commit": "c7ed8bd14f97d7e8c8f5e335aeeaccf71f5b8651",
+        "type": "other",
+        "subject": "Update minimum Chrome version requirement to 88 in manifest.json"
+      }
+    ]
+  },
+  {
+    "version": "1.5.2",
+    "date": "2025-06-23",
+    "items": [
+      {
+        "commit": "8da863e28d7b420ad9e4d151161fd18e095c5328",
+        "type": "other",
+        "subject": "Fix changelog items alignment by setting fixed icon width in options.html"
+      },
+      {
+        "commit": "96849f9c2f92984aea2e94f737107750c6d492a3",
+        "type": "other",
+        "subject": "Add link for reporting issues or requesting features in options.html"
+      }
+    ]
+  },
+  {
+    "version": "1.5.1",
+    "date": "2025-06-23",
+    "items": [
+      {
+        "commit": "827761dd1f59643bc7b085117daa58ee1e5cd11a",
+        "type": "other",
+        "subject": "Update options to swap TXT/JSON order in session export dropdown"
+      },
+      {
+        "commit": "1db5219d4880b6cc7d33b6ad44ec84ea106c019e",
+        "type": "other",
+        "subject": "Add Simplified Chinese translation"
+      },
+      {
+        "commit": "33a03f7b23af09cb1b0408d02f0630a4eb51352e",
+        "type": "other",
+        "subject": "Update translation for tab suspension terminology in Traditional Chinese"
+      },
+      {
+        "commit": "8d68bc83837cbc3d5e1630e4b575d61107fd788d",
+        "type": "other",
+        "subject": "Update suspend all logic to include discarded tabs"
+      },
+      {
+        "commit": "cae77b8808b7f7bdcf55b7d748bb46659a5e068b",
+        "type": "other",
+        "subject": "Improve tab discard reliability with event-driven loading detection"
+      }
+    ]
+  },
+  {
+    "version": "1.5.0",
+    "date": "2025-06-22",
+    "items": [
+      {
+        "commit": "c0d20bfd1fc0ea0e463ee0fe06c10e5086e33e8e",
+        "type": "other",
+        "subject": "Update extension description in manifest and localization files"
+      },
+      {
+        "commit": "cdc5c0862cfba6b774c1fce98cdbfd85f05fccd5",
+        "type": "other",
+        "subject": "Update UI for About section in options.html"
+      },
+      {
+        "commit": "57fedf9fa5baacfc3994934ba985730b0d1b7520",
+        "type": "other",
+        "subject": "Add settings management functionality"
+      },
+      {
+        "commit": "08db05fc59779e788085a62b9a33f3f67d63e0f5",
+        "type": "other",
+        "subject": "Add session management functionality"
+      },
+      {
+        "commit": "ce2f76f5ebe6a0e34439b77768e1311826550a71",
+        "type": "other",
+        "subject": "Add custom suspended tab migration functionality"
+      },
+      {
+        "commit": "ce5b46d6dfef6d2cd7472b7e3a3ce9f43386b3bb",
+        "type": "other",
+        "subject": "Add Tab Suspender migration functionality"
+      },
+      {
+        "commit": "f855c203130e71683fe6b9255edf1254bb9d54cc",
+        "type": "other",
+        "subject": "Enhance title decoding in scanning function for tab migration"
+      },
+      {
+        "commit": "feea383ffbe877fe9be96f46bcec5aaebcc0f008",
+        "type": "other",
+        "subject": "Update known IDs and descriptions for tab migration"
+      },
+      {
+        "commit": "12208d28f653324f99db46f2d631b16930bdff79",
+        "type": "other",
+        "subject": "Update popup.js to allow suspension for whitelisted tab"
+      },
+      {
+        "commit": "692de25f9cfc8265a12f1740fdf623509dc83c50",
+        "type": "other",
+        "subject": "Add migration progress bar"
+      },
+      {
+        "commit": "b0850c72e10aae13b030f0a962f948dd7c2fb868",
+        "type": "other",
+        "subject": "Update popup.html styles for improved layout and alignment"
+      }
+    ]
+  },
+  {
+    "version": "1.2.0",
+    "date": "2025-06-20",
+    "items": [
+      {
+        "commit": "9a5db6e9a1f25b11e8851ac54a20a807bdaa6322",
+        "type": "other",
+        "subject": "Update fetch method for CHANGELOG.json in loadChangelog function"
+      },
+      {
+        "commit": "aec524a150f061be3e38bbff8372d9372b32f7ad",
+        "type": "other",
+        "subject": "Add keyboard shortcuts feature"
+      },
+      {
+        "commit": "aee1e6c645a2f0f49a413b11baae558962dd39c9",
+        "type": "other",
+        "subject": "Fix popup banner on suspended pages not displaying the suspended state"
+      },
+      {
+        "commit": "61f62d1436127a59f695cdefcabfd85a5422fbdd",
+        "type": "other",
+        "subject": "Update messages for suspending all tabs for clarity"
+      },
+      {
+        "commit": "ecfe8a9711590022225d569d09ef5322e9debcdb",
+        "type": "other",
+        "subject": "Add reloading animations for unsuspend state"
+      },
+      {
+        "commit": "778d8ad8ed961c1c970d424a54ed0e7e525d0b8a",
+        "type": "other",
+        "subject": "Update the sleep icon with unified SVG in suspended.html"
+      },
+      {
+        "commit": "9a4251302601813b010617286214a968a79cf396",
+        "type": "other",
+        "subject": "Add Change Log on the options page"
+      },
+      {
+        "commit": "8f83d0f5ea1075ae5c2aab0c8be3ede9e2b5d716",
+        "type": "other",
+        "subject": "Enhance tab suspension and unsuspending in this and all windows"
+      }
+    ]
+  },
+  {
+    "version": "1.1.0",
+    "date": "2025-06-19",
+    "items": [
+      {
+        "commit": "084eaa6d3ab7925c23be4814afd6cf2298cbb91f",
+        "type": "other",
+        "subject": "Enhance whitelist display in options.js"
+      },
+      {
+        "commit": "17b14c7f47e1a624cd5254ffc78d303120661eaa",
+        "type": "other",
+        "subject": "Improve overlay notice progress bar animation in options.js"
+      },
+      {
+        "commit": "4b1d3b62c5c0edac8bc24b44690552e23611b4af",
+        "type": "other",
+        "subject": "Update transparent favicon handling on the suspended tab"
+      },
+      {
+        "commit": "3a71092e350ea681726606a9fec0f2956ddd0b33",
+        "type": "other",
+        "subject": "Enhance suspension logic for all other tabs"
+      },
+      {
+        "commit": "0d7ef57c0c326ca647e6004d82a0c53657e79480",
+        "type": "other",
+        "subject": "Add never suspension settings"
+      },
+      {
+        "commit": "897dac8e4333d45be59eeb83b148d21b86348b21",
+        "type": "other",
+        "subject": "Implement selected tabs suspension and unsuspension"
+      },
+      {
+        "commit": "2fe161c4d19601c4f36896a107a0c764145d47a8",
+        "type": "other",
+        "subject": "Update README"
+      },
+      {
+        "commit": "747cc7b15c59f8f90057d0a3f212408354965e5e",
+        "type": "other",
+        "subject": "Update translation (Traditional Chinese) for 'notNow' message"
+      },
+      {
+        "commit": "d3c0a0982ad9401a80e80d16b8d0570f17c7f5b9",
+        "type": "other",
+        "subject": "Implement whitelist management in the popup"
+      },
+      {
+        "commit": "df1b87438c50774d8ca147bdb6d7bbc72958e71c",
+        "type": "other",
+        "subject": "Update whitelist help text formatting for better readability"
+      },
+      {
+        "commit": "a6353041e033632bb81853b032c607020f30146e",
+        "type": "other",
+        "subject": "Add refresh button for whitelist functionality"
+      },
+      {
+        "commit": "041a726bf4f1ac2556cf0d38645d4793eccd5027",
+        "type": "other",
+        "subject": "Fix issue where whitelist on the options page aren’t displaying correctly"
+      },
+      {
+        "commit": "49b2d66de8acfdd85e3ffe0361281ec22aa75993",
+        "type": "other",
+        "subject": "Enhance unsuspend process with status update"
+      },
+      {
+        "commit": "e67d2026b0147f056ce51c57e67f59afab255fd2",
+        "type": "other",
+        "subject": "Fix the tab migration potential issue where it may process our own tabs"
+      },
+      {
+        "commit": "d37095746d609f9fcb309d4757260e45b67127d9",
+        "type": "other",
+        "subject": "Enhance unsuspend functionality"
+      },
+      {
+        "commit": "cc94b0cb1e7817ed128fcbe9bd5744058ca9f79e",
+        "type": "other",
+        "subject": "Implement tab unsuspension tracking"
+      },
+      {
+        "commit": "c4f8c97f433886f40d2f5683dacc90c1036b871a",
+        "type": "other",
+        "subject": "Add tab migration feature"
+      },
+      {
+        "commit": "5ca41b847faa389198e07911c881658fd69f1723",
+        "type": "other",
+        "subject": "Update suspended UI"
+      },
+      {
+        "commit": "17eca3dcea70623ade9d738425b04e96ead58f6b",
+        "type": "other",
+        "subject": "Add overlay notice feature for displaying messages"
+      },
+      {
+        "commit": "d6ba6af5f9c2b7859ea135120ba0b21229662f8e",
+        "type": "other",
+        "subject": "Add section-specific save functionality and update UI behavior"
+      }
+    ]
+  },
+  {
+    "version": "1.0.0",
+    "date": "2025-06-17",
+    "items": [
+      {
+        "commit": "230bd91bc569bb8abf7d13edb2028ae3fcf0c386",
+        "type": "other",
+        "subject": "Initial commit"
+      }
+    ]
   }
-},
-{
-  "sha": "577bb898711bee681b74766152d995a63b3c95e6",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/577bb898711bee681b74766152d995a63b3c95e6",
-  "commit": {
-    "message": "style(ui): refresh popup and options visual design",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-03T15:21:53+08:00"
-    }
-  }
-},
-{
-  "sha": "ff8668183b3ac8bfdc950136918ee905eea0af5c",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/ff8668183b3ac8bfdc950136918ee905eea0af5c",
-  "commit": {
-    "message": "fix(ui): keep notice countdown bar visible under reduced motion",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-03T01:12:09+08:00"
-    }
-  }
-},
-{
-  "sha": "9deaa2444d2132d6fef1ee3d68fdbf3a19e4d7b9",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/9deaa2444d2132d6fef1ee3d68fdbf3a19e4d7b9",
-  "commit": {
-    "message": "feat(ui): dark mode for popup and options via themeMode setting",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-02T22:49:33+08:00"
-    }
-  }
-},
-{
-  "sha": "bb01b240b95df8a6159b39b639ccb2219a323b4f",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/bb01b240b95df8a6159b39b639ccb2219a323b4f",
-  "commit": {
-    "message": "refactor(a11y): use h3 for card titles",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-02T18:14:44+08:00"
-    }
-  }
-},
-{
-  "sha": "9167c30275ba719504c8d37c3d61204fe7e5e50a",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/9167c30275ba719504c8d37c3d61204fe7e5e50a",
-  "commit": {
-    "message": "refactor(ui): consolidate border radii into a three-step token scale",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-02T18:13:12+08:00"
-    }
-  }
-},
-{
-  "sha": "7d01fb9a879ec56ea29a136e94c4651ab11f0db1",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/7d01fb9a879ec56ea29a136e94c4651ab11f0db1",
-  "commit": {
-    "message": "fix(a11y): respect prefers-reduced-motion",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-02T18:11:32+08:00"
-    }
-  }
-},
-{
-  "sha": "a50077f78b23c2c6ad4c3cf5e74569c97f1ee6a8",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/a50077f78b23c2c6ad4c3cf5e74569c97f1ee6a8",
-  "commit": {
-    "message": "style(ui): replace transition-all with explicit properties",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-02T18:10:48+08:00"
-    }
-  }
-},
-{
-  "sha": "dda745eb9667bfec5fbd895b7c4a71ef54241293",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/dda745eb9667bfec5fbd895b7c4a71ef54241293",
-  "commit": {
-    "message": "style(ui): equalize button heights with transparent border",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-02T18:10:03+08:00"
-    }
-  }
-},
-{
-  "sha": "34b0a236fe076080f2ea70f1fa6c4ad19146212b",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/34b0a236fe076080f2ea70f1fa6c4ad19146212b",
-  "commit": {
-    "message": "style(ui): add disabled state to button variants",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-02T18:09:18+08:00"
-    }
-  }
-},
-{
-  "sha": "8381217975b47fcdc12408d215138cb25f43d373",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8381217975b47fcdc12408d215138cb25f43d373",
-  "commit": {
-    "message": "fix(a11y): add visible focus rings to options controls",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-02T18:08:19+08:00"
-    }
-  }
-},
-{
-  "sha": "8f6ff3c8976c3186a7d6a3e1612d1c0c9c6210ca",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8f6ff3c8976c3186a7d6a3e1612d1c0c9c6210ca",
-  "commit": {
-    "message": "fix(a11y): add arrow-key navigation to popup menu (ARIA menu pattern)",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-02T18:07:31+08:00"
-    }
-  }
-},
-{
-  "sha": "4437cac98a857061e924dda5fd10e21e3939ca23",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/4437cac98a857061e924dda5fd10e21e3939ca23",
-  "commit": {
-    "message": "fix(a11y): raise popup gray banner text contrast",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-02T18:05:42+08:00"
-    }
-  }
-},
-{
-  "sha": "d75e3cf1026f9fc0702761e67797792e6ff5cb3b",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/d75e3cf1026f9fc0702761e67797792e6ff5cb3b",
-  "commit": {
-    "message": "fix(ui): left-align options section headers",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-02T18:05:05+08:00"
-    }
-  }
-},
-{
-  "sha": "73499dffff63499506c692c801b8c3e9d7e73a0d",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/73499dffff63499506c692c801b8c3e9d7e73a0d",
-  "commit": {
-    "message": "fix(a11y): use strong color variants for filled controls and colored text",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-02T18:04:25+08:00"
-    }
-  }
-},
-{
-  "sha": "bdd9ab2b4fc1e55f135799bd3588380d1036166e",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/bdd9ab2b4fc1e55f135799bd3588380d1036166e",
-  "commit": {
-    "message": "style(ui): tighten heading and menu font weights to a two-tier scale",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-02T17:39:30+08:00"
-    }
-  }
-},
-{
-  "sha": "8f211cd7dce163cbbf481cdb9a7e5cb19caaf9fc",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8f211cd7dce163cbbf481cdb9a7e5cb19caaf9fc",
-  "commit": {
-    "message": "fix(ui): left-align popup banner by removing global center default",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-02T17:18:59+08:00"
-    }
-  }
-},
-{
-  "sha": "90a3c4a35d6d6dc8f651f078d686c68debc1256e",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/90a3c4a35d6d6dc8f651f078d686c68debc1256e",
-  "commit": {
-    "message": "fix(a11y): keyboard menu, aria-current, live notices, version contrast",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-02T12:40:30+08:00"
-    }
-  }
-},
-{
-  "sha": "75d22ebe5febb72f6c9ab7f644bd0a650b472cf1",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/75d22ebe5febb72f6c9ab7f644bd0a650b472cf1",
-  "commit": {
-    "message": "refactor(ui): add button variants and unify form control styles",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-02T12:39:10+08:00"
-    }
-  }
-},
-{
-  "sha": "b21f2e780e3aa612dd39ab2606e7158b7f74ffa0",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/b21f2e780e3aa612dd39ab2606e7158b7f74ffa0",
-  "commit": {
-    "message": "refactor(ui): centralize brand and semantic color tokens in style.css",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-02T12:37:05+08:00"
-    }
-  }
-},
-{
-  "sha": "016f0bf69b8ff71b651515726afd0636e597e3f9",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/016f0bf69b8ff71b651515726afd0636e597e3f9",
-  "commit": {
-    "message": "refactor(ui): replace options emoji icons with linear SVGs",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-02T12:32:21+08:00"
-    }
-  }
-},
-{
-  "sha": "59ff1be61e894674c7ad7c2ce72ffbd27ae1afea",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/59ff1be61e894674c7ad7c2ce72ffbd27ae1afea",
-  "commit": {
-    "message": "fix(ui): drop remote Google Fonts, use local font stacks",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-07-02T12:24:41+08:00"
-    }
-  }
-},
-{
-  "sha": "e9635db8cf657c2d59410994c01f7c5420d588d7",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/e9635db8cf657c2d59410994c01f7c5420d588d7",
-  "commit": {
-    "message": "docs: update screenshots",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-26T14:32:15+08:00"
-    }
-  }
-},
-{
-  "sha": "de63a79710b8790b0a2834250cd19178fadbd3cf",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/de63a79710b8790b0a2834250cd19178fadbd3cf",
-  "commit": {
-    "message": "fix(ui): use gear icons for settings entries",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-24T11:55:53+08:00"
-    }
-  }
-},
-{
-  "sha": "17cdd17e13d96642086fd6aae81dfd812b9a7569",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/17cdd17e13d96642086fd6aae81dfd812b9a7569",
-  "commit": {
-    "message": "chore: update version to 1.7.2",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-22T19:05:30+08:00"
-    }
-  }
-},
-{
-  "sha": "e037f9709fca6cfee1a5bef32c3bbd07b0f3969a",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/e037f9709fca6cfee1a5bef32c3bbd07b0f3969a",
-  "commit": {
-    "message": "style(ui): modernize user interface and integrate new brand identity",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-22T18:57:39+08:00"
-    }
-  }
-},
-{
-  "sha": "5281e00fedcfd34c628bfb9fc87736c8a28f0a71",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/5281e00fedcfd34c628bfb9fc87736c8a28f0a71",
-  "commit": {
-    "message": "chore: update version to 1.7.1",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-12T15:13:00+08:00"
-    }
-  }
-},
-{
-  "sha": "0ab2d96aa9b99700f90d1916c5d3acecb3b2276e",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/0ab2d96aa9b99700f90d1916c5d3acecb3b2276e",
-  "commit": {
-    "message": "chore: minor cleanups in placeholder URL and worker lifecycle hooks",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-12T14:07:19+08:00"
-    }
-  }
-},
-{
-  "sha": "741f5b10f15597b29751d6d78e151a78fd73f065",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/741f5b10f15597b29751d6d78e151a78fd73f065",
-  "commit": {
-    "message": "fix: migrate tab tracking state on tab replacement",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-12T13:37:31+08:00"
-    }
-  }
-},
-{
-  "sha": "82f735195bb7c72b77c5f7b87f1541dacf3b0098",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/82f735195bb7c72b77c5f7b87f1541dacf3b0098",
-  "commit": {
-    "message": "fix: clean up per-window tracking on tab detach and window close",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-12T13:36:09+08:00"
-    }
-  }
-},
-{
-  "sha": "583656847b7b96a786ad00f608ca238a78dff624",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/583656847b7b96a786ad00f608ca238a78dff624",
-  "commit": {
-    "message": "fix: expire stale unsuspending tab tracking",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-12T13:34:35+08:00"
-    }
-  }
-},
-{
-  "sha": "570edfbc4abddc8dba61c59aa1ba4505efab4eff",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/570edfbc4abddc8dba61c59aa1ba4505efab4eff",
-  "commit": {
-    "message": "chore: remove dead inactive-tab branch in onUpdated",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-12T13:31:28+08:00"
-    }
-  }
-},
-{
-  "sha": "97c816c4eeb05d1e9002d24f975a4a45e59ebf98",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/97c816c4eeb05d1e9002d24f975a4a45e59ebf98",
-  "commit": {
-    "message": "fix: treat about: scheme URLs as internal",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-12T13:30:26+08:00"
-    }
-  }
-},
-{
-  "sha": "48bf38dac9ed828fe0a968de97439b111875e1e2",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/48bf38dac9ed828fe0a968de97439b111875e1e2",
-  "commit": {
-    "message": "perf: batch checkTabs suspensions with configured concurrency",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-12T13:29:44+08:00"
-    }
-  }
-},
-{
-  "sha": "3822f9b307020f0c5922e54c82514a0cf8b540b8",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/3822f9b307020f0c5922e54c82514a0cf8b540b8",
-  "commit": {
-    "message": "fix: revalidate tab state before auto suspending",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-12T13:28:08+08:00"
-    }
-  }
-},
-{
-  "sha": "8c2ec555b4a118909767ed74d3a3f432c485c80e",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8c2ec555b4a118909767ed74d3a3f432c485c80e",
-  "commit": {
-    "message": "fix: refresh timestamps for audio and active tab protections",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-12T13:25:53+08:00"
-    }
-  }
-},
-{
-  "sha": "8f035eaf2a15b2ccef0ffcf716077e3e220fded9",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8f035eaf2a15b2ccef0ffcf716077e3e220fded9",
-  "commit": {
-    "message": "fix: persist last focused window id across service worker restarts",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-12T13:23:30+08:00"
-    }
-  }
-},
-{
-  "sha": "01133a4bace9bacd4ce36861338e235107010357",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/01133a4bace9bacd4ce36861338e235107010357",
-  "commit": {
-    "message": "fix: gate event handlers behind service worker state initialization",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-12T13:21:59+08:00"
-    }
-  }
-},
-{
-  "sha": "bba076782e6f7085784e009763a854e0dedb9fda",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/bba076782e6f7085784e009763a854e0dedb9fda",
-  "commit": {
-    "message": "chore: update version to 1.7.0",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-05T17:53:57+08:00"
-    }
-  }
-},
-{
-  "sha": "ab87acfbbef936a13bcebbda71513856cc12bea9",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/ab87acfbbef936a13bcebbda71513856cc12bea9",
-  "commit": {
-    "message": "fix: add capture delay after favicon URL confirmation to prevent race condition",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-05T17:07:05+08:00"
-    }
-  }
-},
-{
-  "sha": "8e8276cc2822f9f389f317ad8c7dd287aa121671",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8e8276cc2822f9f389f317ad8c7dd287aa121671",
-  "commit": {
-    "message": "test: cover settings import export key parity",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-05T16:10:37+08:00"
-    }
-  }
-},
-{
-  "sha": "5e5b9aaebda30f5d340cfa90efb3f49ca29cddf0",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/5e5b9aaebda30f5d340cfa90efb3f49ca29cddf0",
-  "commit": {
-    "message": "feat: add suspended tab indicator setting",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-05T15:45:33+08:00"
-    }
-  }
-},
-{
-  "sha": "c36aeb581678620045aa76c03f69a53a366da307",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/c36aeb581678620045aa76c03f69a53a366da307",
-  "commit": {
-    "message": "fix: discard suspended tabs only after Chrome registers the real favicon",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-04T20:50:16+08:00"
-    }
-  }
-},
-{
-  "sha": "86798b0cbf210d1bce717368c686b05def11b8b7",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/86798b0cbf210d1bce717368c686b05def11b8b7",
-  "commit": {
-    "message": "test: add Jest test suite with coverage and CI",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-06-03T23:09:58+08:00"
-    }
-  }
-},
-{
-  "sha": "e6be2ead9bfb1d0a876669c3f83813c23aebd9c2",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/e6be2ead9bfb1d0a876669c3f83813c23aebd9c2",
-  "commit": {
-    "message": "chore: update version to 1.6.6",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-05-27T12:23:13+08:00"
-    }
-  }
-},
-{
-  "sha": "7acb719ea8d021a5d619e75b7b02f2fe79271aac",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/7acb719ea8d021a5d619e75b7b02f2fe79271aac",
-  "commit": {
-    "message": "feat: add option for bulk suspension batch concurrency",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-05-27T12:22:19+08:00"
-    }
-  }
-},
-{
-  "sha": "c8cda9d09282c060dbc15f7f1103b92a657f6601",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/c8cda9d09282c060dbc15f7f1103b92a657f6601",
-  "commit": {
-    "message": "perf: speed up bulk tab suspension with concurrency",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-05-27T12:05:06+08:00"
-    }
-  }
-},
-{
-  "sha": "1e0b919c2d32b7c33c0a502497ed3f572701e8cb",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/1e0b919c2d32b7c33c0a502497ed3f572701e8cb",
-  "commit": {
-    "message": "feat: support Conventional Commits in the changelog",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-05-27T11:53:00+08:00"
-    }
-  }
-},
-{
-  "sha": "529eda8f8dc9a07e6d4586ea1c381264dbf70807",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/529eda8f8dc9a07e6d4586ea1c381264dbf70807",
-  "commit": {
-    "message": "feat: add advanced settings section in options page",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-05-27T10:39:35+08:00"
-    }
-  }
-},
-{
-  "sha": "c9f92197b0695d8581550e39220ce49102c299d6",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/c9f92197b0695d8581550e39220ce49102c299d6",
-  "commit": {
-    "message": "fix: use chrome.tabs.update() to unsuspend file:// URLs",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-05-27T09:38:23+08:00"
-    }
-  }
-},
-{
-  "sha": "fdd2ac0e2e263513887b58d513076b00befa8a7b",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/fdd2ac0e2e263513887b58d513076b00befa8a7b",
-  "commit": {
-    "message": "Update version to 1.6.5",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-05-27T01:23:51+08:00"
-    }
-  }
-},
-{
-  "sha": "0ab3be3887060c40df5cec6b8e7b3b221a963020",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/0ab3be3887060c40df5cec6b8e7b3b221a963020",
-  "commit": {
-    "message": "perf: limit favicon repair batch size",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-05-26T20:16:03+08:00"
-    }
-  }
-},
-{
-  "sha": "b002fe91cacb6bfb7747760d8f18efcead523c11",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/b002fe91cacb6bfb7747760d8f18efcead523c11",
-  "commit": {
-    "message": "Fix suspended tab showing extension icon for all discard paths",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-05-26T16:58:58+08:00"
-    }
-  }
-},
-{
-  "sha": "2a6e09fd952afc0d9b9c113ba13832c09bbb21ce",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/2a6e09fd952afc0d9b9c113ba13832c09bbb21ce",
-  "commit": {
-    "message": "Update version to 1.6.3",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-05-15T09:55:30+08:00"
-    }
-  }
-},
-{
-  "sha": "76bd9ddefdef75b53d4f890d9d495bc22dd683d3",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/76bd9ddefdef75b53d4f890d9d495bc22dd683d3",
-  "commit": {
-    "message": "Fix premature suspension after tab switch when service worker restarts",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-05-15T09:16:28+08:00"
-    }
-  }
-},
-{
-  "sha": "e6cd75d23aa93ffcf9f0a73bd065cc9d81a9eb20",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/e6cd75d23aa93ffcf9f0a73bd065cc9d81a9eb20",
-  "commit": {
-    "message": "Fix suspended tab showing extension icon by waiting for suspended.js signal",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-05-14T22:45:07+08:00"
-    }
-  }
-},
-{
-  "sha": "67eddcab0c5c8995b837a6ab737d3f7689039fc8",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/67eddcab0c5c8995b837a6ab737d3f7689039fc8",
-  "commit": {
-    "message": "Update version to 1.6.2",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-05-14T17:01:32+08:00"
-    }
-  }
-},
-{
-  "sha": "7af0c7be95fb60cfbab3053b67e099d0df7d98f9",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/7af0c7be95fb60cfbab3053b67e099d0df7d98f9",
-  "commit": {
-    "message": "Fix favicon rendering issue on suspended tabs in newer Chrome versions",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-05-14T17:00:13+08:00"
-    }
-  }
-},
-{
-  "sha": "e3670b88f26857b01ac49d75f7d9a0fdc3d5196f",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/e3670b88f26857b01ac49d75f7d9a0fdc3d5196f",
-  "commit": {
-    "message": "Fix popup status for audio-protected tabs",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-04-27T19:59:03+08:00"
-    }
-  }
-},
-{
-  "sha": "e5b0bbb1a60600f9a9ee962a41bc982f210037fb",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/e5b0bbb1a60600f9a9ee962a41bc982f210037fb",
-  "commit": {
-    "message": "Update version to 1.6.1",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-04-27T19:30:05+08:00"
-    }
-  }
-},
-{
-  "sha": "ab1563062802febff27a847ad7a3200b6c6badc2",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/ab1563062802febff27a847ad7a3200b6c6badc2",
-  "commit": {
-    "message": "Add option to click anywhere on suspended page to unsuspend",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-04-27T19:23:10+08:00"
-    }
-  }
-},
-{
-  "sha": "bb3e6b355862283a9ab388a86f158cdf5b72c9ce",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/bb3e6b355862283a9ab388a86f158cdf5b72c9ce",
-  "commit": {
-    "message": "Fix whitelist save corrupting cached theme mode",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-04-27T18:27:25+08:00"
-    }
-  }
-},
-{
-  "sha": "7bab387d25c3d4e5ba753f0dc22f50983de6fdcd",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/7bab387d25c3d4e5ba753f0dc22f50983de6fdcd",
-  "commit": {
-    "message": "Update version to 1.6.0",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-02-12T17:20:25+08:00"
-    }
-  }
-},
-{
-  "sha": "0e1f5dc537dc7304073911b87c514c22f0a989e2",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/0e1f5dc537dc7304073911b87c514c22f0a989e2",
-  "commit": {
-    "message": "Fix uncaught \"No tab with id\" promise errors",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-02-12T17:18:25+08:00"
-    }
-  }
-},
-{
-  "sha": "a9d055e6ec5cc6e7e2d0a19b6f96d7feb9f86337",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/a9d055e6ec5cc6e7e2d0a19b6f96d7feb9f86337",
-  "commit": {
-    "message": "Improve Suspended Tabs Viewer performance for large tab counts",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-02-12T17:00:37+08:00"
-    }
-  }
-},
-{
-  "sha": "2ac2f0e8fb69acbdce5d164f0b5b178a50517ceb",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/2ac2f0e8fb69acbdce5d164f0b5b178a50517ceb",
-  "commit": {
-    "message": "Fix inline event handlers blocked by CSP in options page",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-02-12T14:05:29+08:00"
-    }
-  }
-},
-{
-  "sha": "f6c6d2cc5979538596ab4b40daef26b6ac79edfe",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/f6c6d2cc5979538596ab4b40daef26b6ac79edfe",
-  "commit": {
-    "message": "Improve whitelist matching performance for large tab counts and large whitelist lists",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-02-12T12:28:30+08:00"
-    }
-  }
-},
-{
-  "sha": "89cdcd6dcd7f348a8dcf21af1394b55ca90e212e",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/89cdcd6dcd7f348a8dcf21af1394b55ca90e212e",
-  "commit": {
-    "message": "Improve re-discard performance to be event-driven and queue-based",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-02-11T22:33:18+08:00"
-    }
-  }
-},
-{
-  "sha": "16a5833eff214cda23881a4e139d20abffd935db",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/16a5833eff214cda23881a4e139d20abffd935db",
-  "commit": {
-    "message": "Fix background-window active tabs from being suspended too soon after window focus changes",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2026-02-11T21:36:37+08:00"
-    }
-  }
-},
-{
-  "sha": "7b5696825630d2801ee11e2fde7e2fcf87c8df1a",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/7b5696825630d2801ee11e2fde7e2fcf87c8df1a",
-  "commit": {
-    "message": "Update version to 1.5.8",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-09-30T17:52:33+08:00"
-    }
-  }
-},
-{
-  "sha": "6d0f356d0ee2b2a6978f12876f42c8ba803a55b3",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/6d0f356d0ee2b2a6978f12876f42c8ba803a55b3",
-  "commit": {
-    "message": "Improve CHANGELOG.json parsing to use first word of commit message for change type detection",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-09-30T17:46:03+08:00"
-    }
-  }
-},
-{
-  "sha": "aa77c29d31f05570468abf281deee4e301738f97",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/aa77c29d31f05570468abf281deee4e301738f97",
-  "commit": {
-    "message": "Fix JSON parsing errors in git-log-json.sh by escaping quotes in commit messages",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-09-30T17:32:58+08:00"
-    }
-  }
-},
-{
-  "sha": "1c2c960839ae43c2100f2eba5a9a5761ccac1e75",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/1c2c960839ae43c2100f2eba5a9a5761ccac1e75",
-  "commit": {
-    "message": "Fix keyboard shortcuts not in settings export/preview",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-09-30T17:19:50+08:00"
-    }
-  }
-},
-{
-  "sha": "dd0278afe0f7157ae6ca81a2c10af2212f6f82e6",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/dd0278afe0f7157ae6ca81a2c10af2212f6f82e6",
-  "commit": {
-    "message": "Fix rememberLastActiveTab not in settings export/import and preview",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-09-30T12:11:19+08:00"
-    }
-  }
-},
-{
-  "sha": "c55cc8969803aa8bcd3ebf626c6f25ddd00fb093",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/c55cc8969803aa8bcd3ebf626c6f25ddd00fb093",
-  "commit": {
-    "message": " Update version to 1.5.7",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-09-26T19:29:13+08:00"
-    }
-  }
-},
-{
-  "sha": "a787a890a1682359b5f437f4230c7950b0c967f5",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/a787a890a1682359b5f437f4230c7950b0c967f5",
-  "commit": {
-    "message": "Improve rememberLastActiveTab using event-driven",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-09-26T19:26:05+08:00"
-    }
-  }
-},
-{
-  "sha": "6dfce91f3550c202d7df0e5ad016c4616fcac5d5",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/6dfce91f3550c202d7df0e5ad016c4616fcac5d5",
-  "commit": {
-    "message": "Fix immediate tab suspension after right-click/drag-to search or open-in-new-tab",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-09-26T11:50:01+08:00"
-    }
-  }
-},
-{
-  "sha": "6080edc277e79f8b80392c3c4551138867070f59",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/6080edc277e79f8b80392c3c4551138867070f59",
-  "commit": {
-    "message": "Update version to 1.5.6",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-08-08T20:29:06+08:00"
-    }
-  }
-},
-{
-  "sha": "a07982d8fdde8a0f7252b8198d6480296f3ebc6a",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/a07982d8fdde8a0f7252b8198d6480296f3ebc6a",
-  "commit": {
-    "message": "Add progress bar and Cancel button for Suspend All and Unsuspend All",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-08-08T20:27:00+08:00"
-    }
-  }
-},
-{
-  "sha": "ae0edac0908c9a93a29ae6b62de397921ccf7227",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/ae0edac0908c9a93a29ae6b62de397921ccf7227",
-  "commit": {
-    "message": "Add suspended favicon fix settings in options",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-08-08T18:58:03+08:00"
-    }
-  }
-},
-{
-  "sha": "2aaa805f61c62aa8eefeb38aaf2ab521eb896780",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/2aaa805f61c62aa8eefeb38aaf2ab521eb896780",
-  "commit": {
-    "message": "Improve background performance: debounce writes, throttle re-discard, cache settings",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-08-08T18:36:19+08:00"
-    }
-  }
-},
-{
-  "sha": "905d83c50e5abd2f8f73f3e99e7ea782adbb167c",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/905d83c50e5abd2f8f73f3e99e7ea782adbb167c",
-  "commit": {
-    "message": "Update version to 1.5.5",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-08-06T19:50:26+08:00"
-    }
-  }
-},
-{
-  "sha": "8ce962a9b56aa93a99b68f0d5ed060877d62d26c",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8ce962a9b56aa93a99b68f0d5ed060877d62d26c",
-  "commit": {
-    "message": "Add Suspended Tabs Viewer in options",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-08-06T19:30:58+08:00"
-    }
-  }
-},
-{
-  "sha": "b59358a3f58579b0b8723eadd76c13a14c39fa6e",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/b59358a3f58579b0b8723eadd76c13a14c39fa6e",
-  "commit": {
-    "message": "Fix missing favicons on suspended tabs after browser restart",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-08-06T17:25:25+08:00"
-    }
-  }
-},
-{
-  "sha": "b2002996e989db1bb1335fc1052a06fa4db75cea",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/b2002996e989db1bb1335fc1052a06fa4db75cea",
-  "commit": {
-    "message": "Add option to protect previously active tab from suspension when browser loses focus",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-08-06T14:15:22+08:00"
-    }
-  }
-},
-{
-  "sha": "5ea8e81e7fde72c2d77c981c85f4072f95c563ae",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/5ea8e81e7fde72c2d77c981c85f4072f95c563ae",
-  "commit": {
-    "message": "Fix tabs being suspended too quickly after becoming inactive",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-08-05T14:16:07+08:00"
-    }
-  }
-},
-{
-  "sha": "9ae993eb09916e70c55e0d6abfa751f2b688b39e",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/9ae993eb09916e70c55e0d6abfa751f2b688b39e",
-  "commit": {
-    "message": "Fix recently unsuspended tabs being re-suspended",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-08-05T14:15:18+08:00"
-    }
-  }
-},
-{
-  "sha": "dfee3351c23c0b05925e35ee099816169aa085b8",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/dfee3351c23c0b05925e35ee099816169aa085b8",
-  "commit": {
-    "message": "Fix active tabs in background windows never auto-suspending",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-08-05T11:13:50+08:00"
-    }
-  }
-},
-{
-  "sha": "00f6bf2eb8ed3deabdfdbbc64d7ebbd6d509d63d",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/00f6bf2eb8ed3deabdfdbbc64d7ebbd6d509d63d",
-  "commit": {
-    "message": "Add dark mode for suspended page",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-08-05T10:58:59+08:00"
-    }
-  }
-},
-{
-  "sha": "5b612579d65abfd76ff9ca682ee19c4588f03820",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/5b612579d65abfd76ff9ca682ee19c4588f03820",
-  "commit": {
-    "message": "Add link to Chrome Web Store at the top of README.md for easy installation.",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-27T11:56:27+08:00"
-    }
-  }
-},
-{
-  "sha": "d88d6de02838d637e8301303210f1f889a451617",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/d88d6de02838d637e8301303210f1f889a451617",
-  "commit": {
-    "message": "Add \"Rate us on Chrome Web Store\" in options.html",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-26T21:17:06+08:00"
-    }
-  }
-},
-{
-  "sha": "716780bd395a07dde2dcacd08c0049e389519bdc",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/716780bd395a07dde2dcacd08c0049e389519bdc",
-  "commit": {
-    "message": "Update README.md",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-26T21:00:18+08:00"
-    }
-  }
-},
-{
-  "sha": "c7ed8bd14f97d7e8c8f5e335aeeaccf71f5b8651",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/c7ed8bd14f97d7e8c8f5e335aeeaccf71f5b8651",
-  "commit": {
-    "message": "Update minimum Chrome version requirement to 88 in manifest.json",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-23T17:16:35+08:00"
-    }
-  }
-},
-{
-  "sha": "bd15fafccb23c662cece49bd9e1d5371136d957a",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/bd15fafccb23c662cece49bd9e1d5371136d957a",
-  "commit": {
-    "message": "Update version to 1.5.2",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-23T09:20:32+08:00"
-    }
-  }
-},
-{
-  "sha": "8da863e28d7b420ad9e4d151161fd18e095c5328",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8da863e28d7b420ad9e4d151161fd18e095c5328",
-  "commit": {
-    "message": "Fix changelog items alignment by setting fixed icon width in options.html",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-23T01:09:53+08:00"
-    }
-  }
-},
-{
-  "sha": "96849f9c2f92984aea2e94f737107750c6d492a3",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/96849f9c2f92984aea2e94f737107750c6d492a3",
-  "commit": {
-    "message": "Add link for reporting issues or requesting features in options.html",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-23T00:58:03+08:00"
-    }
-  }
-},
-{
-  "sha": "82d72927d05efa3ae8ab132cade70898cd95bc57",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/82d72927d05efa3ae8ab132cade70898cd95bc57",
-  "commit": {
-    "message": "Update version to 1.5.1",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-23T00:39:32+08:00"
-    }
-  }
-},
-{
-  "sha": "827761dd1f59643bc7b085117daa58ee1e5cd11a",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/827761dd1f59643bc7b085117daa58ee1e5cd11a",
-  "commit": {
-    "message": "Update options to swap TXT/JSON order in session export dropdown",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-23T00:36:46+08:00"
-    }
-  }
-},
-{
-  "sha": "1db5219d4880b6cc7d33b6ad44ec84ea106c019e",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/1db5219d4880b6cc7d33b6ad44ec84ea106c019e",
-  "commit": {
-    "message": "Add Simplified Chinese translation",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-22T22:41:12+08:00"
-    }
-  }
-},
-{
-  "sha": "33a03f7b23af09cb1b0408d02f0630a4eb51352e",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/33a03f7b23af09cb1b0408d02f0630a4eb51352e",
-  "commit": {
-    "message": "Update translation for tab suspension terminology in Traditional Chinese",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-22T22:32:27+08:00"
-    }
-  }
-},
-{
-  "sha": "8d68bc83837cbc3d5e1630e4b575d61107fd788d",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8d68bc83837cbc3d5e1630e4b575d61107fd788d",
-  "commit": {
-    "message": "Update suspend all logic to include discarded tabs",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-22T17:17:16+08:00"
-    }
-  }
-},
-{
-  "sha": "cae77b8808b7f7bdcf55b7d748bb46659a5e068b",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/cae77b8808b7f7bdcf55b7d748bb46659a5e068b",
-  "commit": {
-    "message": "Improve tab discard reliability with event-driven loading detection",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-22T16:46:53+08:00"
-    }
-  }
-},
-{
-  "sha": "f1250c376e0f2d6d4f2d13a5c177ef2b1df9eb63",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/f1250c376e0f2d6d4f2d13a5c177ef2b1df9eb63",
-  "commit": {
-    "message": "Update version to 1.5.0",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-22T00:11:18+08:00"
-    }
-  }
-},
-{
-  "sha": "c0d20bfd1fc0ea0e463ee0fe06c10e5086e33e8e",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/c0d20bfd1fc0ea0e463ee0fe06c10e5086e33e8e",
-  "commit": {
-    "message": "Update extension description in manifest and localization files",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-22T00:07:15+08:00"
-    }
-  }
-},
-{
-  "sha": "cdc5c0862cfba6b774c1fce98cdbfd85f05fccd5",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/cdc5c0862cfba6b774c1fce98cdbfd85f05fccd5",
-  "commit": {
-    "message": "Update UI for About section in options.html",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-21T23:58:25+08:00"
-    }
-  }
-},
-{
-  "sha": "57fedf9fa5baacfc3994934ba985730b0d1b7520",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/57fedf9fa5baacfc3994934ba985730b0d1b7520",
-  "commit": {
-    "message": "Add settings management functionality",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-21T23:36:03+08:00"
-    }
-  }
-},
-{
-  "sha": "08db05fc59779e788085a62b9a33f3f67d63e0f5",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/08db05fc59779e788085a62b9a33f3f67d63e0f5",
-  "commit": {
-    "message": "Add session management functionality",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-21T23:01:12+08:00"
-    }
-  }
-},
-{
-  "sha": "ce2f76f5ebe6a0e34439b77768e1311826550a71",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/ce2f76f5ebe6a0e34439b77768e1311826550a71",
-  "commit": {
-    "message": "Add custom suspended tab migration functionality",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-21T16:52:54+08:00"
-    }
-  }
-},
-{
-  "sha": "ce5b46d6dfef6d2cd7472b7e3a3ce9f43386b3bb",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/ce5b46d6dfef6d2cd7472b7e3a3ce9f43386b3bb",
-  "commit": {
-    "message": "Add Tab Suspender migration functionality",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-21T15:37:03+08:00"
-    }
-  }
-},
-{
-  "sha": "f855c203130e71683fe6b9255edf1254bb9d54cc",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/f855c203130e71683fe6b9255edf1254bb9d54cc",
-  "commit": {
-    "message": "Enhance title decoding in scanning function for tab migration",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-21T13:12:52+08:00"
-    }
-  }
-},
-{
-  "sha": "feea383ffbe877fe9be96f46bcec5aaebcc0f008",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/feea383ffbe877fe9be96f46bcec5aaebcc0f008",
-  "commit": {
-    "message": "Update known IDs and descriptions for tab migration",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-20T23:08:35+08:00"
-    }
-  }
-},
-{
-  "sha": "12208d28f653324f99db46f2d631b16930bdff79",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/12208d28f653324f99db46f2d631b16930bdff79",
-  "commit": {
-    "message": "Update popup.js to allow suspension for whitelisted tab",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-20T22:56:50+08:00"
-    }
-  }
-},
-{
-  "sha": "692de25f9cfc8265a12f1740fdf623509dc83c50",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/692de25f9cfc8265a12f1740fdf623509dc83c50",
-  "commit": {
-    "message": "Add migration progress bar",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-20T22:38:58+08:00"
-    }
-  }
-},
-{
-  "sha": "b0850c72e10aae13b030f0a962f948dd7c2fb868",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/b0850c72e10aae13b030f0a962f948dd7c2fb868",
-  "commit": {
-    "message": "Update popup.html styles for improved layout and alignment",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-20T22:16:53+08:00"
-    }
-  }
-},
-{
-  "sha": "eaac9601af0f52a3ee390182ec60606c750d2e68",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/eaac9601af0f52a3ee390182ec60606c750d2e68",
-  "commit": {
-    "message": "Update version to 1.2.0",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-20T21:16:56+08:00"
-    }
-  }
-},
-{
-  "sha": "9a5db6e9a1f25b11e8851ac54a20a807bdaa6322",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/9a5db6e9a1f25b11e8851ac54a20a807bdaa6322",
-  "commit": {
-    "message": "Update fetch method for CHANGELOG.json in loadChangelog function",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-20T20:51:07+08:00"
-    }
-  }
-},
-{
-  "sha": "aec524a150f061be3e38bbff8372d9372b32f7ad",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/aec524a150f061be3e38bbff8372d9372b32f7ad",
-  "commit": {
-    "message": "Add keyboard shortcuts feature",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-20T20:39:33+08:00"
-    }
-  }
-},
-{
-  "sha": "aee1e6c645a2f0f49a413b11baae558962dd39c9",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/aee1e6c645a2f0f49a413b11baae558962dd39c9",
-  "commit": {
-    "message": "Fix popup banner on suspended pages not displaying the suspended state",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-20T17:37:13+08:00"
-    }
-  }
-},
-{
-  "sha": "61f62d1436127a59f695cdefcabfd85a5422fbdd",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/61f62d1436127a59f695cdefcabfd85a5422fbdd",
-  "commit": {
-    "message": "Update messages for suspending all tabs for clarity",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-20T17:27:27+08:00"
-    }
-  }
-},
-{
-  "sha": "ecfe8a9711590022225d569d09ef5322e9debcdb",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/ecfe8a9711590022225d569d09ef5322e9debcdb",
-  "commit": {
-    "message": "Add reloading animations for unsuspend state",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-20T17:09:58+08:00"
-    }
-  }
-},
-{
-  "sha": "778d8ad8ed961c1c970d424a54ed0e7e525d0b8a",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/778d8ad8ed961c1c970d424a54ed0e7e525d0b8a",
-  "commit": {
-    "message": "Update the sleep icon with unified SVG in suspended.html",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-20T16:48:30+08:00"
-    }
-  }
-},
-{
-  "sha": "9a4251302601813b010617286214a968a79cf396",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/9a4251302601813b010617286214a968a79cf396",
-  "commit": {
-    "message": "Add Change Log on the options page",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-20T14:33:26+08:00"
-    }
-  }
-},
-{
-  "sha": "8f83d0f5ea1075ae5c2aab0c8be3ede9e2b5d716",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/8f83d0f5ea1075ae5c2aab0c8be3ede9e2b5d716",
-  "commit": {
-    "message": "Enhance tab suspension and unsuspending in this and all windows",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-19T19:26:37+08:00"
-    }
-  }
-},
-{
-  "sha": "d062842be870945c3ac70b825eacbcc6f86226d8",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/d062842be870945c3ac70b825eacbcc6f86226d8",
-  "commit": {
-    "message": "Update version to 1.1.0",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-19T17:15:50+08:00"
-    }
-  }
-},
-{
-  "sha": "084eaa6d3ab7925c23be4814afd6cf2298cbb91f",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/084eaa6d3ab7925c23be4814afd6cf2298cbb91f",
-  "commit": {
-    "message": "Enhance whitelist display in options.js",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-19T17:07:55+08:00"
-    }
-  }
-},
-{
-  "sha": "17b14c7f47e1a624cd5254ffc78d303120661eaa",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/17b14c7f47e1a624cd5254ffc78d303120661eaa",
-  "commit": {
-    "message": "Improve overlay notice progress bar animation in options.js",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-19T16:58:51+08:00"
-    }
-  }
-},
-{
-  "sha": "4b1d3b62c5c0edac8bc24b44690552e23611b4af",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/4b1d3b62c5c0edac8bc24b44690552e23611b4af",
-  "commit": {
-    "message": "Update transparent favicon handling on the suspended tab",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-19T16:22:07+08:00"
-    }
-  }
-},
-{
-  "sha": "3a71092e350ea681726606a9fec0f2956ddd0b33",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/3a71092e350ea681726606a9fec0f2956ddd0b33",
-  "commit": {
-    "message": "Enhance suspension logic for all other tabs",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-19T15:32:27+08:00"
-    }
-  }
-},
-{
-  "sha": "0d7ef57c0c326ca647e6004d82a0c53657e79480",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/0d7ef57c0c326ca647e6004d82a0c53657e79480",
-  "commit": {
-    "message": "Add never suspension settings",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-19T15:29:20+08:00"
-    }
-  }
-},
-{
-  "sha": "897dac8e4333d45be59eeb83b148d21b86348b21",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/897dac8e4333d45be59eeb83b148d21b86348b21",
-  "commit": {
-    "message": "Implement selected tabs suspension and unsuspension",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-19T14:17:53+08:00"
-    }
-  }
-},
-{
-  "sha": "2fe161c4d19601c4f36896a107a0c764145d47a8",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/2fe161c4d19601c4f36896a107a0c764145d47a8",
-  "commit": {
-    "message": "Update README",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-19T13:53:10+08:00"
-    }
-  }
-},
-{
-  "sha": "747cc7b15c59f8f90057d0a3f212408354965e5e",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/747cc7b15c59f8f90057d0a3f212408354965e5e",
-  "commit": {
-    "message": "Update translation (Traditional Chinese) for 'notNow' message",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-19T13:38:09+08:00"
-    }
-  }
-},
-{
-  "sha": "d3c0a0982ad9401a80e80d16b8d0570f17c7f5b9",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/d3c0a0982ad9401a80e80d16b8d0570f17c7f5b9",
-  "commit": {
-    "message": "Implement whitelist management in the popup",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-19T13:36:02+08:00"
-    }
-  }
-},
-{
-  "sha": "df1b87438c50774d8ca147bdb6d7bbc72958e71c",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/df1b87438c50774d8ca147bdb6d7bbc72958e71c",
-  "commit": {
-    "message": "Update whitelist help text formatting for better readability",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-19T13:12:13+08:00"
-    }
-  }
-},
-{
-  "sha": "a6353041e033632bb81853b032c607020f30146e",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/a6353041e033632bb81853b032c607020f30146e",
-  "commit": {
-    "message": "Add refresh button for whitelist functionality",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-19T13:09:34+08:00"
-    }
-  }
-},
-{
-  "sha": "041a726bf4f1ac2556cf0d38645d4793eccd5027",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/041a726bf4f1ac2556cf0d38645d4793eccd5027",
-  "commit": {
-    "message": "Fix issue where whitelist on the options page aren’t displaying correctly",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-19T12:52:57+08:00"
-    }
-  }
-},
-{
-  "sha": "49b2d66de8acfdd85e3ffe0361281ec22aa75993",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/49b2d66de8acfdd85e3ffe0361281ec22aa75993",
-  "commit": {
-    "message": "Enhance unsuspend process with status update",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-19T11:47:18+08:00"
-    }
-  }
-},
-{
-  "sha": "e67d2026b0147f056ce51c57e67f59afab255fd2",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/e67d2026b0147f056ce51c57e67f59afab255fd2",
-  "commit": {
-    "message": "Fix the tab migration potential issue where it may process our own tabs",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-19T11:31:22+08:00"
-    }
-  }
-},
-{
-  "sha": "d37095746d609f9fcb309d4757260e45b67127d9",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/d37095746d609f9fcb309d4757260e45b67127d9",
-  "commit": {
-    "message": "Enhance unsuspend functionality",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-18T22:35:27+08:00"
-    }
-  }
-},
-{
-  "sha": "cc94b0cb1e7817ed128fcbe9bd5744058ca9f79e",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/cc94b0cb1e7817ed128fcbe9bd5744058ca9f79e",
-  "commit": {
-    "message": "Implement tab unsuspension tracking",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-18T21:51:20+08:00"
-    }
-  }
-},
-{
-  "sha": "c4f8c97f433886f40d2f5683dacc90c1036b871a",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/c4f8c97f433886f40d2f5683dacc90c1036b871a",
-  "commit": {
-    "message": "Add tab migration feature",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-18T21:36:15+08:00"
-    }
-  }
-},
-{
-  "sha": "5ca41b847faa389198e07911c881658fd69f1723",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/5ca41b847faa389198e07911c881658fd69f1723",
-  "commit": {
-    "message": "Update suspended UI",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-18T16:15:50+08:00"
-    }
-  }
-},
-{
-  "sha": "17eca3dcea70623ade9d738425b04e96ead58f6b",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/17eca3dcea70623ade9d738425b04e96ead58f6b",
-  "commit": {
-    "message": "Add overlay notice feature for displaying messages",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-18T15:16:25+08:00"
-    }
-  }
-},
-{
-  "sha": "d6ba6af5f9c2b7859ea135120ba0b21229662f8e",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/d6ba6af5f9c2b7859ea135120ba0b21229662f8e",
-  "commit": {
-    "message": "Add section-specific save functionality and update UI behavior",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-18T11:47:16+08:00"
-    }
-  }
-},
-{
-  "sha": "230bd91bc569bb8abf7d13edb2028ae3fcf0c386",
-  "html_url": "https://github.com/yhchiu/ZeroRAM-Suspender/commit/230bd91bc569bb8abf7d13edb2028ae3fcf0c386",
-  "commit": {
-    "message": "Initial commit",
-    "author": {
-      "name": "Arthur Chiu",
-      "date": "2025-06-17T20:20:56+08:00"
-    }
-  }
-}
 ]

@@ -224,9 +224,6 @@
   "version": {
     "message": "Version"
   },
-  "unreleased": {
-    "message": "Unreleased"
-  },
   "description": {
     "message": "Description"
   },

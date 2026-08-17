@@ -1408,7 +1408,31 @@ if (typeof window !== 'undefined') {
 
 /* ---------- Change Log Functions ---------- */
 
-// Load and display changelog from GitHub API
+// CHANGELOG.json stores bare commit hashes; the links are built from this base.
+const CHANGELOG_COMMIT_URL = 'https://github.com/yhchiu/ZeroRAM-Suspender/commit/';
+
+// Conventional Commit types that already name the kind of change. Every other
+// type (refactor, chore, docs, ...) and the older free-form subjects, which the
+// generator records as 'other', fall back to the leading verb of the subject.
+const CHANGELOG_TYPES = {
+  feat: 'added',
+  fix: 'fixed',
+  perf: 'improved',
+  revert: 'removed'
+};
+const CHANGELOG_SUBJECT_VERBS = {
+  add: 'added',
+  new: 'added',
+  implement: 'added',
+  fix: 'fixed',
+  repair: 'fixed',
+  remove: 'removed',
+  delete: 'removed',
+  enhance: 'improved',
+  improve: 'improved'
+};
+
+// Load and display the changelog generated from git history by git-log-json.sh
 async function loadChangelog() {
   const changelogContent = document.getElementById('changelogContent');
   
@@ -1421,17 +1445,16 @@ async function loadChangelog() {
       </div>
     `;
     
-    // Fetch commits from local CHANGELOG.json file
+    // Fetch the releases from the local CHANGELOG.json file
     const response = await fetch(chrome.runtime.getURL('CHANGELOG.json'));
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
-    
-    const commits = await response.json();
-    
-    // Parse commits and extract version changes
-    const changelog = parseCommitsToChangelog(commits);
-    
+
+    // Already grouped by release: the generator reads the version out of
+    // manifest.json at each commit, so the page only has to format them.
+    const changelog = normalizeChangelog(await response.json());
+
     if (changelog.length === 0) {
       changelogContent.innerHTML = `
         <div class="empty-state">
@@ -1457,163 +1480,65 @@ async function loadChangelog() {
   }
 }
 
-// Parse commits and group by version
-function parseCommitsToChangelog(commits) {
-  const changelog = [];
-  let currentVersion = null;
-  let currentChanges = [];
-  
-  // Check if there's an explicit 1.0.0 version update
-  const hasExplicitV100 = commits.some(commit => 
-    /(?:Update version to|chore:\s*update version to)\s*1\.0\.0/i.test(commit.commit.message)
-  );
-  
-  for (const commit of commits) {
-    const message = commit.commit.message;
-    const date = new Date(commit.commit.author.date);
-    
-    // Check if this is a version update commit
-    const versionMatch = message.match(/(?:Update version to|chore:\s*update version to)\s*([\d.]+)/i);
-    
-    // Check if this is the initial commit (should be 1.0.0)
-    const isInitialCommit = message === 'Initial commit';
-    
-    if (versionMatch) {
-      // Save previous version changes if any
-      if (currentVersion && currentChanges.length > 0) {
-        changelog.push({
-          version: currentVersion.version,
-          date: currentVersion.date,
-          changes: currentChanges
-        });
-      }
-      
-      // Start new version
-      currentVersion = {
-        version: versionMatch[1],
-        date: date
-      };
-      currentChanges = [];
-    } else if (isInitialCommit && !hasExplicitV100) {
-      // Save previous version changes if any
-      if (currentVersion && currentChanges.length > 0) {
-        changelog.push({
-          version: currentVersion.version,
-          date: currentVersion.date,
-          changes: currentChanges
-        });
-      }
-      
-      // Start 1.0.0 for initial commit
-      currentVersion = {
-        version: '1.0.0',
-        date: date
-      };
-      currentChanges = [
-        { type: 'added', description: 'Initial release', sha: commit.sha.substring(0, 7), url: commit.html_url }
-      ];
-    } else if (currentVersion) {
-      // Add change to current version
-      const change = parseCommitMessage(message, commit);
-      if (change) {
-        currentChanges.push(change);
-      }
-    } else {
-      // Changes without version (for latest unreleased changes)
-      if (!currentVersion) {
-        currentVersion = {
-          version: getMessage("unreleased") || 'Unreleased',
-          date: date
-        };
-      }
-      const change = parseCommitMessage(message, commit);
-      if (change) {
-        currentChanges.push(change);
-      }
-    }
-  }
-  
-  // Add final version
-  if (currentVersion && currentChanges.length > 0) {
-    changelog.push({
-      version: currentVersion.version,
-      date: currentVersion.date,
-      changes: currentChanges
-    });
-  }
-  
-  return changelog;
+// Split a commit subject into its Conventional Commit scope (empty when there
+// is none) and the text left after the type prefix.
+function parseCommitSubject(subject) {
+  const line = String(subject || '').split('\n')[0].trim();
+  const match = line.match(/^[a-zA-Z0-9_-]+(?:\(([^)]+)\))?!?:\s*(.+)$/);
+  return match ? { scope: match[1] || '', text: match[2].trim() } : { scope: '', text: line };
 }
 
-// Parse individual commit message to extract meaningful changes
-function parseCommitMessage(message, commit) {
-  // Skip version update commits and merge commits
-  if (message.includes('Update version to') || 
-      /chore:\s*update version to/i.test(message) || 
-      message.startsWith('Merge ')) {
-    return null;
+// Display category for a commit: its Conventional Commit type when that names
+// the change, otherwise the leading verb of the subject.
+function changelogChangeType(type, subject) {
+  const mapped = CHANGELOG_TYPES[String(type || '').toLowerCase()];
+  if (mapped) {
+    return mapped;
   }
-  
-  // Clean up the message and get first line only
-  const description = message.split('\n')[0].trim();
-  
-  let type = 'changed';
-  let finalDescription = description;
-  
-  const ccMatch = description.match(/^([a-zA-Z0-9_-]+)(?:\(([^)]+)\))?:\s*(.+)$/);
-  if (ccMatch) {
-    const ccType = ccMatch[1].toLowerCase();
-    const ccScope = ccMatch[2];
-    const ccSubject = ccMatch[3].trim();
-    
-    // Capitalize the first letter of the subject
-    const capitalizedSubject = ccSubject.charAt(0).toUpperCase() + ccSubject.slice(1);
+  const firstWord = parseCommitSubject(subject).text.toLowerCase().split(' ')[0];
+  return CHANGELOG_SUBJECT_VERBS[firstWord] || 'changed';
+}
 
-    // Add scope in brackets if present
-    finalDescription = ccScope ? `[${ccScope}] ${capitalizedSubject}` : capitalizedSubject;
-    
-    if (ccType === 'feat') {
-      type = 'added';
-    } else if (ccType === 'fix') {
-      type = 'fixed';
-    } else if (ccType === 'perf') {
-      type = 'improved';
-    } else if (ccType === 'revert') {
-      type = 'removed';
-    } else {
-      // Determine type based on first word of the subject
-      const firstWord = ccSubject.toLowerCase().split(' ')[0];
-      if (firstWord === 'add' || firstWord === 'new' || firstWord === 'implement') {
-        type = 'added';
-      } else if (firstWord === 'fix' || firstWord === 'repair') {
-        type = 'fixed';
-      } else if (firstWord === 'remove' || firstWord === 'delete') {
-        type = 'removed';
-      } else if (firstWord === 'enhance' || firstWord === 'improve') {
-        type = 'improved';
-      }
-    }
-  } else {
-    // Non-Conventional Commit
-    const firstLine = description.toLowerCase();
-    const firstWord = firstLine.split(' ')[0];
-    if (firstWord === 'add' || firstWord === 'new' || firstWord === 'implement') {
-      type = 'added';
-    } else if (firstWord === 'fix' || firstWord === 'repair') {
-      type = 'fixed';
-    } else if (firstWord === 'remove' || firstWord === 'delete') {
-      type = 'removed';
-    } else if (firstWord === 'enhance' || firstWord === 'improve') {
-      type = 'improved';
-    }
+// One-line description: the subject without its type prefix, capitalized and
+// with the scope kept in brackets.
+function changelogDescription(subject) {
+  const { scope, text } = parseCommitSubject(subject);
+  if (!text) {
+    return '';
   }
-  
-  return {
-    type: type,
-    description: finalDescription,
-    sha: commit.sha.substring(0, 7),
-    url: commit.html_url
-  };
+  const capitalized = text.charAt(0).toUpperCase() + text.slice(1);
+  return scope ? `[${scope}] ${capitalized}` : capitalized;
+}
+
+// The generator writes plain YYYY-MM-DD dates. Build the Date from the parts so
+// the calendar day survives: parsing the string treats it as UTC, which shifts
+// the day for anyone west of Greenwich.
+function changelogDate(date) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(date || ''));
+  if (!match) {
+    return String(date || '');
+  }
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3])).toLocaleDateString();
+}
+
+// Turn the generated releases into what the renderer draws. The commit order
+// inside a release is the git log order and is kept as is. Releases with no
+// items (a freshly bumped version nothing has landed in yet) are dropped.
+function normalizeChangelog(releases) {
+  return (Array.isArray(releases) ? releases : [])
+    .map(release => ({
+      version: release && release.version,
+      date: release && release.date,
+      changes: (Array.isArray(release && release.items) ? release.items : [])
+        .map(item => ({
+          type: changelogChangeType(item && item.type, item && item.subject),
+          description: changelogDescription(item && item.subject),
+          sha: String((item && item.commit) || '').substring(0, 7),
+          url: item && item.commit ? `${CHANGELOG_COMMIT_URL}${encodeURIComponent(item.commit)}` : ''
+        }))
+        .filter(change => change.description)
+    }))
+    .filter(release => release.version && release.changes.length);
 }
 
 // Render changelog to DOM
@@ -1639,7 +1564,7 @@ function renderChangelog(changelog, container) {
         <h3 class="card-title" style="margin-bottom: 16px;">
           <span style="font-size: 18px; font-weight: 600;">${version.version}</span>
           <span style="margin-left: auto; color: var(--text-muted); font-size: 12px; font-weight: normal;">
-            ${version.date.toLocaleDateString()}
+            ${changelogDate(version.date)}
           </span>
         </h3>
         <ul style="list-style: none; padding: 0; margin: 0;">
@@ -3178,8 +3103,11 @@ if (typeof module !== 'undefined' && module.exports) {
     parseMarvellousTab,
     parseTabSuspenderTab,
     parseCustomTab,
-    parseCommitsToChangelog,
-    parseCommitMessage,
+    parseCommitSubject,
+    changelogChangeType,
+    changelogDescription,
+    changelogDate,
+    normalizeChangelog,
     getChangeIcon,
     getChangeColor,
     parseSuspendedTab,
