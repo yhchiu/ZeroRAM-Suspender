@@ -424,6 +424,25 @@ function hasUsableSuspendedFavicon(tab) {
   return Boolean(tab && tab.favIconUrl && !isExtensionDefaultFaviconUrl(tab.favIconUrl));
 }
 
+// Move the focused window's tabs to the front, keeping the original order
+// inside each group. Work that is capped per pass — the favicon queue below —
+// otherwise walks the windows in whatever order Chrome lists them, so the tab
+// strip the user is looking at can end up last: on a session with a large
+// backlog, that is the difference between a repair in the first minute and one
+// hours later. Returns the input untouched when no window is focused.
+function focusedWindowFirst(tabs, windowId) {
+  if (typeof windowId !== 'number' || windowId === chrome.windows.WINDOW_ID_NONE) {
+    return tabs;
+  }
+
+  const focused = [];
+  const rest = [];
+  for (const tab of tabs) {
+    (tab.windowId === windowId ? focused : rest).push(tab);
+  }
+  return focused.length > 0 ? focused.concat(rest) : tabs;
+}
+
 function needsSuspendedFaviconFix(tab) {
   return Boolean(
     tab &&
@@ -831,7 +850,7 @@ async function checkTabs() {
     if (settings.fixFaviconEnabled) {
       const batchSize = Number(settings.fixFaviconBatchSize) || 0; // 0 = unlimited
       let added = 0;
-      for (const tab of tabs) {
+      for (const tab of focusedWindowFirst(tabs, lastFocusedWindowId)) {
         if (needsSuspendedFaviconFix(tab)) {
           const retryCount = fixFaviconRetryCounts.get(tab.id) || 0;
           if (settings.fixFaviconMaxRetries > 0 && retryCount >= settings.fixFaviconMaxRetries) {
@@ -2410,6 +2429,7 @@ if (typeof module !== 'undefined' && module.exports) {
     isExtensionDefaultFaviconUrl,
     hasUsableSuspendedFavicon,
     needsSuspendedFaviconFix,
+    focusedWindowFirst,
     parseOriginalUrlFromSuspended,
     getPausableUrl,
     markTabSeen,

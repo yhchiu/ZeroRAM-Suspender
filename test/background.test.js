@@ -2186,6 +2186,54 @@ describe('re-discard queue & favicon processor', () => {
     expect(chrome.tabs.discard).toHaveBeenCalledWith(1);
   });
 
+  test('the favicon queue takes the focused window first', async () => {
+    const extId = 'testextensionid';
+    const broken = (id, windowId) => ({
+      id,
+      url: suspendedUrl({ _extId: extId }, `https://site${id}.com`),
+      active: false,
+      status: 'complete',
+      windowId,
+    });
+    const { bg, chrome } = loadBackground({
+      // Window 1 is listed first, but the user is looking at window 2.
+      tabs: [broken(1, 1), broken(2, 1), broken(3, 2), broken(4, 2)],
+      windows: [{ id: 1, focused: false }, { id: 2, focused: true }],
+    });
+    chrome.storage.sync._store[STORAGE_KEY] = {
+      autoSuspendMinutes: 30,
+      fixFaviconEnabled: true,
+      fixFaviconBatchSize: 2,
+      useNativeDiscard: false,
+    };
+    await bg.initPromise;
+    bg.__setState({ lastFocusedWindowId: 2 });
+
+    await bg.checkTabs();
+    await flush();
+    bg.fixFaviconProcessor.stop();
+
+    // Window 1's tabs never made the batch, and the tab the processor picked
+    // up first is the one the user can see.
+    expect(chrome.tabs.reload).toHaveBeenCalledWith(3);
+    expect([...bg.__getInternals().fixFaviconTabs]).toEqual([4]);
+  });
+
+  test('the favicon queue keeps its order when no window is focused', async () => {
+    const { bg } = loadBackground();
+    const tabs = [
+      { id: 1, windowId: 1 },
+      { id: 2, windowId: 2 },
+      { id: 3, windowId: 1 },
+    ];
+    expect(bg.focusedWindowFirst(tabs, -1)).toBe(tabs);
+    expect(bg.focusedWindowFirst(tabs, undefined)).toBe(tabs);
+    // A window with no tabs of its own changes nothing either.
+    expect(bg.focusedWindowFirst(tabs, 9)).toBe(tabs);
+    // Otherwise the focused window leads, and each group keeps its order.
+    expect(bg.focusedWindowFirst(tabs, 1).map((tab) => tab.id)).toEqual([1, 3, 2]);
+  });
+
   test('fixFaviconProcessor reloads and discards an inactive suspended tab', async () => {
     const extId = 'testextensionid';
     const { bg, chrome } = loadBackground({
