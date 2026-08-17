@@ -1,10 +1,31 @@
 [
   {
+    "version": "1.8.1",
+    "date": "2026-08-18",
+    "items": [
+      {
+        "commit": "5ac8b8e2c06338319bbc564c13b3f97cdcd1bc5f",
+        "type": "fix",
+        "subject": "fix(i18n): show real line breaks in the zh_CN whitelist help"
+      },
+      {
+        "commit": "89cc011e1e74db85ef8b6a09df4825793061ceef",
+        "type": "feat",
+        "subject": "feat(i18n): add Japanese translation"
+      },
+      {
+        "commit": "9e7fd3aa4f3afd23bca93f5e1918c5df74929112",
+        "type": "fix",
+        "subject": "fix: use a POSIX octal escape for the changelog field separator"
+      }
+    ]
+  },
+  {
     "version": "1.8.0",
     "date": "2026-08-17",
     "items": [
       {
-        "commit": "b860c8d9718031790e89c23e57cd73f464cbc6e5",
+        "commit": "85aa106ed8aaac918bc51506f81d50a6d73cad96",
         "type": "refactor",
         "subject": "refactor: derive changelog versions from manifest.json"
       },
