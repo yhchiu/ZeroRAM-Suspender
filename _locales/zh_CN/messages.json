@@ -177,7 +177,7 @@
     "message": "网址或域名列表："
   },
   "whitelistHelpDetailed": {
-    "message": "每行输入一个网址或域名。例如：\\n• google.com - 整个域名\\n• https://example.com/page - 特定网址\\n• localhost - 本地开发环境"
+    "message": "每行输入一个网址或域名。例如：\n• google.com - 整个域名\n• https://example.com/page - 特定网址\n• localhost - 本地开发环境"
   },
   "refresh": {
     "message": "重新加载"
