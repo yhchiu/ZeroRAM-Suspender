@@ -4,6 +4,11 @@
     "date": "2026-08-17",
     "items": [
       {
+        "commit": "b860c8d9718031790e89c23e57cd73f464cbc6e5",
+        "type": "refactor",
+        "subject": "refactor: derive changelog versions from manifest.json"
+      },
+      {
         "commit": "277ab7d724ba85ed8aa32f649d06cac1d8574850",
         "type": "style",
         "subject": "style: theme the scrollbars on the options page"

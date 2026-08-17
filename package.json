@@ -1,6 +1,6 @@
 {
   "name": "zeroram-suspender",
-  "version": "1.6.6",
+  "version": "1.8.0",
   "private": true,
   "description": "ZeroRAM Suspender — a Manifest V3 tab suspender Chrome extension (test harness).",
   "scripts": {
