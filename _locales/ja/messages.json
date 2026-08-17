@@ -1,0 +1,821 @@
+{
+  "extName": {
+    "message": "ZeroRAM Suspender"
+  },
+  "titleOptions": {
+    "message": "ZeroRAM Suspender – 設定"
+  },
+  "autoSuspendLabel": {
+    "message": "自動サスペンドまでの時間（分）:"
+  },
+  "autoSuspendHelp": {
+    "message": "0 を指定すると自動サスペンドを行いません。"
+  },
+  "neverSuspendAudio": {
+    "message": "音声を再生中のタブはサスペンドしない"
+  },
+  "neverSuspendPinned": {
+    "message": "固定したタブはサスペンドしない"
+  },
+  "neverSuspendActive": {
+    "message": "各ウィンドウのアクティブなタブはサスペンドしない"
+  },
+  "rememberLastActiveTab": {
+    "message": "他のアプリに切り替えたときに最後のアクティブタブを記憶する"
+  },
+  "rememberLastActiveTabHelp": {
+    "message": "ブラウザーから他のアプリケーションに切り替えたとき、最後にアクティブだったタブをサスペンドから保護します"
+  },
+  "clickAnywhereToUnsuspend": {
+    "message": "サスペンド済みページのどこをクリックしても復元する"
+  },
+  "clickAnywhereToUnsuspendHelp": {
+    "message": "有効にすると、元のタイトルや URL をクリックしてもサスペンド済みタブが再読み込みされます。"
+  },
+  "nativeDiscardLabel": {
+    "message": "ネイティブの破棄を使う（メモリー使用量が最小）"
+  },
+  "whitelistTitle": {
+    "message": "ホワイトリスト"
+  },
+  "whitelistHelp": {
+    "message": "URL またはドメインがリストのいずれかに一致するタブは、サスペンドされません。"
+  },
+  "whitelistPlaceholder": {
+    "message": "1 行に 1 件"
+  },
+  "saveButton": {
+    "message": "保存"
+  },
+  "savedNotice": {
+    "message": "保存しました。"
+  },
+  "savedBasicSettings": {
+    "message": "基本設定を保存しました。"
+  },
+  "savedAdvancedSettings": {
+    "message": "詳細設定を保存しました。"
+  },
+  "savedWhitelistSettings": {
+    "message": "ホワイトリストの設定を保存しました。"
+  },
+  "cannotSuspend": {
+    "message": "このタブはサスペンドできません"
+  },
+  "tabSuspended": {
+    "message": "タブをサスペンドしました"
+  },
+  "tabReloading": {
+    "message": "再読み込み中"
+  },
+  "autoSuspendDisabled": {
+    "message": "自動サスペンドは無効です"
+  },
+  "autoSuspendPaused": {
+    "message": "自動サスペンドを一時停止中"
+  },
+  "audioTabProtected": {
+    "message": "音声を再生中のため、自動サスペンドを一時停止しました"
+  },
+  "tabWillSuspend": {
+    "message": "このタブは自動的にサスペンドされます。"
+  },
+  "notNow": {
+    "message": "今はしない"
+  },
+  "allowSuspend": {
+    "message": "サスペンドを許可"
+  },
+  "suspendThisTab": {
+    "message": "このタブを今すぐサスペンド"
+  },
+  "neverSuspendURL": {
+    "message": "この URL をサスペンドしない"
+  },
+  "neverSuspendDomain": {
+    "message": "このドメインをサスペンドしない"
+  },
+  "suspendOthers": {
+    "message": "他のタブをすべてサスペンド（このウィンドウ）"
+  },
+  "suspendAllOthersAllWindows": {
+    "message": "他のタブをすべてサスペンド（すべてのウィンドウ）"
+  },
+  "unsuspendAllThisWindow": {
+    "message": "すべてのタブを復元（このウィンドウ）"
+  },
+  "unsuspendAll": {
+    "message": "すべてのタブを復元（すべてのウィンドウ）"
+  },
+  "suspendSelectedTabs": {
+    "message": "選択したタブを強制的にサスペンド"
+  },
+  "unsuspendSelectedTabs": {
+    "message": "選択したタブを復元"
+  },
+  "settingsMenu": {
+    "message": "設定"
+  },
+  "suspendedInstruction": {
+    "message": "ここをクリックするか Ctrl+Shift+Z を押すと、このタブを再読み込みします。"
+  },
+  "suspendedInstructionClickAnywhere": {
+    "message": "どこかをクリックするか Ctrl+Shift+Z を押すと、このタブを再読み込みします。"
+  },
+  "basicSettings": {
+    "message": "基本設定"
+  },
+  "basicSettingsDesc": {
+    "message": "タブのサスペンドに関する基本的な動作とオプションを設定します"
+  },
+  "autoSuspendTitle": {
+    "message": "自動サスペンド"
+  },
+  "autoSuspendDesc": {
+    "message": "メモリーを節約するため、タブを自動的にサスペンドするまでの待機時間を設定します"
+  },
+  "memoryOptimization": {
+    "message": "メモリー最適化"
+  },
+  "memoryOptimizationDesc": {
+    "message": "メモリー使用量を最適にするため、サスペンド済みタブの扱い方を選びます"
+  },
+  "nativeDiscardHelp": {
+    "message": "ブラウザー内蔵のタブ破棄機能を使い、メモリーを最大限節約します。ただしタブの状態が完全には保持されない場合があります。"
+  },
+  "fixFaviconEnabled": {
+    "message": "サスペンド済みタブのファビコンを修復する（推奨）"
+  },
+  "fixFaviconEnabledHelp": {
+    "message": "ブラウザーの再起動後にサスペンド済みタブのファビコンが表示されない場合、一時的に再読み込みしてから再度破棄し、ファビコンの復元を試みます。"
+  },
+  "fixFaviconBatchSize": {
+    "message": "1 回のスキャンで処理する最大タブ数（0 = 無制限）:"
+  },
+  "fixFaviconBatchSizeHelp": {
+    "message": "バックグラウンドのスキャン 1 回あたりに処理するタブ数を制限します。修復が必要なタブが多い場合に、処理が長引くのを防げます。"
+  },
+  "fixFaviconMaxRetries": {
+    "message": "タブごとの最大リトライ回数:"
+  },
+  "fixFaviconMaxRetriesHelp": {
+    "message": "修復できないタブを無限にリトライしないようにします。0 を指定すると制限なしになります。"
+  },
+  "fixFaviconSectionTitle": {
+    "message": "サスペンド済みファビコンの修復"
+  },
+  "fixFaviconSectionDesc": {
+    "message": "サスペンド済みタブで欠けたファビコンを復元する方法を設定します"
+  },
+  "whitelistDesc": {
+    "message": "サスペンドしないウェブサイトとドメインを管理します"
+  },
+  "whitelistRules": {
+    "message": "ホワイトリストのルール"
+  },
+  "whitelistLabel": {
+    "message": "URL またはドメインのリスト:"
+  },
+  "whitelistHelpDetailed": {
+    "message": "1 行に 1 つの URL またはドメインを入力します。例:\n• google.com - ドメイン全体\n• https://example.com/page - 特定の URL\n• localhost - ローカル開発環境"
+  },
+  "refresh": {
+    "message": "更新"
+  },
+  "whitelistRefreshed": {
+    "message": "ホワイトリストを更新しました。"
+  },
+  "siteWhitelisted": {
+    "message": "サイトをホワイトリストに追加しました。"
+  },
+  "removeFromWhitelist": {
+    "message": "ホワイトリストから削除"
+  },
+  "confirmRemoveFromWhitelist": {
+    "message": "'%s' をホワイトリストから削除しますか？"
+  },
+  "advancedSettings": {
+    "message": "詳細設定"
+  },
+  "advancedSettingsDesc": {
+    "message": "サスペンド、テーマ、ファビコン復元などの詳細オプションを設定します"
+  },
+  "aboutSettings": {
+    "message": "この拡張機能について"
+  },
+  "aboutDesc": {
+    "message": "拡張機能の情報と詳細"
+  },
+  "changeLogSettings": {
+    "message": "変更履歴"
+  },
+  "changeLogDesc": {
+    "message": "バージョン履歴と機能の更新内容"
+  },
+  "loadingChanges": {
+    "message": "変更履歴を読み込み中..."
+  },
+  "failedToLoadChanges": {
+    "message": "変更履歴を読み込めませんでした"
+  },
+  "noChangesFound": {
+    "message": "バージョンの変更履歴がありません"
+  },
+  "version": {
+    "message": "バージョン"
+  },
+  "description": {
+    "message": "説明"
+  },
+  "supportWebsite": {
+    "message": "ウェブサイト"
+  },
+  "extDescription": {
+    "message": "ネイティブの破棄または軽量なプレースホルダーで使っていないタブをサスペンドし、メモリーを節約します。"
+  },
+  "comingSoon": {
+    "message": "近日公開"
+  },
+  "comingSoonDesc": {
+    "message": "さらに多くの詳細設定を開発中です"
+  },
+  "privacyNotice": {
+    "message": "プライバシーについて"
+  },
+  "privacyNoticeText": {
+    "message": "この拡張機能はデータをローカルでのみ処理し、外部サーバーへ情報を送信することはありません"
+  },
+  "tabMigration": {
+    "message": "タブの移行"
+  },
+  "tabMigrationDesc": {
+    "message": "他のタブサスペンド拡張機能でサスペンドされたタブを移行します"
+  },
+  "marvellousTabDetection": {
+    "message": "The Marvellous Suspender のタブ検出"
+  },
+  "marvellousTabDetectionDesc": {
+    "message": "The Marvellous Suspender、The Great Suspender (notrack)、The Great-er Tab Discarder などでサスペンドされたタブを自動的に検出し、移行できるようにします"
+  },
+  "scanForMarvellousTab": {
+    "message": "The Marvellous Suspender のタブをスキャン"
+  },
+  "noMarvellousTabFound": {
+    "message": "The Marvellous Suspender のタブは見つかりませんでした"
+  },
+  "foundMarvellousTab": {
+    "message": "The Marvellous Suspender のタブが %d 件見つかりました"
+  },
+  "tabSuspenderDetection": {
+    "message": "Tab Suspender のタブ検出"
+  },
+  "tabSuspenderDetectionDesc": {
+    "message": "Tab Suspender でサスペンドされたタブを自動的に検出し、移行できるようにします"
+  },
+  "scanForTabSuspenderTab": {
+    "message": "Tab Suspender のタブをスキャン"
+  },
+  "noTabSuspenderTabFound": {
+    "message": "Tab Suspender のタブは見つかりませんでした"
+  },
+  "foundTabSuspenderTab": {
+    "message": "Tab Suspender のタブが %d 件見つかりました"
+  },
+  "customTabDetection": {
+    "message": "カスタムのサスペンド済みタブ検出"
+  },
+  "customTabDetectionDesc": {
+    "message": "他のサスペンド拡張機能に合わせて、カスタムの検出パターンを設定します"
+  },
+  "customPatternLabel": {
+    "message": "カスタム URL パターン:"
+  },
+  "extensionIdLabel": {
+    "message": "拡張機能 ID:"
+  },
+  "pathLabel": {
+    "message": "パス:"
+  },
+  "separatorLabel": {
+    "message": "区切り文字:"
+  },
+  "titleParamLabel": {
+    "message": "タイトルのパラメーター:"
+  },
+  "urlParamLabel": {
+    "message": "URL のパラメーター:"
+  },
+  "testPattern": {
+    "message": "パターンをテスト"
+  },
+  "scanCustomTabs": {
+    "message": "カスタムのタブをスキャン"
+  },
+  "fillAllFields": {
+    "message": "すべての項目を入力してください"
+  },
+  "patternTestSuccess": {
+    "message": "パターンのテストに成功しました。サンプル URL を正しく解析できました。"
+  },
+  "patternTestFailed": {
+    "message": "パターンのテストに失敗しました。設定内容を確認してください。"
+  },
+  "migrateSelected": {
+    "message": "選択したタブを移行"
+  },
+  "migrationComplete": {
+    "message": "タブの移行が完了しました。"
+  },
+  "migrationFailed": {
+    "message": "タブの移行に失敗しました"
+  },
+  "selectAllTabs": {
+    "message": "すべて選択"
+  },
+  "deselectAllTabs": {
+    "message": "選択を解除"
+  },
+  "tabMigrationHelp": {
+    "message": "この機能を使うと、他のタブサスペンド拡張機能（The Marvellous Suspender など）でサスペンドされたタブを ZeroRAM Suspender の形式に変換し、そのまま使い続けられます。"
+  },
+  "savedTabMigrationSettings": {
+    "message": "タブ移行の設定を保存しました。"
+  },
+  "scanningTabs": {
+    "message": "タブをスキャン中..."
+  },
+  "noTabsSelected": {
+    "message": "移行するタブが選択されていません"
+  },
+  "errorScanningTabs": {
+    "message": "タブのスキャン中にエラーが発生しました: "
+  },
+  "tabsMigrated": {
+    "message": " 件のタブを移行しました"
+  },
+  "tabsFailed": {
+    "message": " 件のタブが失敗しました"
+  },
+  "unknownVariant": {
+    "message": "不明なバージョン"
+  },
+  "extensionId": {
+    "message": "拡張機能 ID"
+  },
+  "migrationTip": {
+    "message": "ヒント:"
+  },
+  "migrationTipDesc": {
+    "message": "この機能は、他のタブサスペンド拡張機能でサスペンドされたタブを自動的に検出して移行できます。既知・未知どちらの種類にも対応しています。このページに切り替えるたびに、スキャンの状態は自動的にリセットされます。"
+  },
+  "licenseCredits": {
+    "message": "ライセンスとクレジット"
+  },
+  "licenseText": {
+    "message": "この拡張機能は GNU General Public License v3（GPL v3）のもとで公開されています。GPL v3 の条件に従って、自由に使用、改変、配布できます。"
+  },
+  "copyright": {
+    "message": "著作権:"
+  },
+  "copyrightText": {
+    "message": "Copyright (C) Yu-Hsiung Chiu"
+  },
+  "keyboardShortcuts": {
+    "message": "キーボードショートカット"
+  },
+  "keyboardShortcutsDesc": {
+    "message": "拡張機能のキーボードショートカットを確認・管理します"
+  },
+  "shortcutsList": {
+    "message": "利用できるショートカット"
+  },
+  "shortcutsHelp": {
+    "message": "以下はこの拡張機能に設定されているキーボードショートカットです。変更するには「ショートカットを管理」をクリックし、Chrome の拡張機能ショートカットのページを開いてください。"
+  },
+  "loadingShortcuts": {
+    "message": "ショートカットを読み込み中..."
+  },
+  "errorLoadingShortcuts": {
+    "message": "ショートカットの読み込み中にエラーが発生しました"
+  },
+  "noShortcutsFound": {
+    "message": "ショートカットが見つかりません"
+  },
+  "notAssigned": {
+    "message": "未割り当て"
+  },
+  "manageShortcuts": {
+    "message": "ショートカットを管理"
+  },
+  "shortcutsRefreshed": {
+    "message": "ショートカットを更新しました。"
+  },
+  "shortcutToggleSuspend": {
+    "message": "現在のタブをサスペンド／復元する"
+  },
+  "migrationProgress": {
+    "message": "移行の進行状況"
+  },
+  "sessionManagement": {
+    "message": "セッション管理"
+  },
+  "sessionManagementDesc": {
+    "message": "すべてのウィンドウのタブをエクスポート・インポートします"
+  },
+  "exportSessions": {
+    "message": "セッションをエクスポート"
+  },
+  "exportSessionsDesc": {
+    "message": "現在のセッションを保存するため、すべてのウィンドウのタブをエクスポートします"
+  },
+  "exportFormat": {
+    "message": "エクスポート形式:"
+  },
+  "formatTxt": {
+    "message": "TXT"
+  },
+  "formatJson": {
+    "message": "JSON"
+  },
+  "export": {
+    "message": "エクスポート"
+  },
+  "preview": {
+    "message": "プレビュー"
+  },
+  "exportPreviewTitle": {
+    "message": "エクスポートのプレビュー:"
+  },
+  "exportHelpTxt": {
+    "message": "TXT 形式: 1 行に 1 つの URL、ウィンドウは空行で区切られます"
+  },
+  "exportHelpJson": {
+    "message": "JSON 形式: 各タブのタイトルと URL を含むウィンドウの配列"
+  },
+  "importSessions": {
+    "message": "セッションをインポート"
+  },
+  "importSessionsDesc": {
+    "message": "以前にエクスポートしたセッションファイルからタブをインポートします"
+  },
+  "selectSessionFile": {
+    "message": "セッションファイルを選択:"
+  },
+  "importAsSuspended": {
+    "message": "タブをサスペンド状態でインポートする（メモリーを節約）"
+  },
+  "importAsSuspendedHelp": {
+    "message": "有効にすると、インポートしたタブはすぐにサスペンドされ、メモリーを節約できます"
+  },
+  "import": {
+    "message": "インポート"
+  },
+  "sessionPreviewTitle": {
+    "message": "セッションのプレビュー:"
+  },
+  "importHelp": {
+    "message": "TXT 形式と JSON 形式に対応しています。TXT ファイルは 1 行に 1 つの URL を記述し、空行でウィンドウを区切ります。JSON ファイルにはタブオブジェクトを含むウィンドウの配列を記述します。"
+  },
+  "importProgressText": {
+    "message": "進行状況:"
+  },
+  "exportingSession": {
+    "message": "セッションをエクスポート中..."
+  },
+  "sessionExported": {
+    "message": "セッションをエクスポートしました"
+  },
+  "exportFailed": {
+    "message": "エクスポートに失敗しました"
+  },
+  "generatingPreview": {
+    "message": "プレビューを生成中..."
+  },
+  "exportPreviewReady": {
+    "message": "エクスポートのプレビューを準備しました"
+  },
+  "sessionPreviewed": {
+    "message": "セッションのプレビューを準備しました"
+  },
+  "previewFailed": {
+    "message": "プレビューに失敗しました: ファイル形式が正しくありません"
+  },
+  "sessionImported": {
+    "message": "セッションをインポートしました"
+  },
+  "importFailed": {
+    "message": "インポートに失敗しました"
+  },
+  "pleaseSelectFile": {
+    "message": "先にファイルを選択してください"
+  },
+  "window": {
+    "message": "ウィンドウ"
+  },
+  "tabs": {
+    "message": "タブ"
+  },
+  "settingsManagement": {
+    "message": "設定の管理"
+  },
+  "settingsManagementDesc": {
+    "message": "拡張機能の設定をバックアップ・復元します"
+  },
+  "exportSettings": {
+    "message": "設定をエクスポート"
+  },
+  "exportSettingsDesc": {
+    "message": "バックアップ用に、現在の設定をすべて JSON ファイルへエクスポートします"
+  },
+  "exportSettingsHelp": {
+    "message": "自動サスペンドの設定、ホワイトリスト、その他の項目を含むすべての設定をエクスポートします"
+  },
+  "settingsPreviewTitle": {
+    "message": "設定のプレビュー:"
+  },
+  "importSettings": {
+    "message": "設定をインポート"
+  },
+  "importSettingsDesc": {
+    "message": "以前にエクスポートした設定をインポートして復元します"
+  },
+  "selectSettingsFile": {
+    "message": "設定ファイルを選択:"
+  },
+  "importSettingsHelp": {
+    "message": "以前にエクスポートした JSON ファイルから設定をインポートします。現在の設定はすべて置き換えられます。なお、キーボードショートカットはインポートできないため、手動で設定してください。"
+  },
+  "importPreviewTitle": {
+    "message": "インポートのプレビュー:"
+  },
+  "resetSettings": {
+    "message": "設定をリセット"
+  },
+  "resetSettingsDesc": {
+    "message": "すべての設定を初期値に戻します"
+  },
+  "warning": {
+    "message": "警告"
+  },
+  "resetWarning": {
+    "message": "この操作は現在の設定をすべて完全に削除し、初期値に戻します。元に戻すことはできません。"
+  },
+  "resetToDefaults": {
+    "message": "初期値に戻す"
+  },
+  "resetHelp": {
+    "message": "あとで元に戻したい場合に備えて、リセットする前に現在の設定をエクスポートしておくことをおすすめします。"
+  },
+  "exportingSettings": {
+    "message": "設定をエクスポート中..."
+  },
+  "settingsExported": {
+    "message": "設定をエクスポートしました"
+  },
+  "settingsPreviewReady": {
+    "message": "設定のプレビューを準備しました"
+  },
+  "settingsImported": {
+    "message": "設定をインポートしました"
+  },
+  "settingsReset": {
+    "message": "設定を初期値に戻しました"
+  },
+  "resetFailed": {
+    "message": "リセットに失敗しました"
+  },
+  "confirmResetSettings": {
+    "message": "すべての設定を初期値に戻しますか？この操作は元に戻せません。"
+  },
+  "settingsFileInfo": {
+    "message": "設定ファイルの情報"
+  },
+  "exportedAt": {
+    "message": "エクスポート日時"
+  },
+  "settingsToImport": {
+    "message": "インポートする設定"
+  },
+  "minutes": {
+    "message": "分"
+  },
+  "enabled": {
+    "message": "有効"
+  },
+  "disabled": {
+    "message": "無効"
+  },
+  "items": {
+    "message": "件"
+  },
+  "whitelistItems": {
+    "message": "ホワイトリストの件数"
+  },
+  "importPreviewReady": {
+    "message": "インポートのプレビューを準備しました"
+  },
+  "reportIssue": {
+    "message": "不具合の報告・機能のリクエスト"
+  },
+  "rateUs": {
+    "message": "Chrome ウェブストアで評価する"
+  },
+  "themeSettings": {
+    "message": "テーマ設定"
+  },
+  "themeSettingsDesc": {
+    "message": "拡張機能のページ（ポップアップ、設定、サスペンド済みページ）の外観テーマを選びます"
+  },
+  "themeMode": {
+    "message": "テーマモード:"
+  },
+  "themeAuto": {
+    "message": "システム／ブラウザーのテーマに合わせる"
+  },
+  "themeLight": {
+    "message": "ライトテーマ"
+  },
+  "themeDark": {
+    "message": "ダークテーマ"
+  },
+  "themeHelpText": {
+    "message": "テーマはポップアップ、設定、サスペンド済みページに適用されます。すでにサスペンドされているタブに反映するには、再読み込みが必要です。自動モードでは、システムのダーク／ライトの設定に従います。"
+  },
+  "suspendedIndicatorTitle": {
+    "message": "サスペンド済みタブの表示"
+  },
+  "suspendedIndicatorDesc": {
+    "message": "サスペンド済みのタブをタブバーでどのように示すかを選びます"
+  },
+  "suspendedIndicatorLabel": {
+    "message": "サスペンド済みタブの表示:"
+  },
+  "suspendedIndicatorFavicon": {
+    "message": "半透明のファビコン（既定）"
+  },
+  "suspendedIndicatorTitlePrefix": {
+    "message": "タイトルに 💤 を付ける"
+  },
+  "suspendedIndicatorHelp": {
+    "message": "半透明のファビコンは、サイトのアイコンを薄く表示して目印にします。サイトの見分けはつきますが、幅の狭いタブでは分かりにくく、処理もやや重くなります。タイトルの 💤 は、タブのタイトルの前に睡眠の絵文字を付け、ファビコンはそのまま表示します。処理は軽いものの、タイトルが表示されない極端に狭いタブや固定したタブでは目印が見えません。"
+  },
+  "tabViewer": {
+    "message": "タブビューアー"
+  },
+  "tabViewerDesc": {
+    "message": "サスペンド済みのタブをすべて表示・管理します"
+  },
+  "tabViewerFilterLabel": {
+    "message": "フィルター:"
+  },
+  "tabViewerFilterSuspendedAll": {
+    "message": "サスペンド済みのすべてのタブ"
+  },
+  "tabViewerFilterSuspendedUndiscarded": {
+    "message": "サスペンド済みだが破棄されていないタブ"
+  },
+  "tabViewerFilterNotSuspended": {
+    "message": "サスペンドされていないタブ"
+  },
+  "suspendedTabsViewer": {
+    "message": "サスペンド済みタブビューアー"
+  },
+  "suspendedTabsViewerDesc": {
+    "message": "すべてのウィンドウのサスペンド済みタブを表示し、破棄の状態を確認します"
+  },
+  "suspendedTabsDiscardsHint": {
+    "message": "破棄の詳細は chrome://discards でも確認できます。"
+  },
+  "showSuspendedTabs": {
+    "message": "サスペンド済みタブを表示"
+  },
+  "suspendedTabsTitle": {
+    "message": "サスペンド済みタブの情報:"
+  },
+  "scanningSuspendedTabs": {
+    "message": "サスペンド済みタブをスキャン中..."
+  },
+  "noSuspendedTabs": {
+    "message": "サスペンド済みのタブは見つかりませんでした"
+  },
+  "suspendedTabsFound": {
+    "message": "サスペンド済みのタブが %d 件見つかりました"
+  },
+  "suspendedUndiscardedTabsFound": {
+    "message": "サスペンド済みだが破棄されていないタブが %d 件見つかりました"
+  },
+  "notSuspendedTabsFound": {
+    "message": "サスペンドされていないタブが %d 件見つかりました"
+  },
+  "noTabsMatchFilter": {
+    "message": "現在のフィルターに一致するタブはありません"
+  },
+  "totalTabsCount": {
+    "message": "タブの合計: %d"
+  },
+  "discardedTabsCount": {
+    "message": "（うち %d 件が破棄済み）"
+  },
+  "noSuspendedTabsDesc": {
+    "message": "サスペンド済みのタブは見つかりませんでした。サスペンド済みタブは、ZeroRAM Suspender がメモリーを節約するためにタブを休止させたときに作成されます。"
+  },
+  "suspendedTabsLoaded": {
+    "message": "サスペンド済みタブの情報を読み込みました"
+  },
+  "errorLoadingSuspendedTabs": {
+    "message": "サスペンド済みタブの読み込み中にエラーが発生しました"
+  },
+  "errorOccurred": {
+    "message": "エラーが発生しました"
+  },
+  "discarded": {
+    "message": "破棄済み"
+  },
+  "suspended": {
+    "message": "サスペンド済み"
+  },
+  "notSuspended": {
+    "message": "サスペンドされていません"
+  },
+  "unsuspend": {
+    "message": "復元"
+  },
+  "unsuspending": {
+    "message": "復元中..."
+  },
+  "tabUnsuspended": {
+    "message": "タブを復元しました"
+  },
+  "unsuspendFailed": {
+    "message": "タブの復元に失敗しました"
+  },
+  "reactivate": {
+    "message": "再有効化"
+  },
+  "reactivating": {
+    "message": "再有効化中..."
+  },
+  "tabReactivated": {
+    "message": "タブを再有効化しました"
+  },
+  "reactivationFailed": {
+    "message": "タブの再有効化に失敗しました"
+  },
+  "tabId": {
+    "message": "タブ ID"
+  },
+  "windowId": {
+    "message": "ウィンドウ ID"
+  },
+  "tab": {
+    "message": "タブ"
+  },
+  "loading": {
+    "message": "読み込み中..."
+  },
+  "bulkProgress": {
+    "message": "一括処理の進行状況"
+  },
+  "suspendingAllTabs": {
+    "message": "すべてのタブをサスペンド中"
+  },
+  "unsuspendingAllTabs": {
+    "message": "すべてのタブを復元中"
+  },
+  "suspendingWindowTabs": {
+    "message": "このウィンドウのタブをサスペンド中"
+  },
+  "unsuspendingWindowTabs": {
+    "message": "このウィンドウのタブを復元中"
+  },
+  "bulkDone": {
+    "message": "完了"
+  },
+  "bulkCancel": {
+    "message": "キャンセル"
+  },
+  "bulkCancelled": {
+    "message": "キャンセルしました"
+  },
+  "bulkConcurrencyTitle": {
+    "message": "一括サスペンドの同時実行数"
+  },
+  "bulkConcurrencyDesc": {
+    "message": "複数のタブをまとめてサスペンドするときの速度とパフォーマンスを調整します"
+  },
+  "suspendBatchConcurrencyLabel": {
+    "message": "バッチの同時実行数の上限（推奨: 5）:"
+  },
+  "suspendBatchConcurrencyHelp": {
+    "message": "「他のタブをサスペンド」や「すべてサスペンド」などの一括操作で、同時にサスペンドするタブ数です。値を大きくすると速くなりますが、CPU とメモリーを一時的に多く消費します。"
+  },
+  "shortcutTogglePauseCurrentTab": {
+    "message": "現在のタブのサスペンドを一時停止／再開する"
+  },
+  "shortcutTogglePauseWindow": {
+    "message": "すべてのタブのサスペンドを一時停止／再開する（このウィンドウ）"
+  },
+  "shortcutTogglePauseAll": {
+    "message": "すべてのタブのサスペンドを一時停止／再開する（すべてのウィンドウ）"
+  }
+}
