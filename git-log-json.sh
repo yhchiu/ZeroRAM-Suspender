@@ -82,7 +82,8 @@ for commit in $(git log --no-merges --format='%H' -- manifest.json); do
   version=$(git show "$commit:./manifest.json" 2>/dev/null \
     | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
     | head -n1)
-  printf '%s\x1f%s\n' "$commit" "$version" >> "$commit_versions_file"
+  # Octal \037, not \x1f: hex escapes are a bashism that dash prints verbatim.
+  printf '%s\037%s\n' "$commit" "$version" >> "$commit_versions_file"
 done
 
 node - "$git_log_file" "$commit_versions_file" <<'NODE'
