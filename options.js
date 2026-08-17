@@ -1619,42 +1619,21 @@ function parseCommitMessage(message, commit) {
 // Render changelog to DOM
 function renderChangelog(changelog, container) {
   const html = changelog.map(version => {
-    // Group changes by type
-    const changesByType = version.changes.reduce((groups, change) => {
-      const type = change.type;
-      if (!groups[type]) {
-        groups[type] = [];
-      }
-      groups[type].push(change);
-      return groups;
-    }, {});
-    
-    // Define display order for change types
-    const typeOrder = ['added', 'improved', 'fixed', 'removed', 'changed'];
-    
-    // Generate HTML for each type group in order
-    const changesHtml = typeOrder.map(type => {
-      if (!changesByType[type] || changesByType[type].length === 0) {
-        return '';
-      }
-      
-      const typeChanges = changesByType[type].map(change => {
-        const icon = getChangeIcon(change.type);
-        return `
-          <li class="changelog-item" style="margin-bottom: 8px; display: flex; align-items: flex-start; gap: 8px;">
-            <span style="display: inline-flex; margin-top: 2px; width: 16px; justify-content: center; flex-shrink: 0; color: ${getChangeColor(change.type)};">${icon}</span>
-            <div style="flex: 1;">
-              <span style="font-weight: 500; color: ${getChangeColor(change.type)}; text-transform: capitalize;">${change.type}:</span>
-              <span style="margin-left: 4px;">${escapeHtml(change.description)}</span>
-              <a href="${change.url}" target="_blank" style="margin-left: 8px; color: var(--brand-text); text-decoration: none; font-size: 11px; opacity: 0.7;">${change.sha}</a>
-            </div>
-          </li>
-        `;
-      }).join('');
-      
-      return typeChanges;
-    }).filter(html => html !== '').join('');
-    
+    // Keep the commit order from the log instead of grouping by type
+    const changesHtml = version.changes.map(change => {
+      const icon = getChangeIcon(change.type);
+      return `
+        <li class="changelog-item" style="margin-bottom: 8px; display: flex; align-items: flex-start; gap: 8px;">
+          <span style="display: inline-flex; margin-top: 2px; width: 16px; justify-content: center; flex-shrink: 0; color: ${getChangeColor(change.type)};">${icon}</span>
+          <div style="flex: 1;">
+            <span style="font-weight: 500; color: ${getChangeColor(change.type)}; text-transform: capitalize;">${change.type}:</span>
+            <span style="margin-left: 4px;">${escapeHtml(change.description)}</span>
+            <a href="${change.url}" target="_blank" style="margin-left: 8px; color: var(--brand-text); text-decoration: none; font-size: 11px; opacity: 0.7;">${change.sha}</a>
+          </div>
+        </li>
+      `;
+    }).join('');
+
     return `
       <div class="card" style="margin-bottom: 20px;">
         <h3 class="card-title" style="margin-bottom: 16px;">

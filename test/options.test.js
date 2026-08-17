@@ -214,6 +214,21 @@ describe('changelog parsing', () => {
     expect(log[0].version).toBe('1.2.0');
     expect(log[0].changes.map((c) => c.type)).toEqual(expect.arrayContaining(['added', 'fixed']));
   });
+
+  test('renderChangelog keeps commit order instead of grouping by type', () => {
+    const { options } = load();
+    const container = document.createElement('div');
+    const changes = [
+      { type: 'fixed', description: 'Bug B', sha: 'b222222', url: 'https://gh/b' },
+      { type: 'added', description: 'Feature A', sha: 'a111111', url: 'https://gh/a' },
+      { type: 'changed', description: 'Tweak C', sha: 'c333333', url: 'https://gh/c' },
+      { type: 'added', description: 'Feature D', sha: 'd444444', url: 'https://gh/d' },
+    ];
+    options.renderChangelog([{ version: '1.2.0', date: new Date('2024-01-02T00:00:00Z'), changes }], container);
+
+    const shas = Array.from(container.querySelectorAll('.changelog-item a')).map((a) => a.textContent);
+    expect(shas).toEqual(['b222222', 'a111111', 'c333333', 'd444444']);
+  });
 });
 
 describe('session & tab parsing', () => {
