@@ -304,6 +304,22 @@ describe('settings & storage', () => {
     expect(chrome.storage.session._store['utsSeen:2']).toBe(333);
   });
 
+  test('marking a tab after forgetting it writes the stamp instead of removing it', () => {
+    const { bg, chrome } = loadBackground();
+    bg.markTabSeen(1, 111);
+    bg.flushSeenTimestampsNow();
+    chrome.storage.session.set.mockClear();
+    chrome.storage.session.remove.mockClear();
+
+    bg.forgetTabSeen(1);
+    bg.markTabSeen(1, 222);
+    bg.flushSeenTimestampsNow();
+
+    expect(chrome.storage.session.set).toHaveBeenCalledWith({ 'utsSeen:1': 222 });
+    expect(chrome.storage.session.remove).not.toHaveBeenCalled();
+    expect(chrome.storage.session._store['utsSeen:1']).toBe(222);
+  });
+
   test('nothing is written when no stamp has moved', () => {
     const { bg, chrome } = loadBackground();
     bg.markTabSeen(1, 111);
@@ -329,6 +345,11 @@ describe('settings & storage', () => {
     expect(seen[6]).toBe(666); // the newer of the two wins
     expect(seen[7]).toBe(777);
     expect('utsSeen' in chrome.storage.session._store).toBe(false);
+    // Legacy values must land as per-tab keys before the whole-map key is
+    // dropped, or the next worker start would find neither copy.
+    expect(chrome.storage.session._store['utsSeen:5']).toBe(555);
+    expect(chrome.storage.session._store['utsSeen:6']).toBe(666);
+    expect(chrome.storage.session._store['utsSeen:7']).toBe(777);
   });
 
   test('loadLastActiveTabPerWindow restores the map from session', async () => {

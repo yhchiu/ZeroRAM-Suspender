@@ -455,6 +455,9 @@ function markTabSeen(tabId, timestamp = Date.now()) {
   if (typeof tabId !== 'number') return false;
   seenTimestamps[tabId] = timestamp;
   dirtySeenTabIds.add(tabId);
+  // Otherwise a remake in the same debounce window stays queued for removal
+  // and the flush deletes the stamp it just wrote.
+  removedSeenTabIds.delete(tabId);
   return true;
 }
 
@@ -991,10 +994,19 @@ async function restoreSeenTimestamps() {
   }
 
   // A worker from before the per-tab layout may have left the whole map under
-  // one key. Session storage rarely outlives an update, but reading it costs
-  // nothing and saves a session's worth of idle tracking when it does.
+  // one key. Those values are not under utsSeen:<id> yet, so the ones that
+  // win the merge go through markTabSeen and are flushed before the old key
+  // is dropped — otherwise the next worker start would find neither copy.
   if (stored.utsSeen && typeof stored.utsSeen === 'object') {
-    for (const [tabId, value] of Object.entries(stored.utsSeen)) merge(tabId, value);
+    for (const [tabId, value] of Object.entries(stored.utsSeen)) {
+      if (typeof value !== 'number') continue;
+      const id = Number(tabId);
+      if (!Number.isFinite(id)) continue;
+      if (!(id in seenTimestamps) || seenTimestamps[id] < value) {
+        markTabSeen(id, value);
+      }
+    }
+    flushSeenTimestampsNow();
     chrome.storage.session.remove('utsSeen');
   }
 }
