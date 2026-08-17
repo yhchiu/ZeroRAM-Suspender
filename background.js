@@ -1070,23 +1070,33 @@ async function initializeState() {
     if (lastFocusedWindowId === chrome.windows.WINDOW_ID_NONE) {
       lastFocusedWindowId = focusedWindow ? focusedWindow.id : chrome.windows.WINDOW_ID_NONE;
     }
+    // One query for every window's active tab: each result carries its own
+    // windowId, so asking window by window only bought extra round trips —
+    // twenty of them on a twenty-window session, on every worker start-up,
+    // each one scanning the browser's whole tab list again.
+    const activeTabByWindow = new Map();
+    for (const tab of await chrome.tabs.query({ active: true })) {
+      if (typeof tab.windowId === 'number' && !activeTabByWindow.has(tab.windowId)) {
+        activeTabByWindow.set(tab.windowId, tab);
+      }
+    }
+
     let needsSave = false;
     for (const window of windows) {
-      const activeTabs = await chrome.tabs.query({ windowId: window.id, active: true });
-      if (activeTabs.length > 0) {
-        const activeTab = activeTabs[0];
-        // Only seed if not already restored from session storage;
-        // overwriting would discard the persisted previous-tab identity.
-        if (!lastActiveTabPerWindow.has(window.id)) {
-          lastActiveTabPerWindow.set(window.id, {
-            tabId: activeTab.id,
-            timestamp: Date.now()
-          });
-          needsSave = true;
-        }
-        if (focusedWindow && focusedWindow.id === window.id) {
-          focusedWindowActiveTabId = activeTab.id;
-        }
+      const activeTab = activeTabByWindow.get(window.id);
+      if (!activeTab) continue;
+
+      // Only seed if not already restored from session storage;
+      // overwriting would discard the persisted previous-tab identity.
+      if (!lastActiveTabPerWindow.has(window.id)) {
+        lastActiveTabPerWindow.set(window.id, {
+          tabId: activeTab.id,
+          timestamp: Date.now()
+        });
+        needsSave = true;
+      }
+      if (focusedWindow && focusedWindow.id === window.id) {
+        focusedWindowActiveTabId = activeTab.id;
       }
     }
     // Persist once if anything was added or stale entries removed.
