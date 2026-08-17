@@ -65,6 +65,11 @@
   --card-shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 8px 20px -12px rgba(15, 23, 42, .18);
   /* Upward elevation for the sticky action bar (card shadow, inverted) */
   --action-bar-shadow: 0 -1px 2px rgba(15, 23, 42, .04), 0 -8px 20px -12px rgba(15, 23, 42, .12);
+
+  /* Scrollbar thumb; the track stays transparent so it picks up whatever
+     surface is scrolling (page, sidebar, preview box). */
+  --scrollbar-thumb: #CBD5E1;
+  --scrollbar-thumb-hover: #94A3B8;
 }
 
 /* Dark theme: applied via data-theme set by theme-boot.js (popup/options)
@@ -105,11 +110,45 @@
   --border-strong: #475569;
   --card-shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 24px -14px rgba(0, 0, 0, .65);
   --action-bar-shadow: 0 -1px 3px rgba(0, 0, 0, .3), 0 -10px 24px -14px rgba(0, 0, 0, .55);
+
+  --scrollbar-thumb: #475569;
+  --scrollbar-thumb-hover: #64748B;
 }
 
 body {
   margin: 0;
   font-family: var(--font-sans);
+}
+
+/* Themed scrollbars for every scroll container on the page (the options
+   sidebar and main pane, preview boxes, tab lists).
+   Styled with the -webkit- pseudo-elements rather than the standard
+   scrollbar-color/scrollbar-width: those only landed in Chrome 121 while
+   the manifest still supports Chrome 88, and declaring scrollbar-color
+   makes newer Chrome ignore these rules entirely. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+/* Transparent track and corner: the scrolling element's own background
+   shows through, so the scrollbar matches whichever surface it sits on. */
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  /* The transparent border plus padding-box clipping insets the thumb,
+     leaving a small gutter on both sides instead of a full-width bar. */
+  background-color: var(--scrollbar-thumb);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
 }
 button {
   padding: 6px 12px;
